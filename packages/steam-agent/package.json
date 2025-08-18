@@ -1,0 +1,29 @@
+{
+  "name": "@steam-bot/steam-agent",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "yarn@4.9.2",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "playwright test"
+  },
+  "dependencies": {
+    "@doctormckay/stdlib": "1.16.1",
+    "protobufjs": "^7.5.4",
+    "steam-totp": "^2.1.1",
+    "steam-user": "^4.29.3",
+    "steamcommunity": "^3.47.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.45.0",
+    "@types/node": "^22.5.4",
+    "typescript": "^5.9.2"
+  }
+}

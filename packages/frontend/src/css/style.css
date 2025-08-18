@@ -1,0 +1,1563 @@
+/*! normalize.css v3.0.1 | MIT License | git.io/normalize */
+html {
+  font-family: sans-serif;
+  -ms-text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  margin: 0;
+}
+article,
+aside,
+details,
+figcaption,
+figure,
+footer,
+header,
+hgroup,
+main,
+nav,
+section,
+summary {
+  display: block;
+}
+audio,
+canvas,
+progress,
+video {
+  display: inline-block;
+  vertical-align: baseline;
+}
+audio:not([controls]) {
+  display: none;
+  height: 0;
+}
+[hidden],
+template {
+  display: none;
+}
+a {
+  background: transparent;
+}
+a:active,
+a:hover {
+  outline: 0;
+}
+abbr[title] {
+  border-bottom: 1px dotted;
+}
+b,
+strong {
+  font-weight: bold;
+}
+dfn {
+  font-style: italic;
+}
+h1 {
+  font-size: 2em;
+  margin: 0.67em 0;
+}
+mark {
+  background: #ff0;
+  color: #000;
+}
+small {
+  font-size: 80%;
+}
+sub,
+sup {
+  font-size: 75%;
+  line-height: 0;
+  position: relative;
+  vertical-align: baseline;
+}
+sup {
+  top: -0.5em;
+}
+sub {
+  bottom: -0.25em;
+}
+img {
+  border: 0;
+}
+svg:not(:root) {
+  overflow: hidden;
+}
+figure {
+  margin: 1em 40px;
+}
+hr {
+  -moz-box-sizing: content-box;
+  box-sizing: content-box;
+  height: 0;
+}
+pre {
+  overflow: auto;
+}
+code,
+kbd,
+pre,
+samp {
+  font-family: monospace, monospace;
+  font-size: 1em;
+}
+button,
+input,
+optgroup,
+select,
+textarea {
+  color: inherit;
+  font: inherit;
+  margin: 0;
+}
+button {
+  overflow: visible;
+}
+button,
+select {
+  text-transform: none;
+}
+button,
+html input[type="button"] {
+  -webkit-appearance: button;
+  cursor: pointer;
+}
+button[disabled],
+html input[disabled] {
+  cursor: default;
+}
+button input::-moz-focus-inner {
+  border: 0;
+  padding: 0;
+}
+input {
+  line-height: normal;
+}
+input[type="reset"],
+input[type="submit"] {
+  -webkit-appearance: button;
+  cursor: pointer;
+}
+input[type="checkbox"],
+input[type="radio"] {
+  box-sizing: border-box;
+  padding: 0;
+}
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  height: auto;
+}
+input[type="search"] {
+  -webkit-appearance: textfield;
+  -moz-box-sizing: content-box;
+  -webkit-box-sizing: content-box;
+  box-sizing: content-box;
+}
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-decoration {
+  -webkit-appearance: none;
+}
+fieldset {
+  border: 1px solid #c0c0c0;
+  margin: 0 2px;
+  padding: 0.35em 0.625em 0.75em;
+}
+legend {
+  border: 0;
+  padding: 0;
+}
+textarea {
+  overflow: auto;
+}
+optgroup {
+  font-weight: bold;
+}
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+td,
+th {
+  padding: 0;
+}
+.no_scroll {
+  overflow: hidden !important;
+}
+.hide {
+  visibility: hidden !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  position: fixed !important;
+  left: -1185px;
+}
+.hidden {
+  visibility: hidden;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+html {
+  overflow: hidden;
+}
+.svg_button {
+  height: 10px;
+  widows: 10px;
+  padding-left: 4px;
+}
+.In-game {
+  color: #3ac53a;
+  fill: #3ac53a;
+  text-shadow: 0 0 1px #000;
+}
+.In-game img {
+  border: 1px solid #3ac53a;
+}
+.In-game .player_name {
+  color: #e3ffc2;
+}
+.Online,
+.Busy,
+.Away,
+.Snooze,
+.LookingToTrade,
+.LookingToPlay,
+.Max {
+  color: #4dafbf;
+  fill: #4dafbf;
+  text-shadow: 0 0 1px #000;
+}
+.Online img,
+.Busy img,
+.Away img,
+.Snooze img,
+.LookingToTrade img,
+.LookingToPlay img,
+.Max img {
+  border: 1px solid #4dafbf;
+}
+.Offline,
+.Invisible,
+.Deleted {
+  color: #898989;
+  fill: #898989;
+  text-shadow: 0 0 1px #000;
+}
+.Offline img,
+.Invisible img,
+.Deleted img {
+  border: 1px solid #898989;
+}
+.newFriend {
+  background: rgba(4, 249, 34, 0.26) !important;
+}
+.deleted {
+  background: rgba(255, 0, 118, 0.38) !important;
+}
+.steamImage {
+  max-width: 100%;
+}
+select {
+  color: #000;
+  height: 30px;
+  width: 90px;
+}
+h2 {
+  border-bottom: 1px solid;
+  padding-bottom: 10px;
+  color: #dcdcdc;
+  text-shadow: 0 0 3px #000;
+  font-weight: 300;
+}
+h2.flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+p {
+  margin-top: 5px;
+  color: #fff;
+}
+p.has_event {
+  cursor: pointer;
+}
+p.has_event:hover {
+  color: rgba(0, 159, 211, 0.71);
+}
+.grn {
+  color: #09ea09;
+}
+.red {
+  color: rgba(251, 55, 55, 0.87) !important;
+}
+.blue {
+  color: rgba(58, 206, 255, 0.71);
+}
+.chat_btn {
+  height: 46px;
+  width: 46px;
+  cursor: pointer;
+  color: #898989;
+  background-color: #2c3036;
+  border: 1px solid #000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.chat_btn.emotions {
+  margin-left: 8px;
+}
+.chat_btn svg {
+  width: 24px;
+  height: 24px;
+}
+.btn {
+  height: 40px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  color: #fff;
+  align-items: center;
+  background: #36d430;
+  border-radius: 3px;
+  border: 0;
+  cursor: pointer;
+  font-weight: 500;
+  text-shadow: 0 0 1px #000;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.btn.danger {
+  background-color: #d43030;
+}
+#unbind_licence {
+  margin-top: 15px;
+}
+.flat_btn {
+  background: 0 0;
+  border: none;
+  border-radius: 2px;
+  color: #fff;
+  position: relative;
+  min-height: 36px;
+  min-width: 64px;
+  padding: 0 16px;
+  display: inline-block;
+  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0;
+  overflow: hidden;
+  will-change: box-shadow;
+  transition: box-shadow 0.2s cubic-bezier(0.4, 0, 1, 1), background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  outline: none;
+  cursor: pointer;
+  text-decoration: none;
+  text-align: center;
+  vertical-align: middle;
+  letter-spacing: 1px;
+}
+.flat_btn.a {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.flat_btn:hover,
+.flat_btn.active {
+  background: #e0e0e0;
+  color: #0b0f14;
+}
+.flat_btn.danger {
+  color: rgba(255, 0, 0, 0.85);
+}
+.flat_btn.green {
+  color: #0bda0b;
+}
+input::placeholder {
+  color: rgba(255, 255, 255, 0.38);
+}
+input {
+  font-size: 16px;
+  font-family: "Helvetica", "Arial", sans-serif;
+  border: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.38);
+  padding: 5px;
+  background: 0 0;
+  color: #fff;
+  outline: none;
+  transition-duration: 0.2s;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+input::placeholder {
+  color: rgba(255, 255, 255, 0.38);
+}
+input:focus {
+  transition-duration: 0.2s;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  border-bottom: 1px solid #5c75ff;
+}
+input:focus::placeholder {
+  color: #5c75ff;
+}
+.input_row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #fff;
+}
+body {
+  font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif !important;
+}
+.header {
+  padding: 0 1.5%;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #171a21;
+  box-shadow: 0 0 23px #000;
+  position: relative;
+  z-index: 99;
+}
+.header_left {
+  display: flex;
+  align-items: center;
+}
+.header .right {
+  display: flex;
+  flex-direction: column;
+}
+.header .right p:hover {
+  border: 0 !important;
+  padding-bottom: 0 !important;
+}
+.header .header_item {
+  margin-right: 15px;
+}
+.header .header_item a,
+.header .header_item p {
+  font-weight: 500;
+  font-size: 13px;
+  text-transform: uppercase;
+  color: #b8b6b4;
+  text-decoration: none;
+  transition: 0.15s ease;
+  outline: none;
+}
+.header .header_item a.active,
+.header .header_item p.active,
+.header .header_item a:hover,
+.header .header_item p:hover {
+  border-bottom: 2px solid #36d430;
+  padding-bottom: 2px;
+}
+.header .header_item p {
+  margin: 0;
+}
+.console {
+  background: rgba(32, 45, 48, 0.88);
+  height: calc(100vh - 50px);
+}
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 9;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  margin-top: 50px;
+  overflow: auto;
+  background-color: #1b2838;
+  transition: 0.5s;
+}
+.modal#faqModal .modal_content {
+  width: 70%;
+  color: #fff;
+  text-shadow: 0 0 3px #000;
+  font-weight: 300;
+  line-height: 27px;
+}
+.modal#faqModal .modal_content h1 {
+  font-size: 24px;
+  text-align: center;
+  margin-bottom: 15px;
+  margin-top: 0;
+}
+.modal#faqModal .modal_content p {
+  font-size: 15px;
+  margin-bottom: 10px;
+  text-align: left;
+}
+.modal#faqModal .modal_content ul {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+.modal#faqModal .modal_content li {
+  list-style: none;
+}
+.modal#faqModal .modal_content .number {
+  font-weight: bold;
+  font-size: 18px;
+}
+.modal#faqModal .modal_content a {
+  color: #fff;
+  text-shadow: 0 0 3px #000;
+}
+.modal#faqModal .modal_content a:hover {
+  color: #dcdcdc;
+}
+.modal_content {
+  margin: 0 auto;
+  padding: 20px 20px 50px 20px;
+  width: 50%;
+}
+.modal_content.settings {
+  padding-bottom: 70px;
+}
+.modal_content.settings select {
+  width: 60%;
+}
+.modal_content.friends {
+  padding: 0 !important;
+  width: 100%;
+  margin: 17px 0;
+}
+.modal_content_header {
+  color: #fff;
+  text-shadow: 0 0 3px #000;
+  text-align: center;
+  font-size: 16px;
+  margin-bottom: 15px;
+  font-weight: 300;
+}
+.modal_content_layout {
+  display: flex;
+  flex-direction: column;
+}
+.modal_content_layout.friends {
+  flex-direction: row;
+  padding: 0 1.5% 50px 1.5%;
+}
+.modal_content_layout textarea {
+  background-color: #efebeb;
+  height: 340px;
+  resize: none;
+  margin-bottom: 15px;
+  font-size: 14px;
+  border: 0;
+  border-radius: 3px;
+  padding: 5px;
+  color: #000;
+}
+.modal_content_layout p {
+  font-size: 14px;
+  color: #fff;
+  text-align: center;
+}
+.modal_content_layout .input_row {
+  margin-bottom: 15px;
+}
+.modal_content_layout .buttons {
+  display: flex;
+  justify-content: space-between;
+}
+.modal_content_layout .buttons .btn:first-child {
+  margin-right: 15px;
+}
+.modal_content_layout.actions {
+  flex-direction: row;
+  justify-content: space-between;
+}
+.modal_content_layout_left {
+  width: 50%;
+}
+.modal_content_layout_right {
+  width: 40%;
+}
+.modal_content_layout_right .actions_buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: baseline;
+}
+.modal_content_layout_right .actions_buttons button {
+  margin-bottom: 5px;
+  width: 100%;
+}
+.settings_header {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 15px;
+}
+.settings_header_button {
+  display: flex;
+  justify-content: center;
+}
+.settings_layout {
+  padding-bottom: 65px;
+}
+.settings_layout span {
+  font-size: 14px;
+}
+.settings_layout textarea {
+  min-height: 60px;
+  height: 60px;
+  width: 70%;
+  resize: vertical;
+}
+.spam_all_states {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+.spam_all_states .spam_online_state,
+.spam_all_states #send_spammed_users,
+.spam_all_states .pin_by_status_state {
+  margin-left: 5px;
+}
+.friendsArea {
+  width: 20%;
+}
+.row {
+  margin-top: 11px;
+}
+.row_header {
+  height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #fff;
+  font-size: 15px;
+  background: rgba(128, 128, 128, 0.1);
+  cursor: pointer;
+  border-radius: 2px;
+  text-shadow: 0 0 3px #000;
+  word-break: break-all;
+  position: relative;
+  text-align: center;
+}
+.row_header.locked {
+  box-shadow: 0 0 30px red;
+}
+.row_user {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2px 2%;
+  background: rgba(183, 176, 176, 0.15);
+  margin-top: 11px;
+  font-size: 14px;
+  font-weight: 300;
+  border-radius: 2px;
+  position: relative;
+  cursor: pointer;
+  word-break: break-all;
+}
+.row_user.new {
+  background: #a02f33 !important;
+}
+.row_user.deleted_friend {
+  background: darkmagenta !important;
+}
+.row_user_item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.row_user img {
+  height: 37px;
+  width: 37px;
+  border-radius: 50%;
+}
+.message_counter {
+  font-size: 12px;
+  height: 18px;
+  min-width: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ff4040;
+  border-radius: 50%;
+  position: absolute;
+  right: -9px;
+  top: -7px;
+  color: #fff;
+  text-shadow: 0 0 3px #000;
+  padding: 2px;
+}
+.code {
+  position: fixed;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  display: flex;
+}
+.code #codeInput {
+  height: 30px;
+  padding-left: 10px;
+}
+.code #codeSend {
+  height: 41px;
+  border: 0;
+  margin: 0 10px;
+}
+.code #skipAccount {
+  height: 41px;
+}
+#terminal {
+  padding: 10px;
+  font-size: 14px;
+  overflow-x: auto;
+}
+.actions_accounts_row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #fff;
+  font-size: 14px;
+  text-shadow: 0 0 3px #000;
+  margin-top: 12px;
+}
+.friends_display_settings {
+  display: flex;
+  flex-direction: column;
+  font-size: 16px;
+  color: #fff;
+  font-weight: 300;
+  padding: 0 1.5%;
+}
+.friends_display_settings_container {
+  display: flex;
+  align-items: flex-end;
+  margin-bottom: 10px;
+}
+.friends_display_settings_container_row {
+  display: flex;
+}
+.friends_display_settings_container_row.first {
+  margin-left: 10px;
+}
+.friends_display_settings_item {
+  margin-right: 10px;
+}
+.chatArea {
+  margin: 11px 0 0 20px;
+  width: 74%;
+}
+.chatArea .chat {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: inherit;
+  height: calc(100vh - 217px);
+  background: #171a21;
+  box-shadow: 0 0 8px #000000;
+  border-radius: 4px;
+  position: fixed;
+  padding: 12px;
+}
+.chatArea .chat.scrolled {
+  height: calc(100vh - 100px);
+  top: 60px;
+}
+.chatArea .chat_header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.chatArea .chat_header_left {
+  display: flex;
+  align-items: center;
+}
+.chatArea .chat_header_left_item {
+  margin-left: 10px;
+}
+.chatArea .chat_header_right {
+  display: flex;
+  align-items: center;
+  color: #fff;
+}
+.chatArea .chat_header_right .close_chat {
+  font-size: 25px;
+  color: #fff;
+  margin-left: 10px;
+  cursor: pointer;
+}
+.chatArea .chat_body {
+  overflow: auto;
+  color: rgba(226, 216, 216, 0.78);
+  font-size: 15px;
+  flex: 1;
+  word-wrap: break-word;
+  padding-right: 20px;
+  padding-bottom: 5px;
+}
+.chatArea .chat_body p {
+  margin: 5px 0;
+  text-align: left;
+}
+.chatArea .chat_footer_up {
+  display: flex;
+}
+.chatArea .chat_footer_up textarea {
+  width: 100%;
+  border: 1px solid #000;
+  color: #fff;
+  padding-left: 5px;
+  background: #28282c;
+  resize: none;
+  height: 34px;
+  margin-bottom: 0;
+  outline: none;
+}
+.chatArea .chat_footer_up .btn {
+  width: 21.5%;
+}
+.chatArea .chat_footer_type {
+  height: 18px;
+  color: #fff;
+  font-size: 12px;
+  display: none;
+}
+.chatArea .chat_footer_down {
+  display: flex;
+  flex-wrap: wrap;
+  max-height: 156px;
+  overflow-x: auto;
+}
+.chatArea .chat_footer_down .btn {
+  width: auto;
+  height: auto;
+  margin-right: 10px;
+  margin-top: 5px;
+}
+.user_actions_list,
+.header_content_menu {
+  position: absolute;
+  background-color: #434953;
+  display: flex;
+  flex-direction: column;
+  z-index: 1111111;
+  flex-wrap: wrap;
+}
+.user_actions_list button,
+.header_content_menu button {
+  background: #434953;
+}
+.swal-content__input {
+  color: #000 !important;
+}
+.invites_block {
+  margin-top: 5px;
+}
+.invites_block_header {
+  color: #fff;
+  background-color: #015e80;
+  height: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 3px;
+}
+.invites_block .invite {
+  display: flex;
+  align-items: center;
+  margin-top: 5px;
+  background: rgba(29, 31, 36, 0.8);
+  padding: 8px;
+  height: 55px;
+}
+.invites_block .invite_avatar {
+  color: #fff;
+  display: flex;
+  align-items: center;
+  flex-grow: 1;
+}
+.invites_block .invite_name {
+  margin-left: 20px;
+  font-weight: bold;
+  font-size: 15px;
+  height: 22px;
+}
+#sent_invites {
+  padding-bottom: 70px;
+}
+#wall_spam_message,
+#invite_friends_blacklist {
+  height: 100px;
+}
+#licence_html,
+#licence_body {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #092c3a;
+}
+.licence_block {
+  width: 30%;
+  display: flex;
+  flex-direction: column;
+  height: 180px;
+  justify-content: space-between;
+}
+#chat_avatar_user_actions_list {
+  cursor: pointer;
+}
+.my_account {
+  color: #d7f930;
+  cursor: pointer;
+}
+.rent_end {
+  color: red;
+}
+.SVGIcon_MobilePhone {
+  height: 20px;
+  width: 20px;
+}
+.player_name {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: 400;
+}
+.nickname {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+#accounts_groups_select,
+#actions_choose_account_groups {
+  width: 100%;
+  margin-bottom: 15px;
+}
+#actions_choose_account_groups {
+  margin-bottom: 10px;
+}
+.profile_settings_area {
+  height: 57px !important;
+  width: 60%;
+}
+.open_chat {
+  box-shadow: 0 0 30px yellow;
+}
+.invites_count {
+  margin-left: 5px;
+}
+.muted {
+  position: absolute;
+  left: 0;
+  top: -10px;
+}
+.muted img {
+  height: 20px;
+  width: 20px;
+}
+.prices {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-right: 10px;
+}
+.prices .price_block {
+  display: flex;
+  align-items: center;
+  margin-left: 5px;
+  position: relative;
+}
+.prices .price_text {
+  margin-left: 5px;
+}
+.prices img {
+  border: 0;
+}
+.groups_size {
+  color: rgba(145, 194, 87, 0.5);
+  font-size: 12px;
+  font-weight: 400;
+}
+.groups_size_count {
+  font-size: 16px;
+  color: #91c257;
+  margin-right: 7px;
+}
+.template_typing {
+  height: 18px;
+  color: #fff;
+  font-weight: 300;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+}
+.typing_template {
+  color: #fff;
+  text-shadow: 0 0 3px #000;
+  font-size: 12px;
+  height: 14px;
+}
+.statistic {
+  list-style: none;
+  padding-left: 25px;
+}
+.msg_time_division {
+  height: 18px;
+  font-size: 10px;
+  color: #6d7586;
+  margin: 6px 0;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+.msg_time_division .time_division {
+  margin: 0 10px;
+}
+.msg_time_division .line {
+  height: 1px;
+  background-color: #6d7586;
+}
+.msg_time_division .line:first-child {
+  width: 20%;
+}
+.msg_time_division .line:last-child {
+  flex-grow: 1;
+}
+.chat_message {
+  word-break: break-all;
+  line-height: 18px;
+}
+.message_time {
+  color: #8e8b8b;
+  font: 0.7em 'Open Sans', "Lucida Grande", "Lucida Sans Unicode", Arial, Helvetica, Verdana, sans-serif;
+  margin-left: 6px;
+}
+.stop_typing {
+  color: rgba(255, 0, 0, 0.85);
+  cursor: pointer;
+  margin-left: 10px;
+}
+.user_info {
+  display: flex;
+  align-items: center;
+  margin: 0 5px;
+}
+.user_info img {
+  border: 0;
+}
+.trade_hold p {
+  margin: 0;
+  color: #ffe100;
+}
+.friendPlayerLevel {
+  display: inline-block;
+  font-size: 16px;
+  border-radius: 16px;
+  border: solid white 2px;
+  height: 28px;
+  width: 28px;
+  line-height: 28px;
+  text-align: center;
+  margin-left: 5px;
+  margin-right: 10px;
+  cursor: default;
+}
+.friendPlayerLevel .friendPlayerLevelNum {
+  color: #e5e5e5;
+}
+.friendPlayerLevel.lvl_0 {
+  border-color: #9b9b9b;
+}
+.friendPlayerLevel.lvl_10 {
+  border-color: #c02942;
+}
+.friendPlayerLevel.lvl_20 {
+  border-color: #d95b43;
+}
+.friendPlayerLevel.lvl_30 {
+  border-color: #fecc23;
+}
+.friendPlayerLevel.lvl_40 {
+  border-color: #467a3c;
+}
+.friendPlayerLevel.lvl_50 {
+  border-color: #4e8ddb;
+}
+.friendPlayerLevel.lvl_60 {
+  border-color: #7652c9;
+}
+.friendPlayerLevel.lvl_70 {
+  border-color: #c252c9;
+}
+.friendPlayerLevel.lvl_80 {
+  border-color: #542437;
+}
+.friendPlayerLevel.lvl_90 {
+  border-color: #997c52;
+}
+.friendPlayerLevel.lvl_100,
+.friendPlayerLevel.lvl_200,
+.friendPlayerLevel.lvl_300,
+.friendPlayerLevel.lvl_400,
+.friendPlayerLevel.lvl_500,
+.friendPlayerLevel.lvl_600,
+.friendPlayerLevel.lvl_700,
+.friendPlayerLevel.lvl_800,
+.friendPlayerLevel.lvl_900,
+.friendPlayerLevel.lvl_1000,
+.friendPlayerLevel.lvl_1100,
+.friendPlayerLevel.lvl_1200,
+.friendPlayerLevel.lvl_1300,
+.friendPlayerLevel.lvl_1400,
+.friendPlayerLevel.lvl_1500,
+.friendPlayerLevel.lvl_1600,
+.friendPlayerLevel.lvl_1700,
+.friendPlayerLevel.lvl_1800,
+.friendPlayerLevel.lvl_1900,
+.friendPlayerLevel.lvl_2000,
+.friendPlayerLevel.lvl_2100,
+.friendPlayerLevel.lvl_2200,
+.friendPlayerLevel.lvl_2300,
+.friendPlayerLevel.lvl_2400,
+.friendPlayerLevel.lvl_2500,
+.friendPlayerLevel.lvl_2600,
+.friendPlayerLevel.lvl_2700,
+.friendPlayerLevel.lvl_2800,
+.friendPlayerLevel.lvl_2900,
+.friendPlayerLevel.lvl_3000,
+.friendPlayerLevel.lvl_3100,
+.friendPlayerLevel.lvl_3200,
+.friendPlayerLevel.lvl_3300,
+.friendPlayerLevel.lvl_3400,
+.friendPlayerLevel.lvl_3500,
+.friendPlayerLevel.lvl_3600,
+.friendPlayerLevel.lvl_3700,
+.friendPlayerLevel.lvl_3800,
+.friendPlayerLevel.lvl_3900,
+.friendPlayerLevel.lvl_4000,
+.friendPlayerLevel.lvl_4100,
+.friendPlayerLevel.lvl_4200,
+.friendPlayerLevel.lvl_4300,
+.friendPlayerLevel.lvl_4400,
+.friendPlayerLevel.lvl_4500,
+.friendPlayerLevel.lvl_4600,
+.friendPlayerLevel.lvl_4700,
+.friendPlayerLevel.lvl_4800,
+.friendPlayerLevel.lvl_4900,
+.friendPlayerLevel.lvl_5000 {
+  border: none;
+  border-radius: 0;
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  font-size: 14px;
+  height: 32px;
+  width: 32px;
+  line-height: 32px;
+  text-shadow: 1px 1px #1a1a1a;
+}
+.friendPlayerLevel.lvl_100 {
+  background-image: url('https://steamcommunity-a.akamaihd.net/public/shared/images/community/levels_hexagons.png');
+}
+.friendPlayerLevel.lvl_200 {
+  background-image: url('https://steamcommunity-a.akamaihd.net/public/shared/images/community/levels_shields.png');
+}
+.friendPlayerLevel.lvl_300 {
+  background-image: url('https://steamcommunity-a.akamaihd.net/public/shared/images/community/levels_books.png');
+}
+.friendPlayerLevel.lvl_400 {
+  background-image: url('https://steamcommunity-a.akamaihd.net/public/shared/images/community/levels_chevrons.png');
+}
+.friendPlayerLevel.lvl_500 {
+  background-image: url('https://steamcommunity-a.akamaihd.net/public/shared/images/community/levels_circle2.png');
+}
+.friendPlayerLevel.lvl_600 {
+  background-image: url('https://steamcommunity-a.akamaihd.net/public/shared/images/community/levels_angle.png');
+}
+.friendPlayerLevel.lvl_700 {
+  background-image: url('https://steamcommunity-a.akamaihd.net/public/shared/images/community/levels_flag.png');
+}
+.friendPlayerLevel.lvl_800 {
+  background-image: url('https://steamcommunity-a.akamaihd.net/public/shared/images/community/levels_wings.png');
+}
+.friendPlayerLevel.lvl_900 {
+  background-image: url('https://steamcommunity-a.akamaihd.net/public/shared/images/community/levels_arrows.png');
+}
+.friendPlayerLevel.lvl_1000 {
+  background-image: url('https://steamcommunity-a.akamaihd.net/public/shared/images/community/levels_crystals.png');
+}
+.friendPlayerLevel.lvl_1100 {
+  background-image: url('https://steamcommunity-a.akamaihd.net/public/shared/images/community/levels_space.png');
+}
+.friendPlayerLevel.lvl_1200 {
+  background-image: url('https://steamcommunity-a.akamaihd.net/public/shared/images/community/levels_waterelement.png');
+}
+.friendPlayerLevel.lvl_1300 {
+  background-image: url('https://steamcommunity-a.akamaihd.net/public/shared/images/community/levels_fireelement.png');
+}
+.friendPlayerLevel.lvl_1400 {
+  background-image: url('https://steamcommunity-a.akamaihd.net/public/shared/images/community/levels_earthelement.png');
+}
+.friendPlayerLevel.lvl_1500 {
+  background-image: url('https://steamcommunity-a.akamaihd.net/public/shared/images/community/levels_airelement_1-2.png');
+}
+.friendPlayerLevel.lvl_1600 {
+  background-image: url('https://steamcommunity-a.akamaihd.net/public/shared/images/community/levels_airelement_3-4.png');
+}
+.friendPlayerLevel.lvl_1700 {
+  background-image: url('https://steamcommunity-a.akamaihd.net/public/shared/images/community/levels_airelement_5-6.png');
+}
+.friendPlayerLevel.lvl_1800 {
+  background-image: url('https://steamcommunity-a.akamaihd.net/public/shared/images/community/levels_airelement_7-8.png');
+}
+.friendPlayerLevel.lvl_1900 {
+  background-image: url('https://steamcommunity-a.akamaihd.net/public/shared/images/community/levels_airelement_9-10.png');
+}
+.friendPlayerLevel.lvl_2000 {
+  background-image: url('https://steamcommunity-a.akamaihd.net/public/shared/images/community/levels_geo_1-2.png?v=2');
+}
+.friendPlayerLevel.lvl_2100 {
+  background-image: url('https://steamcommunity-a.akamaihd.net/public/shared/images/community/levels_geo_3-4.png?v=2');
+}
+.friendPlayerLevel.lvl_2200 {
+  background-image: url('https://steamcommunity-a.akamaihd.net/public/shared/images/community/levels_geo_5-6.png?v=2');
+}
+.friendPlayerLevel.lvl_2300 {
+  background-image: url('https://steamcommunity-a.akamaihd.net/public/shared/images/community/levels_geo_7-8.png?v=2');
+}
+.friendPlayerLevel.lvl_2400 {
+  background-image: url('https://steamcommunity-a.akamaihd.net/public/shared/images/community/levels_geo_9-10.png?v=2');
+}
+.friendPlayerLevel.lvl_2500 {
+  background-image: url('https://steamcommunity-a.akamaihd.net/public/shared/images/community/levels_mandala_1-2.png?v=2');
+}
+.friendPlayerLevel.lvl_2600 {
+  background-image: url('https://steamcommunity-a.akamaihd.net/public/shared/images/community/levels_mandala_3-4.png?v=2');
+}
+.friendPlayerLevel.lvl_2700 {
+  background-image: url('https://steamcommunity-a.akamaihd.net/public/shared/images/community/levels_mandala_5-6.png?v=2');
+}
+.friendPlayerLevel.lvl_2800 {
+  background-image: url('https://steamcommunity-a.akamaihd.net/public/shared/images/community/levels_mandala_7-8.png?v=2');
+}
+.friendPlayerLevel.lvl_2900 {
+  background-image: url('https://steamcommunity-a.akamaihd.net/public/shared/images/community/levels_mandala_9-10.png?v=2');
+}
+.friendPlayerLevel.lvl_3000 {
+  background-image: url('https://steamcommunity-a.akamaihd.net/public/shared/images/community/levels_spiro_1-2.png?v=2');
+}
+.friendPlayerLevel.lvl_3100 {
+  background-image: url('https://steamcommunity-a.akamaihd.net/public/shared/images/community/levels_spiro_3-4.png?v=2');
+}
+.friendPlayerLevel.lvl_3200 {
+  background-image: url('https://steamcommunity-a.akamaihd.net/public/shared/images/community/levels_spiro_5-6.png?v=2');
+}
+.friendPlayerLevel.lvl_3300 {
+  background-image: url('https://steamcommunity-a.akamaihd.net/public/shared/images/community/levels_spiro_7-8.png?v=2');
+}
+.friendPlayerLevel.lvl_3400 {
+  background-image: url('https://steamcommunity-a.akamaihd.net/public/shared/images/community/levels_spiro_9-10.png?v=2');
+}
+.friendPlayerLevel.lvl_3500 {
+  background-image: url('https://steamcommunity-a.akamaihd.net/public/shared/images/community/levels_patterns_1-2.png?v=2');
+}
+.friendPlayerLevel.lvl_3600 {
+  background-image: url('https://steamcommunity-a.akamaihd.net/public/shared/images/community/levels_patterns_3-4.png?v=2');
+}
+.friendPlayerLevel.lvl_3700 {
+  background-image: url('https://steamcommunity-a.akamaihd.net/public/shared/images/community/levels_patterns_5-6.png?v=2');
+}
+.friendPlayerLevel.lvl_3800 {
+  background-image: url('https://steamcommunity-a.akamaihd.net/public/shared/images/community/levels_patterns_7-8.png?v=2');
+}
+.friendPlayerLevel.lvl_3900 {
+  background-image: url('https://steamcommunity-a.akamaihd.net/public/shared/images/community/levels_patterns_9-10.png?v=2');
+}
+.friendPlayerLevel.lvl_4000 {
+  background-image: url('https://steamcommunity-a.akamaihd.net/public/shared/images/community/levels_shapes_1.png?v=2');
+}
+.friendPlayerLevel.lvl_4100 {
+  background-image: url('https://steamcommunity-a.akamaihd.net/public/shared/images/community/levels_shapes_2.png?v=2');
+}
+.friendPlayerLevel.lvl_4200 {
+  background-image: url('https://steamcommunity-a.akamaihd.net/public/shared/images/community/levels_shapes_3.png?v=2');
+}
+.friendPlayerLevel.lvl_4300 {
+  background-image: url('https://steamcommunity-a.akamaihd.net/public/shared/images/community/levels_shapes_4.png?v=2');
+}
+.friendPlayerLevel.lvl_4400 {
+  background-image: url('https://steamcommunity-a.akamaihd.net/public/shared/images/community/levels_shapes_5.png?v=2');
+}
+.friendPlayerLevel.lvl_4500 {
+  background-image: url('https://steamcommunity-a.akamaihd.net/public/shared/images/community/levels_grunge_1.png?v=2');
+}
+.friendPlayerLevel.lvl_4600 {
+  background-image: url('https://steamcommunity-a.akamaihd.net/public/shared/images/community/levels_grunge_2.png?v=2');
+}
+.friendPlayerLevel.lvl_4700 {
+  background-image: url('https://steamcommunity-a.akamaihd.net/public/shared/images/community/levels_grunge_3.png?v=2');
+}
+.friendPlayerLevel.lvl_4800 {
+  background-image: url('https://steamcommunity-a.akamaihd.net/public/shared/images/community/levels_grunge_4.png?v=2');
+}
+.friendPlayerLevel.lvl_4900 {
+  background-image: url('https://steamcommunity-a.akamaihd.net/public/shared/images/community/levels_grunge_5.png?v=2');
+}
+.friendPlayerLevel.lvl_plus_10 {
+  background-position: 0 -32px;
+}
+.friendPlayerLevel.lvl_plus_20 {
+  background-position: 0 -64px;
+}
+.friendPlayerLevel.lvl_plus_30 {
+  background-position: 0 -96px;
+}
+.friendPlayerLevel.lvl_plus_40 {
+  background-position: 0 -128px;
+}
+.friendPlayerLevel.lvl_plus_50 {
+  background-position: 0 -160px;
+}
+.friendPlayerLevel.lvl_plus_60 {
+  background-position: 0 -192px;
+}
+.friendPlayerLevel.lvl_plus_70 {
+  background-position: 0 -224px;
+}
+.friendPlayerLevel.lvl_plus_80 {
+  background-position: 0 -256px;
+}
+.friendPlayerLevel.lvl_plus_90 {
+  background-position: 0 -288px;
+}
+.chat_nicknames {
+  display: flex;
+  flex-direction: column;
+  align-items: left;
+}
+.message {
+  margin-top: 12px;
+  line-height: 18px;
+}
+.message p {
+  margin: 0 !important;
+  padding: 1.5px 0;
+  line-height: 20px;
+  color: rgba(255, 255, 255, 0.89);
+}
+.message p.my_message {
+  color: #a7abb1;
+}
+.message .message_time {
+  font-size: 10px;
+}
+.chat_image_upload {
+  position: absolute;
+  bottom: 70px;
+  left: 16px;
+  min-width: 200px;
+  max-width: 260px;
+  background: #2c3036;
+  padding: 8px;
+  border-radius: 4px;
+  box-shadow: 0 10px 32px 0px #000000;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.chat_image_upload_cancel {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  cursor: pointer;
+  border-radius: 3px;
+  background-color: rgba(67, 73, 83, 0.9);
+  padding: 4px;
+  width: 16px;
+  height: 16px;
+  vertical-align: middle;
+  box-shadow: 0 0 4px 1px #00000088;
+}
+.chat_image_upload_cancel svg {
+  fill: #ffffff;
+  overflow: visible;
+  width: 100%;
+  height: 100%;
+  max-width: 320px;
+  max-height: 320px;
+}
+.chat_image_upload img {
+  border-radius: 4px;
+  box-shadow: 0 0 4px 1px #000000;
+  margin: 0 auto;
+  max-height: 200px;
+  max-width: 250px;
+}
+#image_upload {
+  background: linear-gradient(to right, #47bfff 0%, #1a44c2 60%);
+  background-position: 25%;
+  background-size: 330% 100%;
+  line-height: 32px;
+  color: #dfe3e6;
+  font-size: 14px;
+  text-align: center;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: 0.1s all;
+  width: 100%;
+  transition: all 0.2s ease-out;
+  position: relative;
+  border: 0;
+  margin-top: 10px;
+}
+.yellow {
+  color: #ffce07;
+}
+.emotion_area {
+  position: absolute;
+  bottom: 70px;
+  right: 16px;
+  min-height: 30px;
+  max-height: 200px;
+  max-width: 260px;
+  background: #2c3036;
+  padding: 8px;
+  border-radius: 4px;
+  box-shadow: 0 10px 32px 0px #000000;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  overflow-y: auto;
+}
+.emotion_area img {
+  height: 25px;
+  margin-left: 5px;
+  cursor: pointer;
+  margin: 5px 0 5px 5px;
+}
+#volume {
+  padding: 1px 0;
+}
+#friends_add_comment {
+  height: 80px;
+  width: 50%;
+}
+.friends_limit_area p {
+  color: #000;
+  margin: 2px;
+}
+.hold_price {
+  font-size: 13px;
+  color: #e2102c;
+  text-align: left;
+  font-weight: bold;
+  position: absolute;
+  top: -6px;
+  left: 38px;
+}
+.user_id_area {
+  display: flex;
+}
+#user_id {
+  width: 125px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  cursor: pointer;
+}
+.lastMessages {
+  display: flex;
+  flex-direction: column;
+}
+#friends_choose_account_groups {
+  margin-bottom: 0;
+  min-width: 150px;
+  max-width: 100%;
+}
+/* Tooltip container */
+.tooltip {
+  position: relative;
+  display: inline-block;
+  border-bottom: 1px dotted black;
+  /* If you want dots under the hoverable text */
+}
+/* Tooltip text */
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 250px;
+  background-color: #555;
+  color: #fff;
+  text-align: center;
+  padding: 10px;
+  border-radius: 6px;
+  /* Position the tooltip text */
+  position: absolute;
+  z-index: 1;
+  top: 135%;
+  left: 50%;
+  margin-left: -134px;
+  /* Fade in tooltip */
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+/* Tooltip arrow */
+.tooltip .tooltiptext::after {
+  content: "";
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent transparent #555 transparent;
+}
+/* Show the tooltip text when you mouse over the tooltip container */
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+  opacity: 1;
+}
+label {
+  cursor: help;
+}
+.expensive_item {
+  display: flex;
+  flex-direction: column;
+  margin-top: 15px;
+}
+.expensive_item img {
+  max-width: 100%;
+}
+.hours_info {
+  display: flex;
+  flex-direction: column;
+}
+#inoSearcherLink {
+  color: #fff;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.full_inventory_body {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  grid-auto-rows: max-content;
+  gap: 15px;
+  position: relative;
+  overflow: auto;
+  max-height: 500px;
+  margin-top: 30px;
+  padding-bottom: 20px;
+}
+.inventoryItem {
+  font-size: 14px;
+}
+.inventoryItemImage {
+  margin-bottom: 5px;
+}
+.inventoryItemNonTradable {
+  position: absolute;
+  color: red;
+}

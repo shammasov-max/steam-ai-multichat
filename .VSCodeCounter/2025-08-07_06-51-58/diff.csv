@@ -1,0 +1,8 @@
+"filename", "language", "TypeScript", "comment", "blank", "total"
+"x:\steam-bot\src\legacy\components\changePassword.ts", "TypeScript", 0, 0, 2, 2
+"x:\steam-bot\src\legacy\components\licence.ts", "TypeScript", -128, 0, -2, -130
+"x:\steam-bot\src\legacy\components\rsa.ts", "TypeScript", 0, 1, 0, 1
+"x:\steam-bot\src\legacy\constants\common.ts", "TypeScript", 2, 0, 0, 2
+"x:\steam-bot\src\legacy\main.ts", "TypeScript", -377, 0, -2, -379
+"x:\steam-bot\src\legacy\steam.ts", "TypeScript", -302, 0, -2, -304
+"Total", "-", -805, 1, -4, -808

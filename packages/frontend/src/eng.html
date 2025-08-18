@@ -1,0 +1,1323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Ino Multichat</title>
+  <link rel="stylesheet" href="./css/style.css">
+  <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Roboto:300,400,500,700" type="text/css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  <style id="my_style"></style>
+</head>
+<body>
+  <div class="header">
+  <div class="header_left">
+    <div class="header_item">
+        <a id="console" class="header_button" href="#" tabindex="-1">Console</a>
+      </div>
+      <div class="header_item">
+        <a id="accountsLoad" class="active header_button" href="#" tabindex="-1">Import accounts</a>
+      </div>
+      <div class="header_item">
+        <a id="proxyLoad" class="header_button" href="#" tabindex="-1">Import proxy</a>
+      </div>
+      <div class="header_item">
+        <a id="friends" class="header_button" href="#" tabindex="-1">Friends</a>
+      </div>
+      <div class="header_item">
+          <a id="settings" class="header_button" href="#" tabindex="-1">Settings</a>
+        </div>
+      <div class="header_item">
+        <a id="actions" class="header_button" href="#" tabindex="-1">Actions</a>
+      </div>
+      <div class="header_item">
+        <a id="faq" class="header_button" href="#" tabindex="-1">FAQ</a>
+      </div>
+      <div class="header_item">
+        <a id="scroll_up" class="header_button" href="#" tabindex="-1">Up</a>
+      </div>
+      <div class="header_item">
+        <a id="scroll_down" class="header_button" href="#" tabindex="-1">Down</a>
+      </div>
+      <div class="header_item">
+        <div class="tooltip">
+          <a class="active header_button" href="#" tabindex="-1" id="onlineStats">Online stats</a>
+          <div class="tooltiptext" id="onlineStatisticContainer">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="header_item right">
+      <div class="user_id_area">
+        <p>ID:</p> 
+        <p id="user_id"></p>
+      </div>
+      <p>Rent'll end <a href="#" id="end_rent" tabindex="-1"></a></p>
+    </div>
+  </div>
+  <div id="terminal" class="console">
+    <div class="code hide">
+      <input tabindex="-1" placeholder="Steam Guard Code" type="text" id="codeInput">
+      <button tabindex="-1" class="flat_btn" id='codeSend'>Send Code</button>
+      <button tabindex="-1" class="flat_btn" id='skip_account'>Skip account</button>
+    </div>
+  </div>
+
+  <div style="display: block;" class="modal" id='accountsLoadModal'>
+      <div class="modal_content">
+        <div class="modal_content_header">
+          Enter Accounts
+        </div>
+        <div class="modal_content_layout">
+          <div class="input_row">
+            Manage account groups
+            <button tabindex="-1" id="accounts_group" class="flat_btn">Manage groups</button>
+          </div>
+          <select tabindex="-1" id="accounts_groups_select">
+            <option selected value="null">Select group</option>
+          </select>
+          <div class="input_row hide">
+            <label for="dont_remember_machine" title="Don't use SSFN files for auth">Don't remember machine</label>
+            <input tabindex="-1" type="checkbox" id="dont_remember_machine">
+          </div>
+          <div class="input_row">
+            <label for="fast_auth" title="Auth multiply accounts at the same time">Fast auth</label>
+            <input tabindex="-1" type="checkbox" id="fast_auth">
+          </div>
+          <div class="input_row">
+            <label for="auto_remove_locked_accounts" title="Auto remove accounts with lifetime ban">Auto remove locked accounts</label>
+            <input tabindex="-1" type="checkbox" id="auto_remove_locked_accounts">
+          </div>
+          <div class="input_row">
+            <label for="auto_remove_limited_accounts" title="Auto remove accounts with 5$ limit. That accounts can't add friends">Auto remove limited accounts</label>
+            <input tabindex="-1" type="checkbox" id="auto_remove_limited_accounts">
+          </div>
+          <div class="input_row hide">
+            <label for="connection_procol" title="Stable connection to steam servers depends of this setting. More in FAQ.">Connection method</label>
+            <select id="connection_procol">
+              <option value="0">Auto</option>
+              <option value="1">Method 1</option>
+              <option value="2">Method 2</option>
+            </select>
+          </div>
+          <div style="display: none;" class="input_row">
+            Use saved data
+            <input tabindex="-1" type="checkbox" id="use_saved_data">
+          </div>
+          <textarea tabindex="-1" id="accountsLoadArea"></textarea>
+          <div class="buttons">
+            <button tabindex="-1" id="import_accounts" class="btn">Import</button>
+            <button tabindex="-1" id="login_accounts" class="btn">Login</button>
+          </div>
+        </div>
+      </div>
+  </div>
+
+  <div class="modal" id='proxyLoadModal'>
+      <div class="modal_content">
+        <div class="modal_content_header">
+          Enter proxy
+        </div>
+        <div class="modal_content_layout">
+          <textarea tabindex="-1" id="proxyLoadArea"></textarea>
+          <button tabindex="-1" id="import_proxy" class="btn">Import</button>
+        </div>
+      </div>
+  </div>
+
+  <div class="modal" id='inviterModal'>
+      <div class="modal_content friendinviter">
+        <div class="modal_content_header">
+          Friends Inviter
+        </div>
+        <div class="modal_content_layout">
+          <div class="input_row">
+            <span>Delete Duplicates</span>
+            <input tabindex="-1" id="delete_duplicates" type="checkbox">
+          </div>
+          <div class="input_row">
+            <span>Use Blacklist</span>
+            <input tabindex="-1" id="use_invite_blacklist" type="checkbox">
+          </div>
+          <div class="input_row">
+            <span>Enter invite time</span>
+            <input tabindex="-1" placeholder="19:45" id="invite_time" type="text">
+          </div>
+          <div class="input_row">
+            <button tabindex="-1" class="flat_btn danger" id="invite_time_off">Stop invite</button>
+          </div>
+          <div class="input_row">
+            <span>Enter reinvite hours ( 0 - for disable )</span>
+            <input tabindex="-1" placeholder="0" value="0" id="reinvite_time" type="text">
+          </div>
+          <div class="input_row">
+            <button tabindex="-1" class="flat_btn danger" id="reinvite_time_off">Stop reinvite</button>
+          </div>
+          <div class="input_row">
+            <span>Enter invite count</span>
+            <input tabindex="-1" placeholder="30" value="30" id="invite_count" type="text">
+          </div>
+          <div class="input_row">
+            <span>Enter invite timeout (sec)</span>
+            <input tabindex="-1" placeholder="3" value="3" id="invite_timeout" type="text">
+          </div>
+          <div class="input_row">
+            <span>Profile comment</span>
+            <textarea tabindex="-1" id="friends_add_comment"></textarea>
+          </div>
+          <div class="input_row">
+            <button tabindex="-1" id="check_friends_limit" class="flat_btn">Check Friends limit</button>
+            <button tabindex="-1" id="accept_all_invites" class="flat_btn">Accept all invites</button>
+            <button tabindex="-1" id="clear_incoming_invites" class="flat_btn">Clear incoming invites</button>
+            <button tabindex="-1" id="export_friends" class="flat_btn">Export friends to file</button>
+          </div>
+          <textarea tabindex="-1" placeholder="Enter your SteamID list" id="idLoadArea"></textarea>
+          <textarea tabindex="-1" placeholder="Enter your steamID list for blacklist" id="invite_friends_blacklist"></textarea>
+          <div class="buttons">
+            <button tabindex="-1" id="import_invite_steamids" class="btn">Import SteamIDs</button>
+            <button tabindex="-1" id="invite_friends" class="btn">Start Invite</button>
+          </div>
+          <p>Last friends invite: <span id="last_invite"></span></p>
+        </div>
+      </div>
+  </div>
+
+  <div class="modal" id='settingsModal'>
+    <div class="modal_content">
+      <div class="modal_content_header">
+        Settings
+      </div>
+      <div class="modal_content_layout">
+        <div class="settings_layout">
+        <h2>Spam</h2>
+        <div class="settings_layout_row" id="settings_spam">
+          <div class="input_row">
+            <span>Templates</span>
+            <textarea tabindex="-1" placeholder="Hello| Hello i am Ino;
+trade| Can you trade?" id="templates"></textarea>
+          </div>
+          <div class="input_row">
+            <span>Message for new friends</span>
+            <textarea tabindex="-1" placeholder="Message for each new friend. Message will send automatically" id="new_friend_spam_message"></textarea>
+          </div>
+          <div class="input_row">
+            <span>Auto message for new friend</span>
+            <input tabindex="-1" id="auto_message_for_new_friend" type="checkbox">
+          </div>
+          <div class="input_row">
+            <span>Don't send an automatic message to a new friend if he wrote first, or there was a dialogue before</span>
+            <input tabindex="-1" id="not_send_auto_message_for_new_friend_if_has_messages" type="checkbox">
+          </div>
+          <div class="input_row">
+            <span>Auto message timeout (sec)</span>
+            <input tabindex="-1" id="auto_message_timeout" type="text">
+          </div>
+          <div class="input_row">
+            <span>Auto template timeout</span>
+            <input tabindex="-1" id="auto_template_timeout" type="checkbox">
+          </div>
+          <div class="input_row">
+            <span>Auto template timeout for 1 symbol (milisec)</span>
+            <input tabindex="-1" id="auto_template_timeout_milisec" type="text">
+          </div>
+          <div class="input_row">
+            <span>Paste template to input</span>
+            <input tabindex="-1" id="paste_template" type="checkbox">
+          </div>
+          <div class="input_row">
+            <span>Templates for domains</span>
+            <textarea 
+            tabindex="-1" 
+            id="template_domain" 
+            type="text"
+            style="resize:vertical"
+            placeholder="csgo_domain| https://csgodomain.com;
+dota_domain| https://dotadomain.com;" 
+            >
+          </textarea>
+          </div>
+        </div>
+        <h2>Notification</h2>
+        <div class="settings_layout_row">
+          <div class="input_row">
+            <span>Sound</span>
+            <input tabindex="-1" id="sound" type="checkbox">
+          </div>
+          <div class="input_row">
+            <span>Volume</span>
+            <input tabindex="-1" type="range" id="volume" min="0" max="1" step="0.01">
+          </div>
+          <div class="input_row">
+            <span>Notification</span>
+            <input tabindex="-1" id="notification" type="checkbox">
+          </div>
+          <div class="input_row">
+            <span>Pin user top when receive new message</span>
+            <input tabindex="-1" id="pin_top_on_new_message" type="checkbox">
+          </div>
+        </div>
+        <h2>Other</h2>
+        <div class="settings_layout_row">
+          <div class="input_row">
+            <span>Save deleted friends</span>
+            <input tabindex="-1" id="save_deleted_friends" type="checkbox">
+          </div>
+          <div class="input_row">
+            <span>Auto pin users with unread messages</span>
+            <input tabindex="-1" id="auto_pin_unread_messages" type="checkbox">
+          </div>
+          <div class="input_row">
+            <span>Auto install update</span>
+            <input tabindex="-1" id="auto_install_update" type="checkbox">
+          </div>
+          <div class="input_row">
+            <span>Get user info ( lvl, country )</span>
+            <input tabindex="-1" id="get_user_info" type="checkbox">
+          </div>
+          <div class="input_row">
+            <span>Auto hours boost at startup</span>
+            <input tabindex="-1" id="auto_boost" type="checkbox">
+          </div>
+          
+          <div class="input_row">
+            <span>Program language</span>
+            <select tabindex="-1" id="program_language">
+              <option value="ru">Русский</option>
+              <option value="eng">English</option>
+            </select>
+          </div>
+          <div class="input_row">
+            <span>Pin direction</span>
+            <select tabindex="-1" id="pin_direction">
+              <option value="bottom">Bottom</option>
+              <option value="top">Top</option>
+            </select>
+          </div>
+        </div>
+        <h2>Auth</h2>
+        <div class="settings_layout_row">
+          <div class="input_row">
+            <span>Path to maFiles</span>
+            <button tabindex="-1" id="provide_mafile_path" class="flat_btn">Provide</button>
+          </div>
+        </div>
+        <h2>Games prices</h2>
+        <div class="settings_layout_row" id="games_prices_settings">
+          <div class="input_row">
+            <span>Dearest item language</span>
+            <select id="dearest_item_language">
+              <option value="english">English</option>
+              <option value="tchinese">Chinese (traditional)</option>
+              <option value="schinese">Chinese (simplified)</option>
+              <option value="russian">Russian</option>
+              <option value="ukrainian">Ukrainian</option>
+            </select>
+          </div>
+        </div>
+        <h2>Customize</h2>
+        <div class="settings_layout_row" id="customize">
+          <div class="input_row">
+            <span>Background color</span>
+            <input tabindex="-1" id="modal_background_color" type="text">
+          </div>
+          <div class="input_row">
+            <span>Chat background color</span>
+            <input tabindex="-1" id="chat_background_color" type="text">
+          </div>
+          <div class="input_row">
+            <span>Account name color</span>
+            <input tabindex="-1" id="account_name_color" type="text">
+          </div>
+          <div class="input_row">
+            <span>Open chat color</span>
+            <input tabindex="-1" id="open_chat_color" type="text">
+          </div>
+          <div class="input_row">
+            <span>Deleted friend background</span>
+            <input tabindex="-1" id="deleted_friend_background" type="text">
+          </div>
+        </div>
+          <div class="buttons">
+            <button tabindex="-1" id="settings_save" class="btn">Save</button>
+            <button tabindex="-1" id="clear_settings" class="btn danger">Clear all settings</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id='actionsModal'>
+      <div class="modal_content">
+        <div class="modal_content_header">
+          Actions
+        </div>
+        <div class="modal_content_layout actions">
+          <div class="modal_content_layout_left">
+            <h2 class="flex">Choose accounts <input tabindex="-1" id="choose_all_accounts_actions" type="checkbox"></h2>
+            <select name="" id="actions_choose_account_groups">
+              <option selected="" value="null">Select accounts group</option>
+            </select>
+            <div class="actions_accounts">
+            </div>
+          </div>
+          <div class="modal_content_layout_right">
+            <h2>Choose action</h2>
+            <div class="actions_buttons">
+               <button tabindex="-1" id="spam" class="flat_btn">Spam All</button>
+               <button tabindex="-1" id="inviter" class="flat_btn">Invite Friends</button>
+               <button tabindex="-1" id="clear_invites" class="flat_btn">Clear Invites</button>
+               <button tabindex="-1" id="clear_friends" class="flat_btn">Clear Friends</button>
+               <button tabindex="-1" id="hourboost" class="flat_btn">Hour Boost</button>
+               <button tabindex="-1" id="setstates" class="flat_btn">Set Online State</button>
+               <button tabindex="-1" id="wall_spam" class="flat_btn">Wall spam</button>
+               <button tabindex="-1" id="hold_deleter" class="flat_btn">Delete Hold Users</button>
+               <button tabindex="-1" id="edit_profile" class="flat_btn">Edit Profile</button>
+               <button tabindex="-1" id="pin_by_status" class="flat_btn">Pin users</button>
+               <button tabindex="-1" id="clear_name_history" class="flat_btn">Clear name history</button>
+               <button tabindex="-1" id="community_task" class="flat_btn">Community tasks</button>
+               <button tabindex="-1" id="clear_comments" class="flat_btn">Clear comments</button>
+               <button tabindex="-1" id="group_joiner" class="flat_btn">Groups</button>
+               <button tabindex="-1" id="remove_friends_by_price" class="flat_btn">Remove friends by inventory price</button>
+               <button tabindex="-1" id="get_api_keys" class="flat_btn">Get Api Keys</button>
+               <button tabindex="-1" id="unblock_friends" class="flat_btn">Unlbock all friends</button>
+            </div>
+          </div>
+        </div>
+      </div>
+  </div>
+
+  <div class="modal" id='spamModal'>
+      <div class="modal_content">
+        <div class="modal_content_header">
+          Spam all
+        </div>
+        <div class="modal_content_layout">
+          <h2>Choose online states</h2>
+          <div class="spam_all_states">
+            <div class="input_row">
+              <span>All</span>
+              <input tabindex="-1" data-online_state="all" class="spam_online_state all" type="checkbox">
+            </div> 
+            <div class="input_row">
+              <span>In-game</span>
+              <input tabindex="-1" data-online_state="9" class="spam_online_state" type="checkbox">
+            </div>
+            <div class="input_row">
+              <span>Online</span>
+              <input tabindex="-1" data-online_state="1" class="spam_online_state" type="checkbox">
+            </div>
+            <div class="input_row">
+              <span>Away</span>
+              <input tabindex="-1" data-online_state="3" class="spam_online_state" type="checkbox">
+            </div>
+            <div class="input_row">
+              <span>Busy</span>
+              <input tabindex="-1" data-online_state="2" class="spam_online_state" type="checkbox">
+            </div>
+            <div class="input_row">
+              <span>Snooze</span>
+              <input tabindex="-1" data-online_state="4" class="spam_online_state" type="checkbox">
+            </div>
+            <div class="input_row">
+              <span>Offline</span>
+              <input tabindex="-1" data-online_state="0" class="spam_online_state" type="checkbox">
+            </div>
+            <div class="input_row">
+              <span>Don't send spammed users</span>
+              <input tabindex="-1" id="send_spammed_users" type="checkbox">
+            </div>
+            <!-- <div class="input_row">
+              <span>Select to spam</span>
+              <input tabindex="-1" id="select_to_spam" type="text" type="checkbox">
+            </div> -->
+          </div>
+          <div class="input_row">
+            <span>Enter respam hours (0 for disable)</span>
+            <input tabindex="-1" placeholder="0" value="0" id="respam_time" type="text">
+          </div>
+          <div class="input_row">
+            <button tabindex="-1" id="spam_all_respam_off" class="flat_btn danger">Stop respam</button>
+            <button tabindex="-1" class="flat_btn danger stop_action" 
+              data-action="spam_all" data-action_name="Spam all stopped">Stop spam
+            </button>
+          </div>
+          <textarea tabindex="-1" placeholder="Enter your spam message" id="spam_all_message"></textarea>
+          <button tabindex="-1" id="spam_all" class="btn">Spam all</button>
+          <h2>Spam Pinned Friends</h2>
+          <button tabindex="-1" id="spam_pinned" class="btn">Spam Pinned</button>
+        </div>
+      </div>
+  </div>
+
+  <div class="modal" id='hourboostModal'>
+    <div class="modal_content">
+      <div class="modal_content_header">
+        Hour Boost
+      </div>
+      <div class="modal_content_layout">
+        <h2>Enter game app ID's</h2>
+        <div class="settings_row">
+          <div class="input_row">
+            <span>Game app id's or custom name</span>
+            <input tabindex="-1" id="games_for_boost" placeholder="730,570,440" type="text">
+          </div>
+        </div>
+        <div class="input_row buttons">
+          <button tabindex="-1" id="start_boost" class="btn">Start boost</button>
+          <button tabindex="-1" id="stop_boost" class="btn danger">Stop boost</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id='setstatesModal'>
+    <div class="modal_content">
+      <div class="modal_content_header">
+        Set Online state
+      </div>
+      <div class="modal_content_layout">
+        <h2>Choose online state</h2>
+        <div class="settings_row">
+          <div class="input_row">
+            <span>Online state</span>
+            <select tabindex="-1" id="setStateAll">
+              <option value="0">Offline</option>
+              <option selected value="1">Online</option>
+              <option value="2">Busy</option>
+              <option value="3">Away</option>
+              <option value="4">Snooze</option>
+              <option value="5">LookingToTrade</option>
+              <option value="6">LookingToPlay</option>
+              <option value="7">Invisible</option>
+            </select>
+          </div>
+        </div>
+        <button tabindex="-1" id="set_online_state" class="btn">Set online state</button>
+        <h2>Choose UI Mode</h2>
+        <div class="input_row">
+          <span>UI Mode</span>
+          <select tabindex="-1" id="ui_mode">
+            <option selected value="0">None</option>
+            <option value="1">Big Picture</option>
+            <option value="2">Mobile</option>
+            <option value="3">Web</option>
+          </select>
+        </div>
+        <button tabindex="-1" id="set_ui_mode" class="btn">Set UI Mode</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id='friendsModal'>
+    <div class="modal_content friends">
+      <div class="modal_content_header">
+        Friends
+      </div>
+      <div class="friends_display_settings">
+        <div class="friends_display_settings_container">
+          Hide friends by online state:
+          <div class="friends_display_settings_container_row first">
+            <div class="friends_display_settings_item">
+              In-game
+              <input tabindex="-1" type="checkbox" class="hideByOnlineState" data-onlineState="In-game">
+            </div>
+            <div class="friends_display_settings_item">
+              Online
+              <input tabindex="-1" type="checkbox" class="hideByOnlineState" data-onlineState="Online">
+            </div>
+            <div class="friends_display_settings_item">
+              Away
+              <input tabindex="-1" type="checkbox" class="hideByOnlineState" data-onlineState="Away">
+            </div>
+            <div class="friends_display_settings_item">
+              Snooze
+              <input tabindex="-1" type="checkbox" class="hideByOnlineState" data-onlineState="Snooze">
+            </div>
+            <div class="friends_display_settings_item">
+              Busy
+              <input tabindex="-1" type="checkbox" class="hideByOnlineState" data-onlineState="Busy">
+            </div>
+            <div class="friends_display_settings_item">
+              Offline
+              <input tabindex="-1" type="checkbox" class="hideByOnlineState" data-onlineState="Offline">
+            </div>
+          </div>
+        </div>
+        <div class="friends_display_settings_container_row">
+          <div class="friends_display_settings_item">
+            <input tabindex="-1" type="text" id="searchFriend" placeholder="Search by name">
+          </div>
+          <div class="friends_display_settings_item">
+            <input tabindex="-1" type="text" id="hideFriend" placeholder="Hide by name">
+          </div>
+          <div class="friends_display_settings_item">
+            <button tabindex="-1" id="unpin_all" class="flat_btn">Unpin all</button>
+          </div>
+          <div class="friends_display_settings_item">
+            <select tabindex="-1" id="friends_choose_account_groups">
+              <option selected="" value="null">Select accounts group</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal_content_layout friends">
+        <div class="friendsArea">
+          <div class="lastMessages"></div>
+        </div>
+        <div class="chatArea"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id='invitesModal'>
+    <div class="modal_content">
+      <div class="modal_content_header">
+          <span class="invitesUser"></span> Invites
+      </div>
+      <div class="modal_content_layout">
+      <div class="invites_block">
+          <div class="invites_block_header">
+            RECEIVED INVITES <span class="invites_count" id="received_invites_count"></span>
+          </div>
+          <div class="invites_block_layout" id="receivied_invites">
+          </div>
+        </div>
+        <div class="invites_block">
+          <div class="invites_block_header">
+            SENT INVITES <span class="invites_count" id="sent_invites_count"></span>
+          </div>
+          <div class="invites_block_layout" id="sent_invites">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id='wall_spamModal'>
+      <div class="modal_content friendinviter">
+        <div class="modal_content_header">
+          Wall spammer
+        </div>
+        <div class="modal_content_layout">
+          <div class="input_row">
+            <span>Use Blacklist</span>
+            <input tabindex="-1" id="use_wall_spam_blacklist" type="checkbox">
+          </div>
+          <div class="input_row">
+            <span>Enter messages count</span>
+            <input tabindex="-1" id="wall_spam_message_count" placeholder="default 6 or 10" type="text" value="10">
+          </div>
+          <div class="input_row">
+            <span>Enter message timeout (sec)</span>
+            <input tabindex="-1" id="wall_spam_message_timeout" type="text" value="2">
+          </div>
+          <div class="input_row">
+            <span>Enter respam hours (0 for disable)</span>
+            <input tabindex="-1" placeholder="0" value="0" id="wall_respam_time" type="text">
+          </div>
+          <div class="input_row">
+            <button tabindex="-1" id="wall_spam_respam_off" class="flat_btn danger">Stop respam</button>
+          </div>
+          <textarea tabindex="-1" placeholder="Enter your steamid list" id="wall_spam_id"></textarea>
+          <textarea tabindex="-1" placeholder="Enter your spam message" id="wall_spam_message"></textarea>
+          <div class="buttons">
+            <button tabindex="-1" id="import_wall_spam_steamids" class="btn">Import</button>
+            <button tabindex="-1" id="start_wall_spam" class="btn">Start spam</button>
+          </div>
+          <p>Last Wall spam: <span id="last_wall_spam"></span></p>
+        </div>
+      </div>
+  </div>
+
+  <div class="modal" id='accounts_groupModal'>
+    <div class="modal_content">
+      <div class="modal_content_header">
+        <h2>Accounts group</h2>
+      </div>
+      <div class="modal_content_layout">
+        <div class="input_row">
+          Enter the name of the account group you want to add or remove
+          <input tabindex="-1" id="accounts_group_name" type="text">
+        </div>
+        <textarea tabindex="-1" placeholder="Enter accounts you want add to group" id="accounts_group_area"></textarea>
+        <div class="buttons">
+          <button tabindex="-1" id="add_group" class="btn">Add group</button>
+          <button tabindex="-1" id="remove_group" class="btn danger">Remove group</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id='edit_profileModal'>
+      <div class="modal_content settings">
+        <div class="modal_content_header">
+          Edit profile
+        </div>
+        <div class="modal_content_layout">
+          <div class="buttons">
+            <button tabindex="-1" id="change_password" class="btn">Change password</button>
+          </div>
+          <h2>Profile settings</h2>
+          <div class="input_row">
+            Profile name
+            <textarea tabindex="-1" class="profile_settings_area" id="profile_settings_name"></textarea>
+          </div>
+          <div class="input_row">
+            Real name
+            <textarea tabindex="-1" class="profile_settings_area" id="profile_settings_realName"></textarea>
+          </div>
+          <div class="input_row">
+            Summary
+            <textarea tabindex="-1" class="profile_settings_area" id="profile_settings_summary"></textarea>
+          </div>
+          <div class="input_row">
+            Country
+            <select tabindex="-1" id="profile_settings_country">
+									<option selected value="">(Do not display)</option>
+                  <option value="US">United States</option>
+                  <option value="CA">Canada</option>
+                  <option value="AF">Afghanistan</option>
+                  <option value="AX">Aland Islands</option>
+                  <option value="AL">Albania</option>
+                  <option value="DZ">Algeria</option>
+                  <option value="AS">American Samoa</option>
+                  <option value="AD">Andorra</option>
+                  <option value="AO">Angola</option>
+                  <option value="AI">Anguilla</option>
+                  <option value="AQ">Antarctica</option>
+                  <option value="AG">Antigua &amp; Barbuda</option>
+                  <option value="AR">Argentina</option>
+                  <option value="AM">Armenia</option>
+                  <option value="AW">Aruba</option>
+                  <option value="AU">Australia</option>
+                  <option value="AT">Austria</option>
+                  <option value="AZ">Azerbaijan</option>
+                  <option value="BS">Bahamas</option>
+                  <option value="BH">Bahrain</option>
+                  <option value="BD">Bangladesh</option>
+                  <option value="BB">Barbados</option>
+                  <option value="BY">Belarus</option>
+                  <option value="BE">Belgium</option>
+                  <option value="BZ">Belize</option>
+                  <option value="BJ">Benin</option>
+                  <option value="BM">Bermuda</option>
+                  <option value="BT">Bhutan</option>
+                  <option value="BO">Bolivia</option>
+                  <option value="BQ">Bonaire, Sint Eustatius and Saba</option>
+                  <option value="BA">Bosnia and Herzegovina</option>
+                  <option value="BW">Botswana</option>
+                  <option value="BV">Bouvet Island</option>
+                  <option value="BR">Brazil</option>
+                  <option value="IO">British Indian Ocean Territory</option>
+                  <option value="VG">British Virgin Islands</option>
+                  <option value="BN">Brunei Darussalam</option>
+                  <option value="BG">Bulgaria</option>
+                  <option value="BF">Burkina Faso</option>
+                  <option value="BI">Burundi</option>
+                  <option value="KH">Cambodia</option>
+                  <option value="CM">Cameroon</option>
+                  <option value="CV">Cape Verde</option>
+                  <option value="KY">Cayman Islands</option>
+                  <option value="CF">Central African Republic</option>
+                  <option value="TD">Chad</option>
+                  <option value="CL">Chile</option>
+                  <option value="CN">China</option>
+                  <option value="CX">Christmas Island</option>
+                  <option value="CC">Cocos (Keeling) Islands</option>
+                  <option value="CO">Colombia</option>
+                  <option value="KM">Comoros</option>
+                  <option value="CG">Congo</option>
+                  <option value="CD">Congo, the Democratic Republic of the</option>
+                  <option value="CK">Cook Islands</option>
+                  <option value="CR">Costa Rica</option>
+                  <option value="CI">Cote D'ivoire (Ivory Coast)</option>
+                  <option value="HR">Croatia</option>
+                  <option value="CU">Cuba</option>
+                  <option value="CW">Curacao</option>
+                  <option value="CY">Cyprus</option>
+                  <option value="CZ">Czech Republic</option>
+                  <option value="DK">Denmark</option>
+                  <option value="DJ">Djibouti</option>
+                  <option value="DM">Dominica</option>
+                  <option value="DO">Dominican Republic</option>
+                  <option value="EC">Ecuador</option>
+                  <option value="EG">Egypt</option>
+                  <option value="SV">El Salvador</option>
+                  <option value="GQ">Equatorial Guinea</option>
+                  <option value="ER">Eritrea</option>
+                  <option value="EE">Estonia</option>
+                  <option value="ET">Ethiopia</option>
+                  <option value="FK">Falkland Islands (Malvinas)</option>
+                  <option value="FO">Faroe Islands</option>
+                  <option value="FJ">Fiji</option>
+                  <option value="FI">Finland</option>
+                  <option value="FR">France</option>
+                  <option value="GF">French Guiana</option>
+                  <option value="PF">French Polynesia</option>
+                  <option value="TF">French Southern Territories</option>
+                  <option value="GA">Gabon</option>
+                  <option value="GM">Gambia</option>
+                  <option value="GE">Georgia</option>
+                  <option value="DE">Germany</option>
+                  <option value="GH">Ghana</option>
+                  <option value="GI">Gibraltar</option>
+                  <option value="GR">Greece</option>
+                  <option value="GL">Greenland</option>
+                  <option value="GD">Grenada</option>
+                  <option value="GP">Guadeloupe</option>
+                  <option value="GU">Guam</option>
+                  <option value="GT">Guatemala</option>
+                  <option value="GG">Guernsey</option>
+                  <option value="GN">Guinea</option>
+                  <option value="GW">Guinea-Bissau</option>
+                  <option value="GY">Guyana</option>
+                  <option value="HT">Haiti</option>
+                  <option value="HM">Heard &amp; McDonald Islands</option>
+                  <option value="HN">Honduras</option>
+                  <option value="HK">Hong Kong</option>
+                  <option value="HU">Hungary</option>
+                  <option value="IS">Iceland</option>
+                  <option value="IN">India</option>
+                  <option value="ID">Indonesia</option>
+                  <option value="IQ">Iraq</option>
+                  <option value="IE">Ireland</option>
+                  <option value="IR">Islamic Republic of Iran</option>
+                  <option value="IM">Isle of Man</option>
+                  <option value="IL">Israel</option>
+                  <option value="IT">Italy</option>
+                  <option value="JM">Jamaica</option>
+                  <option value="JP">Japan</option>
+                  <option value="JE">Jersey</option>
+                  <option value="JO">Jordan</option>
+                  <option value="KZ">Kazakhstan</option>
+                  <option value="KE">Kenya</option>
+                  <option value="KI">Kiribati</option>
+                  <option value="KP">Korea, Democratic People's Republic of</option>
+                  <option value="KR">Korea, Republic of</option>
+                  <option value="XK">Kosovo</option>
+                  <option value="KW">Kuwait</option>
+                  <option value="KG">Kyrgyzstan</option>
+                  <option value="LA">Laos</option>
+                  <option value="LV">Latvia</option>
+                  <option value="LB">Lebanon</option>
+                  <option value="LS">Lesotho</option>
+                  <option value="LR">Liberia</option>
+                  <option value="LY">Libya</option>
+                  <option value="LI">Liechtenstein</option>
+                  <option value="LT">Lithuania</option>
+                  <option value="LU">Luxembourg</option>
+                  <option value="MO">Macau</option>
+                  <option value="MK">Macedonia, The Former Yugoslav Republic of</option>
+                  <option value="MG">Madagascar</option>
+                  <option value="MW">Malawi</option>
+                  <option value="MY">Malaysia</option>
+                  <option value="MV">Maldives</option>
+                  <option value="ML">Mali</option>
+                  <option value="MT">Malta</option>
+                  <option value="MH">Marshall Islands</option>
+                  <option value="MQ">Martinique</option>
+                  <option value="MR">Mauritania</option>
+                  <option value="MU">Mauritius</option>
+                  <option value="YT">Mayotte</option>
+                  <option value="MX">Mexico</option>
+                  <option value="FM">Micronesia</option>
+                  <option value="MD">Moldova, Republic of </option>
+                  <option value="MC">Monaco</option>
+                  <option value="MN">Mongolia</option>
+                  <option value="MS">Monserrat</option>
+                  <option value="ME">Montenegro</option>
+                  <option value="MA">Morocco</option>
+                  <option value="MZ">Mozambique</option>
+                  <option value="MM">Myanmar</option>
+                  <option value="NA">Namibia</option>
+                  <option value="NR">Nauru</option>
+                  <option value="NP">Nepal</option>
+                  <option value="NL">Netherlands</option>
+                  <option value="NC">New Caledonia</option>
+                  <option value="NZ">New Zealand</option>
+                  <option value="NI">Nicaragua</option>
+                  <option value="NE">Niger</option>
+                  <option value="NG">Nigeria</option>
+                  <option value="NU">Niue</option>
+                  <option value="NF">Norfolk Island</option>
+                  <option value="MP">Northern Mariana Islands</option>
+                  <option value="NO">Norway</option>
+                  <option value="OM">Oman</option>
+                  <option value="PK">Pakistan</option>
+                  <option value="PW">Palau</option>
+                  <option value="PS">Palestinian Territory, Occupied</option>
+                  <option value="PA">Panama</option>
+                  <option value="PG">Papua New Guinea</option>
+                  <option value="PY">Paraguay</option>
+                  <option value="PE">Peru</option>
+                  <option value="PH">Philippines</option>
+                  <option value="PN">Pitcairn</option>
+                  <option value="PL">Poland</option>
+                  <option value="PT">Portugal</option>
+                  <option value="PR">Puerto Rico</option>
+                  <option value="QA">Qatar</option>
+                  <option value="RE">Reunion</option>
+                  <option value="RO">Romania</option>
+                  <option value="RU">Russian Federation</option>
+                  <option value="RW">Rwanda</option>
+                  <option value="BL">Saint Barthelemy</option>
+                  <option value="LC">Saint Lucia</option>
+                  <option value="MF">Saint Martin (French part)</option>
+                  <option value="WS">Samoa</option>
+                  <option value="SM">San Marino</option>
+                  <option value="ST">Sao Tome &amp; Principe</option>
+                  <option value="SA">Saudi Arabia</option>
+                  <option value="SN">Senegal</option>
+                  <option value="RS">Serbia</option>
+                  <option value="SC">Seychelles</option>
+                  <option value="SL">Sierra Leone</option>
+                  <option value="SG">Singapore</option>
+                  <option value="SX">Sint Maarten (Dutch part)</option>
+                  <option value="SK">Slovakia</option>
+                  <option value="SI">Slovenia</option>
+                  <option value="SB">Solomon Islands</option>
+                  <option value="SO">Somalia</option>
+                  <option value="ZA">South Africa</option>
+                  <option value="GS">South Georgia and the South Sandwich Islands</option>
+                  <option value="SS">South Sudan</option>
+                  <option value="ES">Spain</option>
+                  <option value="LK">Sri Lanka</option>
+                  <option value="SH">St. Helena</option>
+                  <option value="KN">St. Kitts and Nevis</option>
+                  <option value="PM">St. Pierre &amp; Miquelon</option>
+                  <option value="VC">St. Vincent &amp; the Grenadines</option>
+                  <option value="SD">Sudan</option>
+                  <option value="SR">Suriname</option>
+                  <option value="SJ">Svalbard &amp; Jan Mayen Islands</option>
+                  <option value="SZ">Swaziland</option>
+                  <option value="SE">Sweden</option>
+                  <option value="CH">Switzerland</option>
+                  <option value="SY">Syrian Arab Republic</option>
+                  <option value="TW">Taiwan</option>
+                  <option value="TJ">Tajikistan</option>
+                  <option value="TZ">Tanzania, United Republic of</option>
+                  <option value="TH">Thailand</option>
+                  <option value="TL">Timor-Leste</option>
+                  <option value="TG">Togo</option>
+                  <option value="TK">Tokelau</option>
+                  <option value="TO">Tonga</option>
+                  <option value="TT">Trinidad &amp; Tobago</option>
+                  <option value="TN">Tunisia</option>
+                  <option value="TR">Turkey</option>
+                  <option value="TM">Turkmenistan</option>
+                  <option value="TC">Turks &amp; Caicos Islands</option>
+                  <option value="TV">Tuvalu</option>
+                  <option value="UG">Uganda</option>
+                  <option value="UA">Ukraine</option>
+                  <option value="AE">United Arab Emirates</option>
+                  <option value="GB">United Kingdom (Great Britain)</option>
+                  <option value="UM">United States Minor Outlying</option>
+                  <option value="VI">United States Virgin Islands</option>
+                  <option value="UY">Uruguay</option>
+                  <option value="UZ">Uzbekistan</option>
+                  <option value="VU">Vanuatu</option>
+                  <option value="VA">Vatican City State (Holy See)</option>
+                  <option value="VE">Venezuela</option>
+                  <option value="VN">Viet Nam</option>
+                  <option value="WF">Wallis &amp; Futuna Islands</option>
+                  <option value="EH">Western Sahara</option>
+                  <option value="YE">Yemen</option>
+                  <option value="ZM">Zambia</option>
+                  <option value="ZW">Zimbabwe</option>
+            </select>
+          </div>
+          <div class="buttons">
+            <button tabindex="-1" id="change_profile" class="btn">Change profile</button>
+            <button tabindex="-1" class="btn danger stop_action" 
+              data-action="change_profile" data-action_name="Change profile stopped">Stop change profile
+            </button>
+          </div>
+          <h2>Privacy settings</h2>
+          <div class="input_row">
+            Profile
+            <select tabindex="-1" id="profile_privacy">
+              <option value="1">Private</option>
+              <option value="2">Friends Only</option>
+              <option value="3">Public</option>
+            </select>
+          </div>
+          <div class="input_row">
+            Comments
+            <select tabindex="-1" id="comments_privacy">
+              <option value="1">Private</option>
+              <option value="2">Friends Only</option>
+              <option value="3">Public</option>
+            </select>
+          </div>
+          <div class="input_row">
+            Inventory
+            <select tabindex="-1" id="inventory_privacy">
+              <option value="1">Private</option>
+              <option value="2">Friends Only</option>
+              <option value="3">Public</option>
+            </select>
+          </div>
+          <div class="input_row">
+            Private Inventory Gifts
+            <input tabindex="-1" type="checkbox" id="inventory_gifts_privacy">
+          </div>
+          <div class="input_row">
+            Game Details
+            <select tabindex="-1" id="game_details_privacy">
+              <option value="1">Private</option>
+              <option value="2">Friends Only</option>
+              <option value="3">Public</option>
+            </select>
+          </div>
+          <div class="input_row">
+            Private playtime
+            <input tabindex="-1" type="checkbox" id="playtime_privacy">
+          </div>
+          <div class="input_row">
+            Friend list
+            <select tabindex="-1" id="friend_list_privacy">
+              <option value="1">Private</option>
+              <option value="2">Friends Only</option>
+              <option value="3">Public</option>
+            </select>
+          </div>
+          <div class="buttons">
+            <button tabindex="-1" id="change_privacy" class="btn">Change privacy</button>
+            <button tabindex="-1" class="btn danger stop_action" 
+              data-action="change_privacy" data-action_name="Change privacy stopped">Stop change privacy
+            </button>
+          </div>
+          <h2>Avatar</h2>
+          <div class="input_row">
+            Avatar list
+            <textarea tabindex="-1" class="profile_settings_area" id="avatar_settings"></textarea>
+          </div>
+          <div class="input_row">
+            Avatar change timeout
+            <input tabindex="-1" type="text" id="avatar_change_timeout" value="35">
+          </div>
+          <div class="buttons">
+            <button tabindex="-1" id="change_avatar" class="btn">Change avatar</button>
+            <button tabindex="-1" class="btn danger stop_action" 
+              data-action="change_avatar" data-action_name="Change avatar stopped">Stop change avatar
+            </button>
+          </div>
+          <h2>Unlock CS2 Achievement</h2>
+          <div class="input_row buttons">
+            <button tabindex="-1" id="setStats" class="btn">Start</button>
+          </div>
+          <h2>Set random profile background</h2>
+          <div class="input_row buttons">
+            <button tabindex="-1" id="setupProfileBackground" class="btn">Start</button>
+          </div>
+          <h2>Increase games count in profile</h2>
+          <div class="input_row buttons">
+            <button tabindex="-1" id="addFreeGames" class="btn">Start</button>
+          </div>
+          <h2>Set random favorite badge</h2>
+          <div class="input_row buttons">
+            <button tabindex="-1" id="setFavoriteBadge" class="btn">Start</button>
+          </div>
+          <h2>Set random avatar frame</h2>
+          <div class="input_row buttons">
+            <button tabindex="-1" id="setAvatarFrame" class="btn">Set avatar frame</button>
+          </div>
+          <h2>Get Year in Review badge</h2>
+          <div class="input_row buttons">
+            <button tabindex="-1" id="getYearReviewBadge" class="btn">Запустить</button>
+          </div>
+        </div>
+      </div>
+  </div>
+
+  <div class="modal" id='pin_by_statusModal'>
+    <div class="modal_content">
+      <div class="modal_content_header">
+        Pin friends
+      </div>
+      <div class="modal_content_layout">
+        <h2>Select online states to pin</h2>
+        <div class="spam_all_states">
+            <div class="input_row">
+              <span>All</span>
+              <input tabindex="-1" data-online_state="all" class="pin_by_status_state all" type="checkbox">
+            </div> 
+            <div class="input_row">
+              <span>In-game</span>
+              <input tabindex="-1" data-online_state="9" class="pin_by_status_state" type="checkbox">
+            </div>
+            <div class="input_row">
+              <span>Online</span>
+              <input tabindex="-1" data-online_state="1" class="pin_by_status_state" type="checkbox">
+            </div>
+            <div class="input_row">
+              <span>Away</span>
+              <input tabindex="-1" data-online_state="3" class="pin_by_status_state" type="checkbox">
+            </div>
+            <div class="input_row">
+              <span>Busy</span>
+              <input tabindex="-1" data-online_state="2" class="pin_by_status_state" type="checkbox">
+            </div>
+            <div class="input_row">
+              <span>Snooze</span>
+              <input tabindex="-1" data-online_state="4" class="pin_by_status_state" type="checkbox">
+            </div>
+            <div class="input_row">
+              <span>Offline</span>
+              <input tabindex="-1" data-online_state="0" class="pin_by_status_state" type="checkbox">
+            </div>
+        </div>
+        <div class="buttons">
+          <button tabindex="-1" id="pin_by_online_state" class="flat_btn">Pin by online state</button>
+          <button tabindex="-1" id="pin_by_message_history" class="flat_btn">Pin by message history</button>
+          <button tabindex="-1" id="pin_by_unread_messages" class="flat_btn">Pin by unread messages</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id='community_taskModal'>
+    <div class="modal_content">
+      <div class="modal_content_header">
+        Complete community tasks
+      </div>
+      <div class="modal_content_layout">
+          <div class="input_row">
+            <span>Friend SteamID for add</span>
+            <input tabindex="-1" id="friend_id_for_add" type="text">
+          </div> 
+        <button tabindex="-1" id="start_completing_tasks" class="btn">Start completing tasks</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id='group_joinerModal'>
+    <div class="modal_content">
+      <div class="modal_content_header">
+        Groups
+      </div>
+      <div class="modal_content_layout">
+        <h2>Groups joiner</h2>
+        <div class="input_row">
+          <span style="cursor: pointer;text-decoration: underline;" id="groupSteamid64Guide">How to get STEAMID64 for a group</span>
+        </div>
+        <textarea tabindex="-1" placeholder="Group STEAMID64 list for join" id="group_links"></textarea>
+        <button tabindex="-1" id="start_join_group" class="btn">Start join group</button>
+        <h2>Groups inviter</h2>
+        <div class="input_row">
+          <span>Group steamID64</span>
+          <input tabindex="-1" id="invite_group_steamid" type="text">
+        </div>
+        <button tabindex="-1" id="start_invite_group" class="btn">Start group invite</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id='remove_friends_by_priceModal'>
+    <div class="modal_content">
+      <div class="modal_content_header">
+        Remove friends by inventory price
+      </div>
+      <div class="modal_content_layout">
+        <div class="input_row">
+          Min price
+          <input tabindex="-1" type="text" value="0" id="remove_friends_by_price_min">
+        </div>
+        <div class="input_row">
+          Max price
+          <input tabindex="-1" type="text" placeholder="50" id="remove_friends_by_price_max">
+        </div>
+        <div class="input_row">
+          Game App ID
+          <input tabindex="-1" type="text" placeholder="730" id="remove_friends_by_price_appid" />
+        </div>
+        <button tabindex="-1" id="start_remove_friends_by_price" class="btn">Remove Friends</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id='faqModal'>
+    <div class="modal_content">
+      <div class="modal_content_header">
+        <h2>FAQ</h2>
+      </div>
+      <div class="modal_content_layout">
+        <h1>Благодарим вас за покупку Ino Multichat !</h1>
+        <p>В этом разделе описаны все функции данной программы, и оставлены контакты разработчика.</p>
+        <h2>Авторизация</h2>
+        <p>Для авторизации необходимо загрузить аккаунты вида log:pass во вкладке Import accounts, после чего нажать кнопку Login.</p>
+        <p>Так же, можно авторизировать аккаунты используя прокси, импортировав их перед авторизацией во вкладке Import proxy. На 1 аккаунт нужна 1 прокси, можно дублировать прокси в импорте, если не хватает количества.</p>
+        <p>Чтобы привязать определенную прокси к аккаунту - нужно импортировать аккаунт вида: login:password - proxy</p>
+        <p>Загрузка прокси в формате host:port:log:pass</p>
+        <p>После загрузки всех аккаунтов в консоли появится сообщение "All accounts logged successfully"</p>
+        <p>Рекомендую указать папку с мафайлами через настройки, чтобы не вставлять их каждый раз после обновления в папку с программой.</p>
+        <p><span class="number">Don't remember machine</span> - Функция, которая позволяет не запоминать ваши ssfn файлы.</p>
+        <p>
+          <span class="number">Fast Auth</span> - Функция, которая позволяет быстро авторизировать аккаунты. Рекомендуется использовать в следующих случаях:
+          <ul>
+            <li>1. Вы используете прокси</li>
+            <li>2. У вас мало аккаунтов, и нету прокси ( до 100 )</li>
+            <li>3. У вас аккаунты без стим гуарда</li>
+            <li>4. Вам не нужно вводить гуард код вручную</li>
+          </ul>
+        </p>
+        <p>
+          <span class="number">Connection method</span> - Способ соединения с серверами стима.
+          <ul>
+            <li>1. Auto - Автоматическая настройка</li>
+            <li>2. Method 1 - Если у вас нет никаких проблем с прокси\интернетом</li>
+            <li>3. Method 2 - Если у вас проблемы с интернетом\прокси.</li>
+          </ul>
+          Если вас не беспокоят вылеты интернета\прокси - можете ставить Auto.
+        </p>
+        <h2>Настройки</h2>
+        <p><span class="number">1. Templates</span> - Это шаблоны для отправки заготовленных сообщений. При создании шаблонов в диалоге появятся кнопки для отправки заготовленных сообщений.</p>
+        <p>
+          Шаблоны имеет следующий вид:
+          <ul>
+            <li>Имя_шаблона|Текст шаблона;</li>
+            <li>Имя_шаблона|Текст шаблона1|Текст шаблона2|Текст шаблона3|Текст шаблона4;</li>
+            <li>Имя_шаблона|Текст шаблона template_color=red;</li>
+            <li>Имя_шаблона|Текст шаблона template_link;</li>
+            <li>Имя шаблона|Текст шаблона template_username;</li>
+            <li>Имя шаблона|Текст шаблона template_invite_link;</li>
+            <li>Имя шаблона|Текст шаблона template_dearest_item_IDигры</li>
+            <li>и тд.</li>
+          </ul>
+          <p>template_color - задает определенный цвет для кнопки (Поддерживается любой формат цвета: red, #dcdcdc, #000)</p>
+          <p>template_link - позволяет мгновенно отправить шаблон, сделано для ссылок ( Можно использовать не только для ссылок ), чтобы они не печатались сильно долго, а отправлялись сразу, как буд то вы их вставили через CTRL + V</p>
+          <p>template_username - Позволяет подставлять никнейм пользователя в сообщение, например: Hi, template_username, how are you ?. При отправке сообщения пользователю с никнеймом ino, сообщение примет следующий вид: Hi, ino, how are you ? (Работает так же для spam all, автоотправка отправка сообщения новому другу )</p>
+          <p>template_invite_link - Аккаунт отправляет свою ссылку на приглашение в друзья, для этого, перед использованием этой функции ссылку нужно создать через actions - invite friends - create invite links. Ссылка создается один раз и не имеет ограничений как в стиме. Данная функция работает во всех функциях автоматической отправки сообщений: шаблонах, spam all, wall spamm, сообщение новому другу и т.д.</p>
+          <p>template_dearest_item_IDигры - Подставляет название самого дорогого предмета из выбранной игры в сообщение. Если инвентарь не загружен или отсутствует, это слово будет пропущено. Пример: Hi, i like your template_dearest_item_730</p>
+          <p>template_image=путь_к_картинке - Можно использовать в шаблонах и в рассылке личных сообщений, чтобы отправить картинку со своего ПК.</p>
+          <p>Если вы разделяете в одном шаблоне сообщения через | - то они будут отправляться друг за другом.</p>
+        </p>
+        <p><span class="number">2. Message for new friends</span> - Сообщение которое будет автоматически отправляться новым друзьям когда они принимают заявки в друзья, для этого нужно включить галочку Auto message for new friend</p>
+        <p>При разделении сообщений через ; будет выбрано случайное сообщение. Так же как и в шаблонах, при разделении сообщений через | они будут отправляться друг за другом.</p>
+        <p><span class="number">3. Auto message timeout (sec)</span> - Количество секунд, через которое будет отправлено сообщение новому другу.</p>
+        <p><span class="number">4. Auto template timeout</span> - При включении данной опции, задержка на отправку шаблона будет рассчитываться автоматически от длины шаблона, при этом, вашему собеседнеку на протяжении всей задержки показывает что вы печатете сообщение.</p>
+        <p>Если данная опция не включена - шаблон любой длины будет отправляться с одинаковой задержкой (4сек)</p>
+        <p><span class="number">5. Auto template timeout for 1 symbol (milisec)</span> - Количество милисекунд на 1 символ при отправке шаблона с автоматическим рассчитыванием задержки.</p>
+        <p><span class="number">6. Paste template to input</span> - При включении этой опции шаблон будет вставляться в поле для ввода сообщения, вместо отправки. Данная функция нужна если вам нужно редактировать шаблоны под разные ситуации.</p>
+        <p><span class="number">7. Sound</span> - Вкл./Откл. звук уведомлений</p>
+        <p><span class="number">8. Notification</span> - Вкл./Откл. системные уведомления. Уведомления кликабельные как в телеграмме.</p>
+        <p>Если вам не приходят уведомления, но опция включена - запустите программу в режиме совместимости с Win 7</p>
+        <p><span class="number">9. Save deleted friends</span> - Cохраняет друзей в программе после удаления или блокировки.</p>
+        <p><span class="number">10. Auto pin users with unread messages</span> - При авторизации аккаунтов автоматически закрепляет пользователей, от которых висят непрочитанные сообщения.</p>
+        <p><span class="number">11. Auto install update</span> - При включении данной опции обновления будут скачиваться, и устанавливаться автоматически ( Только для пользователей Windows )</p>
+        <p><span class="number">12. Path to maFiles</span> - Возможность указать папку с мафайлами вручную. Рекомендуется использовать данную функцию, чтобы после обновлений программа автоматически считывала мафайлы из указанной папки.</p>
+        <p><span class="number">13. Background color</span> - Цвет фона программы. (Поддерживается любой формат цвета: red, #dcdcdc, #000)</p>
+        <p><span class="number">14. Chat background color</span> - Цвет фона чата программы. (Поддерживается любой формат цвета: red, #dcdcdc, #000)</p>
+        <p><span class="number">15. Account name color</span> - Цвет аккаунта в чате. (Поддерживается любой формат цвета: red, #dcdcdc, #000)</p>
+        <p><span class="number">16. Open chat color</span> - Цвет, которым подсвечивается открытый диалог. (Поддерживается любой формат цвета: red, #dcdcdc, #000)</p>
+        <p><span class="number">17. template_domain</span> - Это переменная, вместо которой в программе будет подставляться ваш домен, а именно: При спаме по стенкам, при спаме по ЛС, при отправке сообщения новым друзьям и при отправке шаблонов.</p>
+        <p>Чтобы использовать переменную template_domain - создайте переменные которые заканчиваются на _domain, например:</p>
+        <p>csgo_domain|https://csgodomain.com;</p>
+        <p>dota_domain|https://dotadomain.com;</p>
+        <p>Работают по тому же принципу что и обычные шаблоны</p>
+        <p><span class="number">18. Get user info ( lvl, country )</span> - Включение и отключение получении информации о друге (лвл и страна)</p>
+        <p>Опции Check Trade и ниже - опции которые будут отображаться при нажатии ЛКМ на аватар друга, при выключенных галочках опции не отображаются.</p>
+        <p><span class="number">19. Auto boost hours at startup</span> - Автоматическая накрутка часов при авторизации аккаунтов</p>
+        <p><span class="number">20. Deleted friend background</span> - Цвет, которым будут подсвечены удаленные друзья</p>
+        <h2>Games prices</h2>
+        <p>Функция для подсчета цен инвентарей ваших друзей. Те игры которые будут включены - будут проверяться. При желании, можно отключить полностью проверку цен инвентаря, или оставить только те игры, которые вас интересуют.</p>
+        <h2>Friends</h2>
+        <p><span class="number">1. Hide offline</span> - Прячет или показывает оффлайн друзей.</p>
+        <p><span class="number">2. Search by name</span> - Поиск по никнейму в списке друзей.</p>
+        <p><span class="number">3. Hide by name</span> - Данная функция не показывает людей, у которых в нике есть определенный символ.</p>
+        <p><span class="number">4. UP</span> - Функция для скролла списка друзей в самый верх списка</p>
+        <p><span class="number">5. DOWN</span> - Функция для скролла списка друзей в самый низ списка</p>
+        <p><span class="number">6. UNPIN ALL</span> - Открепить всех друзей</p>
+        <p>Чтобы просмотреть список доступных действий аккаунта - нужно нажать ПКМ на логин аккаунта</p>
+        <p><span class="number">1. Pending Invites</span> - Список входящих и исходящих заявок в друзья.</p>
+        <p><span class="number">2. Account page</span> - Открыть аккаунт в браузере по умолчанию.</p>
+        <p><span class="number">3. Open Steam (Browser)</span> - Открыть аккаунт в браузере программы. При этом аккаунт будет авторизованный в стиме, и можно выполнить любое нужное действие.</p>
+        <p><span class="number">4. Open a website (Browser)</span> - Открыть любую ссылку в браузере программы.</p>
+        <p><span class="number">5. Get Guard Code</span> - Сгенерировать гуард код для входа ( Только для аккаунтов с maFile )</p>
+        <p><span class="number">6. Remove account</span> - Удалить аккаунт из программы. При удалении аккаунта так же удаляются все друзья связанные с этим аккаунтом. Данную функцию можно использовать для очистки забаненных аккаунтов, или перезагрузить аккаунт в программе.</p>
+        <p><span class="number">7. Statistic</span> - Просмотр статистики о количестве принятых заявок в друзья и удаленных друзей. Во время работы программы записывается каждое добавление и удаление в друзья, вы можете посмотреть статистику за каждый день по добавлению и удалению, и сделать какие то выводы о своей работе. Каждый месяц статистика очищается.</p>
+        <p>Можно закрепить и открепить любого друга нажав на него ПКМ</p>
+        <p>Если аккаунт подсвечивается красным цветом - значит он заблокирован. Вы можете удалить его из программы нажав ПКМ на логин аккаунта - Remove account</p>
+        <h2>Actions</h2>
+        <p><span class="number">1. Spam all</span> - Функция для рассылки сообщений всем друзьям на выбранных аккаунтах. Выбрав соотв. галочки с онлайном сообщения будут отправлены только людям у которых онлайн равен выбранному.</p>
+        <p>Так же как и в шаблонах можно указывать случайные сообщения через ; и отправлять сообщения друг за другом разделяя их через |</p>
+        <p><span class="number">Don't send spammed users</span> - При включении данной опции сообщения не будут отправлены тем, кому уже были отправлены через функцию Spam All</p>
+        <p><span class="number">2. Invite Friends</span> - Функция для рассылки приглашений в друзья с выбранных аккаунтов. Для приглашений в друзья нужно загрузить список steamid64.</p>
+        <ul>
+          <li><span class="number">2.1. Delete Duplicates</span> - Функция по удалению одинаковых стимайди со списка</li>
+          <li><span class="number">2.2. Use Blacklist</span> - При включении данной опции заявки не будут отправлены тем людям, которые содержаться в черном списке. При отправки заявок, принятии в друзья, удалении и блокировке люди автоматически попадают в этот список.</li>
+          <li><span class="number">2.3. Enter invite time</span> - Возможность указать время, в которое будет начат инвайт. Время нужно указывать в таком формате: 20:44</li>
+          <li><span class="number">2.4. Enter reinvite hours ( 0 - for disable )</span> - Возможность добавлять в друзья по кругу каждые N часов, 0 чтобы отключить.</li>
+          <li><span class="number">2.5. Enter invite count</span> - Количество заявок которое будет отправлено с одного аккаунта. По умолчанию 30, т.к. в стиме лимит 30 заявок в друзья с одного аккаунта в неделю.</li>
+        </ul>
+        <p><span class="number">3. Clear Invites</span> - Функция по удалению отправленных инвайтов в друзья с выбранных аккаунтов. Данная функция имеет возможность удалять определенный процент заявок, или удалять заявки друзей, которые оффлайн более опредленного количества дней.</p>
+        <p><span class="number">4. Clear Friends</span> - Функция по удалению друзей с выбранных аккаунтов. Удаляет друзей которые оффлайн более опредленного количества дней, либо null, чтобы удалить всех</p>
+        <p><span class="number">5. Hour Boost</span> - Функция по накрутке часов на выбранных аккаунтах. Есть возможность играть в несколько игр одновременно. Для этого нужно прописать appid игры. Например: 730,440,570</p>
+        <p><span class="number">6. Set Online state</span> Функция для выставления онлайн статуса на выбранных аккаунтах и UI мода.</p>
+        <p><span class="number">7. Wall Spam</span> - Функция для спама по стенкам с выбранных аккаунтов. При большом количестве аккаунтов необходимы прокси</p>
+        <p><span class="number">8. Delete Hold Users</span> - Функция по удалению друзей с трейдхолдом на выбранных аккаунтах</p>
+        <p><span class="number">9. Edit Profile</span> - Функция по изменению настроек аккаунта, настроек приватности и аватара. При разделении данных через ; будут выбираться случайные.</p>
+        <p><span class="number">10. Pin by online state</span> - Функция для автоматического закрепления друзей с выбранных аккаунтов по выбранному онлайн статусу.</p>
+        <p><span class="number">11. Clear name history</span> - Функция по очистке истории ников на выбранных аккаунтах.</p>
+        <p><span class="number">12. Community tasks</span> - Функционал по прокачке уровня стим через прохождение заданий сообщенства. Дання функция проходит 17 заданий, если у вас аккаунт без лимита и с вкл. стим гуардом. 18-е задаение вы можете пройти воспользовавшись функцией set avatar</p>
+        <h2>Контакты</h2>
+        <p>По контактам ниже вы можете связаться с разработчиком программы. Если вы столкнулись с какой то проблемой, или хотите предложить какой-то функционал - обязательно пишите !</p>
+        <ul>
+          <li>Skype - <a tabindex="-1" href="skype:artsyy1?add">artsyy1</a></li>
+          <li>Telegram - <a tabindex="-1" href="tg://resolve?domain=ino_multichat_support">@ino_multichat_support</a></li>
+          <li>Продление подписки - <a tabindex="-1" href="#" id="ino_link">https://inosoft.market/invoice?product_name=multichat</a></li>
+          <li>Ссылка на тему - <a tabindex="-1" href="#" id="youhack_link">https://youhack.ru/threads/825803</a></li>
+          <li>Описание последних обновлений - <a tabindex="-1" href="#" id="changelog_link">https://inosoft.market/invoice?product_name=multichat#changelog</a></li>
+        </ul>
+        <p>Оставьте пожалуйста отзыв, если вам нравится продукт )</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="user_actions_list hide">
+    <button tabindex="-1" id="check_user_trade" class="flat_btn">Check Trade</button>
+    <button tabindex="-1" id="set_nickname_action" class="flat_btn">Set Nickname</button>
+    <button tabindex="-1" id="unblock_deleted_friend_action" class="flat_btn hide">Unblock</button>
+    <button tabindex="-1" id="add_deleted_friend_action" class="flat_btn hide">Add to friend</button>
+    <button tabindex="-1" id="remove_deleted_friend_action" class="flat_btn hide">Remove</button>
+    <button tabindex="-1" id="delete_action" class="flat_btn">Delete</button>
+    <button tabindex="-1" id="block_action" class="flat_btn">Block</button>
+    <button tabindex="-1" id="steam_profile_action" class="flat_btn">Steam Profile</button>
+    <button tabindex="-1" id="steam_profile_browser_action" class="flat_btn">Steam Profile (Browser)</button>
+    <button tabindex="-1" id="steam_inventory_action" class="flat_btn">Steam Inventory</button>
+    <button tabindex="-1" id="steam_tools_csgo_action" class="flat_btn">Steam Tools CS GO</button>
+    <button tabindex="-1" id="steam_tools_dota_action" class="flat_btn">Steam Tools Dota</button>
+    <button tabindex="-1" id="backpack_tf_action" class="flat_btn">Backpack TF</button>
+    <button tabindex="-1" id="dotabuff_action" class="flat_btn">Dotabuff</button>
+    <button tabindex="-1" id="copy_user_id_actions" class="flat_btn">Copy User ID</button>
+    <button tabindex="-1" id="copy_username_actions" class="flat_btn">Copy Username</button>
+    <button tabindex="-1" id="mute_user" class="flat_btn">Mute</button>
+    <button tabindex="-1" id="open_my_profile" class="flat_btn">Open my profile</button>
+    <button tabindex="-1" id="pin_to_top" class="flat_btn hide">Pin to top</button>
+    <button tabindex="-1" id="unmute_user" class="flat_btn hide">Unmute</button>
+  </div>
+
+  <div class="header_content_menu hide">
+    <button tabindex="-1" id="pending_invites" class="flat_btn">Pending Invites</button>
+    <button tabindex="-1" id="account_page" class="flat_btn">Account page</button>
+    <button tabindex="-1" id="open_profile" class="flat_btn">Open Steam profile (Browser)</button>
+    <button tabindex="-1" id="open_custom_url" class="flat_btn">Open a website (Browser)</button>
+    <button tabindex="-1" id="confirm_market_listing" class="flat_btn">Confirm market listing</button>
+    <button tabindex="-1" id="confirm_trade_offers" class="flat_btn">Confirm trade offers</button>
+    <button tabindex="-1" id="get_steam_guard_code" class="flat_btn">Get Guard Code</button>
+    <button tabindex="-1" id="remove_banned_account" class="flat_btn">Remove account</button>
+    <button tabindex="-1" id="show_statistic" class="flat_btn">Statistic</button>
+    <button tabindex="-1" id="set_account_name" class="flat_btn">Set account nickname</button>
+    <button tabindex="-1" id="mute_all_friends" class="flat_btn">Mute all friends</button>
+    <button tabindex="-1" id="unmute_all_friends" class="flat_btn">Unmute all friends</button>
+  </div>
+
+  <input tabindex="-1" type="text" id="steam_user_id_input">
+  <audio id="player_audio" preload="auto" src="./ui_steam_message_old_smooth.mp3"></audio>
+</body>
+<script src="./recourses/reverse_states.js"></script>
+<script src="./recourses/states.js"></script>
+<script src="./node_modules/sweetalert/dist/sweetalert.min.js"></script>
+<script src="./renderer.js"></script>
+</html>

@@ -1,0 +1,64 @@
+/* AG Grid Steam Theme */
+@import './styles/ag-grid-steam-theme.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* shadcn/ui variables with Steam theme colors */
+    --background: 215 40% 15%; /* steam-darkblue */
+    --foreground: 210 40% 90%; /* light text */
+    --card: 215 40% 18%; /* steam-blue */
+    --card-foreground: 210 40% 90%;
+    --popover: 215 40% 18%; /* steam-blue */
+    --popover-foreground: 210 40% 90%;
+    --primary: 78 61% 50%; /* steam-green */
+    --primary-foreground: 210 40% 15%;
+    --secondary: 208 33% 28%; /* steam-lightblue */
+    --secondary-foreground: 210 40% 90%;
+    --muted: 208 33% 25%;
+    --muted-foreground: 215 15% 65%;
+    --accent: 208 33% 28%; /* steam-lightblue */
+    --accent-foreground: 210 40% 90%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 90%;
+    --border: 208 33% 28%; /* steam-lightblue */
+    --input: 215 40% 18%; /* steam-blue */
+    --ring: 78 61% 50%; /* steam-green */
+    --radius: 0.5rem;
+  }
+
+  html {
+    font-family: 'Arial', 'Helvetica', sans-serif;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    background-color: #171a21; /* steam-darkblue fallback */
+    color: white; /* fallback */
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-steam-green hover:bg-steam-green/80 text-white px-4 py-2 rounded font-medium transition-colors;
+  }
+
+  .btn-secondary {
+    @apply bg-steam-lightblue hover:bg-steam-lightblue/80 text-white px-4 py-2 rounded font-medium transition-colors;
+  }
+
+  .input-field {
+    @apply bg-steam-blue border border-steam-lightblue rounded px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-steam-green;
+  }
+
+  .modal-backdrop {
+    @apply fixed inset-0 bg-black/60 backdrop-blur-sm z-40;
+  }
+
+  .modal-content {
+    @apply bg-steam-blue border border-steam-lightblue rounded-lg shadow-xl;
+  }
+}

@@ -1,0 +1,24 @@
+{
+    "mcpServers": {
+       "effect-mcp": {
+            "command": "yarn",
+            "args": [
+              "dlx",
+              "effect-mcp@latest"
+            ],
+            "env": {}
+          },
+          "fetch": {
+            "command": "uvx",
+            "args": ["mcp-server-fetch"]
+          },
+          "filesystem": {
+            "command": "yarn",
+            "args": [
+              "dlx",
+              "@modelcontextprotocol/server-filesystem",
+              "X:/"
+            ]
+        }
+    }
+  }

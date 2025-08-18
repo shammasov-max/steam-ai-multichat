@@ -1,0 +1,40 @@
+{
+  "name": "steam-bot",
+  "private": true,
+  "type": "module",
+  "packageManager": "yarn@4.9.2",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc -b --noEmit",
+    "build:isomorphic": "yarn workspace @steam-bot/isomorphic build",
+    "build:server": "yarn workspace @steam-bot/server build",
+    "build:frontend": "yarn workspace @steam-bot/frontend build",
+    "build:db": "yarn workspace @steam-bot/db build",
+    "dev": "yarn workspace @steam-bot/server dev",
+    "start": "yarn workspace @steam-bot/server start",
+    "test": "tsx --test packages/isomorphic/src/**/*.test.ts packages/server/src/**/*.test.ts",
+    "test:ui": "playwright test --ui",
+    "test:isomorphic": "tsx --test packages/isomorphic/src/**/*.test.ts",
+    "lint": "eslint . --ext .ts,.tsx,.js,.jsx",
+    "lint:fix": "eslint . --ext .ts,.tsx,.js,.jsx --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.45.0",
+    "@typescript-eslint/eslint-plugin": "^8.39.1",
+    "@typescript-eslint/parser": "^8.39.1",
+    "eslint": "^9.33.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "prettier": "^3.6.2",
+    "tsx": "^4.20.4",
+    "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "fastq": "^1.19.1"
+  }
+}

@@ -1,0 +1,224 @@
+/* AG Grid Steam Theme */
+.ag-theme-steam {
+  --ag-background-color: #1b2838;
+  --ag-header-background-color: #2a475e;
+  --ag-odd-row-background-color: #171a21;
+  --ag-row-hover-color: #2a475e;
+  --ag-selected-row-background-color: #90ba3c30;
+  --ag-border-color: #2a475e;
+  --ag-header-column-separator-color: #2a475e;
+  --ag-row-border-color: #2a475e;
+  --ag-foreground-color: #ffffff;
+  --ag-secondary-foreground-color: #c7d5e0;
+  --ag-header-foreground-color: #ffffff;
+  --ag-disabled-foreground-color: #888888;
+  --ag-input-background-color: #1b2838;
+  --ag-input-border-color: #2a475e;
+  --ag-input-focus-border-color: #90ba3c;
+  --ag-input-focus-box-shadow: inset 0 0 0 1px #90ba3c;
+  --ag-checkbox-background-color: #1b2838;
+  --ag-checkbox-border-color: #2a475e;
+  --ag-checkbox-checked-color: #90ba3c;
+  --ag-range-selection-background-color: #90ba3c30;
+  --ag-range-selection-border-color: #90ba3c;
+  --ag-font-family: "Arial", "Helvetica", sans-serif;
+  --ag-font-size: 14px;
+  --ag-header-height: 40px;
+  --ag-row-height: 50px;
+  --ag-list-item-height: 40px;
+}
+
+.ag-theme-steam .ag-header {
+  border-bottom: 2px solid #90ba3c;
+}
+
+.ag-theme-steam .ag-header-cell {
+  border-right: 1px solid #2a475e;
+  font-weight: 600;
+}
+
+.ag-theme-steam .ag-header-cell-label {
+  color: #ffffff;
+}
+
+.ag-theme-steam .ag-row {
+  border-bottom: 1px solid #2a475e;
+}
+
+.ag-theme-steam .ag-row:hover {
+  background-color: #2a475e !important;
+}
+
+.ag-theme-steam .ag-row.ag-row-selected {
+  background-color: #90ba3c30 !important;
+}
+
+.ag-theme-steam .ag-cell {
+  border-right: 1px solid #2a475e;
+  color: #ffffff;
+  padding: 8px 12px;
+}
+
+.ag-theme-steam .ag-filter-wrapper {
+  background-color: #1b2838;
+  border: 1px solid #2a475e;
+  border-radius: 4px;
+}
+
+.ag-theme-steam .ag-filter-filter {
+  background-color: #1b2838;
+  border: 1px solid #2a475e;
+  border-radius: 4px;
+  color: #ffffff;
+  padding: 8px;
+}
+
+.ag-theme-steam .ag-filter-filter:focus {
+  border-color: #90ba3c;
+  box-shadow: 0 0 0 1px #90ba3c;
+}
+
+.ag-theme-steam .ag-menu {
+  background-color: #1b2838;
+  border: 1px solid #2a475e;
+  border-radius: 4px;
+}
+
+.ag-theme-steam .ag-menu-option {
+  color: #ffffff;
+  padding: 8px 12px;
+}
+
+.ag-theme-steam .ag-menu-option:hover {
+  background-color: #2a475e;
+}
+
+.ag-theme-steam .ag-popup {
+  background-color: #1b2838;
+  border: 1px solid #2a475e;
+  border-radius: 4px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.ag-theme-steam .ag-input-field-input {
+  background-color: #1b2838;
+  border: 1px solid #2a475e;
+  border-radius: 4px;
+  color: #ffffff;
+  padding: 8px;
+}
+
+.ag-theme-steam .ag-input-field-input:focus {
+  border-color: #90ba3c;
+  box-shadow: 0 0 0 1px #90ba3c;
+}
+
+.ag-theme-steam .ag-select .ag-picker-field-wrapper {
+  background-color: #1b2838;
+  border: 1px solid #2a475e;
+  border-radius: 4px;
+}
+
+.ag-theme-steam .ag-select .ag-picker-field-display {
+  color: #ffffff;
+  padding: 8px;
+}
+
+.ag-theme-steam .ag-list-item {
+  color: #ffffff;
+  padding: 8px 12px;
+}
+
+.ag-theme-steam .ag-list-item:hover {
+  background-color: #2a475e;
+}
+
+.ag-theme-steam .ag-select-list {
+  background-color: #1b2838;
+  border: 1px solid #2a475e;
+  border-radius: 4px;
+}
+
+/* Custom button styles for action cells */
+.steam-action-button {
+  background-color: #2a475e;
+  border: 1px solid #2a475e;
+  border-radius: 4px;
+  color: #ffffff;
+  padding: 4px 8px;
+  margin: 0 2px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+
+.steam-action-button:hover {
+  background-color: #90ba3c;
+  border-color: #90ba3c;
+}
+
+.steam-action-button.danger:hover {
+  background-color: #dc2626;
+  border-color: #dc2626;
+}
+
+.steam-action-button.success:hover {
+  background-color: #16a34a;
+  border-color: #16a34a;
+}
+
+/* Status badge styles */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-badge.connected {
+  background-color: #16a34a30;
+  color: #16a34a;
+}
+
+.status-badge.disconnected {
+  background-color: #6b728030;
+  color: #6b7280;
+}
+
+.status-badge.error {
+  background-color: #dc262630;
+  color: #dc2626;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.status-dot.connected {
+  background-color: #16a34a;
+}
+
+.status-dot.disconnected {
+  background-color: #6b7280;
+}
+
+.status-dot.error {
+  background-color: #dc2626;
+}
+
+/* Account tags */
+.account-tag {
+  display: inline-block;
+  background-color: #1b2838;
+  border: 1px solid #2a475e;
+  border-radius: 4px;
+  padding: 2px 6px;
+  margin: 1px;
+  font-size: 11px;
+  color: #c7d5e0;
+}

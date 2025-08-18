@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc:*)",
+      "Bash(mkdir:*)",
+      "Bash(yarn install)",
+      "Bash(yarn build)",
+      "Bash(yarn test)",
+      "Bash(yarn add:*)",
+      "Bash(yarn test:*)",
+      "Bash(yarn remove:*)",
+      "Bash(timeout:*)",
+      "Bash(yarn typecheck)",
+      "Bash(tsx:*)",
+      "Bash(npx tsx:*)",
+      "Bash(yarn lint:*)",
+      "Bash(rm:*)",
+      "Bash(yarn format:check)",
+      "Bash(yarn format:check:*)",
+      "Bash(yarn prettier:*)",
+      "Bash(npx @modelcontextprotocol/cli install @modelcontextprotocol/server-clickhouse)",
+      "Bash(pip install:*)",
+      "Bash(chmod:*)",
+      "WebFetch(domain:docs.anthropic.com)",
+      "Bash(claude-monitor:*)",
+      "Bash(./get-tokens.sh:*)"
+    ],
+    "deny": []
+  }
+}
