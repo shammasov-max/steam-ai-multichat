@@ -1,7 +1,5 @@
 import js from '@eslint/js'
-import tseslint from '@typescript-eslint/eslint-plugin'
-import tsparser from '@typescript-eslint/parser'
-import prettier from 'eslint-plugin-prettier'
+import tseslint from 'typescript-eslint'
 
 export default [
     // Ignore patterns
@@ -10,80 +8,41 @@ export default [
             'node_modules/**',
             'dist/**',
             'build/**',
+            '.next/**',
             '**/*.d.ts',
             '**/*.js.map',
             '.yarn/**',
             'test-results/**',
             'coverage/**',
-            'playwright-report/**'
+            'playwright-report/**',
+            'cjs-to-esm-*.js',
+            'prettier.config.cjs'
         ]
     },
     
-    // Base JavaScript config
+    // Base configs
     js.configs.recommended,
+    ...tseslint.configs.recommended,
     
-    // TypeScript files
+    // Custom rules
     {
-        files: ['**/*.ts', '**/*.tsx'],
-        languageOptions: {
-            parser: tsparser,
-            parserOptions: {
-                ecmaVersion: 2022,
-                sourceType: 'module',
-                project: './tsconfig.json'
-            }
-        },
-        plugins: {
-            '@typescript-eslint': tseslint,
-            prettier
-        },
+        files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
         rules: {
             // Enforce no semicolons
             'semi': ['error', 'never'],
-            '@typescript-eslint/semi': ['error', 'never'],
             
             // Enforce single quotes
             'quotes': ['error', 'single'],
-            '@typescript-eslint/quotes': ['error', 'single'],
             
             // Prefer arrow functions
             'prefer-arrow-callback': 'error',
-            'func-style': ['error', 'expression', { 'allowArrowFunctions': true }],
             
             // Indentation (4 spaces)
             'indent': ['error', 4],
-            '@typescript-eslint/indent': ['error', 4],
             
-            // TypeScript strict mode preferences
+            // TypeScript specific (only apply to TS files)
             '@typescript-eslint/no-explicit-any': 'warn',
-            '@typescript-eslint/explicit-function-return-type': 'error',
-            '@typescript-eslint/no-unused-vars': 'error',
-            '@typescript-eslint/prefer-const': 'error',
-            '@typescript-eslint/no-inferrable-types': 'off',
-            
-            // Prettier integration
-            'prettier/prettier': 'error'
-        }
-    },
-    
-    // JavaScript files (less strict)
-    {
-        files: ['**/*.js', '**/*.jsx'],
-        languageOptions: {
-            ecmaVersion: 2022,
-            sourceType: 'module'
-        },
-        plugins: {
-            prettier
-        },
-        rules: {
-            // Basic rules for JavaScript
-            'semi': ['error', 'never'],
-            'quotes': ['error', 'single'],
-            'prefer-arrow-callback': 'error',
-            'func-style': ['error', 'expression', { 'allowArrowFunctions': true }],
-            'indent': ['error', 4],
-            'prettier/prettier': 'error'
+            '@typescript-eslint/no-unused-vars': 'error'
         }
     }
 ]

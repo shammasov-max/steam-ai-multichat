@@ -14,9 +14,9 @@ Please provide detailed guidance with:
 
 // Examples
 const prompts = [
-    createPrompt("Alice", "debug API", "Node.js", "Express server with 500 errors"),
-    createPrompt("Bob", "optimize React components", "TypeScript", "Performance issues in large lists"),
-    createPrompt("Charlie", "implement authentication", "Effect-TS", "Steam bot system")
+    createPrompt('Alice', 'debug API', 'Node.js', 'Express server with 500 errors'),
+    createPrompt('Bob', 'optimize React components', 'TypeScript', 'Performance issues in large lists'),
+    createPrompt('Charlie', 'implement authentication', 'Effect-TS', 'Steam bot system')
 ]
 
 prompts.forEach((prompt, index) => {

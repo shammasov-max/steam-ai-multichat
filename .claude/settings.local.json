@@ -23,7 +23,14 @@
       "Bash(chmod:*)",
       "WebFetch(domain:docs.anthropic.com)",
       "Bash(claude-monitor:*)",
-      "Bash(./get-tokens.sh:*)"
+      "Bash(./get-tokens.sh:*)",
+      "Bash(npx create-next-app:*)",
+      "Bash(npx prisma generate:*)",
+      "Bash(npx prisma migrate dev:*)",
+      "Bash(yarn dev)",
+      "Bash(npm run test:*)",
+      "Bash(npx eslint:*)",
+      "Bash(npx playwright test:*)"
     ],
     "deny": []
   }

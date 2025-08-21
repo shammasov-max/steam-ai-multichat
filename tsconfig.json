@@ -1,8 +1,41 @@
 {
-  "files": [],
-  "references": [
-    { "path": "./packages/server" },
-    { "path": "./packages/frontend" },
-    { "path": "./packages/isomorphic" }
+  "extends": ".//tsconfig.base.json",
+  "compilerOptions": {
+    "composite": true,
+    "declaration": true,
+    "rootDir": "./",
+    "outDir": "./dist",
+    "moduleResolution": "bundler",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "noEmit": true,
+    "incremental": true,
+    "module": "esnext",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "paths": {
+      "@/*": ["./*"]
+    }
+  },
+  "include": [
+    "src/**/*",
+    "app/**/*",
+    "lib/**/*",
+    "components/**/*",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
   ]
 }

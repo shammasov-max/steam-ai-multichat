@@ -1,7 +1,7 @@
 // prompt-example.ts
-const userName = "John"
-const taskType = "code review"
-const codeLanguage = "TypeScript"
+const userName = 'John'
+const taskType = 'code review'
+const codeLanguage = 'TypeScript'
 
 const prompt = `
 You are a senior ${codeLanguage} developer.

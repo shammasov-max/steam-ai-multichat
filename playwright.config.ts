@@ -1,22 +1,25 @@
-import { defineConfig } from '@playwright/test';
+import { defineConfig } from '@playwright/test'
 
 export default defineConfig({
-  // Run unit-style tests; no browsers are used
-  testDir: './',
-  testMatch: [
-    'packages/isomorphic/**/*.spec.ts'
-  ],
-  reporter: 'list',
-  fullyParallel: true,
-  // Keep timeouts reasonable for unit tests
-  timeout: 10_000,
-  expect: {
-    timeout: 2_000,
-  },
-  // No browser projects needed; Playwright Test is used as a generic test runner
-  projects: [
-    {
-      name: 'unit',
-    }
-  ],
-});
+    testDir: './tests',
+    timeout: 180000, // 3 minutes for Steam operations
+    expect: {
+        timeout: 30000
+    },
+    fullyParallel: false, // Steam tests should run sequentially
+    workers: 1, // Single worker to avoid Steam rate limits
+    retries: 0, // No retries for integration tests
+    reporter: [
+        ['html'],
+        ['line']
+    ],
+    use: {
+        trace: 'on-first-retry',
+    },
+    projects: [
+        {
+            name: 'steam-integration',
+            testMatch: '**/*.spec.ts',
+        },
+    ],
+})
