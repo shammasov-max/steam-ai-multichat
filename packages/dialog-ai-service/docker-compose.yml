@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: dialog-ai-db
+    environment:
+      POSTGRES_DB: dialog_ai
+      POSTGRES_USER: dialoguser
+      POSTGRES_PASSWORD: dialogpass
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dialoguser -d dialog_ai"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - dialog-network
+    restart: unless-stopped
+
+  dialog-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: dialog-ai-service
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://dialoguser:dialogpass@postgres:5432/dialog_ai?schema=public
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    volumes:
+      # Map source code for hot-reload in development
+      - ./src:/app/src:rw
+      - ./prisma:/app/prisma:rw
+      - ./tests:/app/tests:rw
+      - ./package.json:/app/package.json:ro
+      - ./package-lock.json:/app/package-lock.json:ro
+      - ./tsconfig.json:/app/tsconfig.json:ro
+      - ./playwright.config.ts:/app/playwright.config.ts:ro
+      # Preserve node_modules from container (don't override with host)
+      - /app/node_modules
+      # Preserve dist directory built inside container
+      - /app/dist
+      # Preserve Prisma generated client
+      - /app/node_modules/.prisma
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - dialog-network
+    restart: unless-stopped
+    command: >
+      sh -c "
+        echo 'Waiting for database...' &&
+        sleep 5 &&
+        echo 'Running migrations...' &&
+        npx prisma migrate deploy &&
+        echo 'Starting application...' &&
+        npm run dev
+      "
+
+volumes:
+  postgres_data:
+
+networks:
+  dialog-network:
+    driver: bridge

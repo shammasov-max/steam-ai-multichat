@@ -36,7 +36,15 @@
       "Bash(npm run dev:*)",
       "Bash(npx prisma migrate:*)",
       "Bash(powershell:*)",
-      "Bash(echo $SHELL)"
+      "Bash(echo $SHELL)",
+      "Bash(npm install:*)",
+      "Bash(cp:*)",
+      "Bash(sed:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm run lint)",
+      "Bash(npm run:*)",
+      "Bash(npm run typecheck:*)",
+      "Bash(pnpm install:*)"
     ],
     "deny": []
   }

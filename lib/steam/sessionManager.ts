@@ -1,8 +1,8 @@
-import SteamUser from 'steam-user'
-import SteamTotp from 'steam-totp'
+// import SteamUser from 'steam-user'
+// import SteamTotp from 'steam-totp'
 import { prisma } from '../db/client'
 import type { Bot } from '@prisma/client'
-import { SteamAgent } from '../../src/steam-agent/SteamAgent'
+import { SteamAgent } from '../../packages/steam-agent/src/SteamAgent'
 
 interface MaFile {
   account_name: string
@@ -217,7 +217,7 @@ class SteamSessionManager {
     
         if (activeBotIds.length === 0) return null
 
-        const botId = activeBotIds[this.roundRobinIndex % activeBotIds.length]
+        const botId = activeBotIds[this.roundRobinIndex % activeBotIds.length]!
         this.roundRobinIndex++
         
         const agent = this.sessions.get(botId)

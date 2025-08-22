@@ -1,7 +1,8 @@
 #!/bin/bash
 
-# PowerShell-Optimized Claude Code Status Line
-# Displays: Model | Directory/Project | Git Branch/Status | Tokens | Time | Tech Stack
+# Git Bash PS1-style Claude Code Status Line
+# Replicates: Green user@host | Purple MSYSTEM | Yellow workdir | Cyan git | Newline prompt
+# Based on: \[\033[32m\]\u@\h \[\033[35m\]$MSYSTEM \[\033[33m\]\w\[\033[36m\]`__git_ps1`\[\033[0m\]\n$
 
 input=$(cat)
 
@@ -9,7 +10,6 @@ input=$(cat)
 model_name=$(echo "$input" | jq -r '.model.display_name // "Unknown Model"')
 current_dir=$(echo "$input" | jq -r '.workspace.current_dir // pwd')
 project_dir=$(echo "$input" | jq -r '.workspace.project_dir // pwd')
-version=$(echo "$input" | jq -r '.version // "Unknown"')
 
 # Convert Windows paths for bash operations
 if [[ "$current_dir" =~ ^[A-Z]: ]]; then
@@ -21,56 +21,51 @@ else
     unix_project="$project_dir"
 fi
 
-# Directory context
-current_dir_name=$(basename "$current_dir")
-project_name=$(basename "$project_dir")
+# Get user and hostname info
+username=$(whoami)
+hostname_short=$(hostname -s 2>/dev/null || hostname 2>/dev/null || echo "localhost")
 
-# Git information (try both Windows and Unix paths)
+# System info (equivalent to MSYSTEM in Git Bash)
+system_info="CLAUDE"
+if [[ "$OSTYPE" == "msys" ]] || [[ "$MSYSTEM" ]]; then
+    system_info="$MSYSTEM"
+elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    system_info="LINUX"
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+    system_info="MACOS"
+fi
+
+# Working directory (use ~ for home directory like PS1 \w)
+work_dir="$current_dir"
+if [[ "$current_dir" == "$HOME"* ]]; then
+    work_dir="~${current_dir#$HOME}"
+fi
+
+# Git information (equivalent to __git_ps1)
 cd "$current_dir" 2>/dev/null || cd "$unix_current" 2>/dev/null || cd "$project_dir" 2>/dev/null || cd "$unix_project" 2>/dev/null || true
-git_branch=$(git branch --show-current 2>/dev/null || echo "no-git")
-git_status=""
+git_info=""
 if git rev-parse --git-dir >/dev/null 2>&1; then
+    git_branch=$(git branch --show-current 2>/dev/null || echo "HEAD")
+    git_status=""
+    
+    # Check for uncommitted changes
     if ! git diff-index --quiet HEAD -- 2>/dev/null; then
         git_status="*"
     elif [ -n "$(git status --porcelain 2>/dev/null)" ]; then
         git_status="+"
     fi
+    
+    git_info=" ($git_branch$git_status)"
 fi
 
-# Token information from get-tokens.sh
-token_info=""
-if [ -f "./get-tokens.sh" ] && [ -x "./get-tokens.sh" ]; then
-    token_info=$(./get-tokens.sh 2>/dev/null || echo "T:? R:?")
-elif [ -f "get-tokens.sh" ] && [ -x "get-tokens.sh" ]; then
-    token_info=$(./get-tokens.sh 2>/dev/null || echo "T:? R:?")
-else
-    token_info="T:? R:?"
+# Multi-line format matching Git Bash PS1
+# Line 1: Green user@host | Purple system | Yellow workdir | Cyan git
+printf "\033[32m%s@%s\033[0m " "$username" "$hostname_short"
+printf "\033[35m%s\033[0m " "$system_info"
+printf "\033[33m%s\033[0m" "$work_dir"
+if [ -n "$git_info" ]; then
+    printf "\033[36m%s\033[0m" "$git_info"
 fi
 
-# System info
-timestamp=$(date +"%H:%M:%S")
-
-# Tech stack detection
-node_version=""
-if command -v node >/dev/null 2>&1; then
-    node_version=" | Node $(node --version 2>/dev/null | sed 's/^v//')"
-fi
-
-package_manager=""
-if [ -f "$project_dir/yarn.lock" ] || [ -f "./yarn.lock" ]; then
-    package_manager=" | Yarn"
-elif [ -f "$project_dir/package-lock.json" ] || [ -f "./package-lock.json" ]; then
-    package_manager=" | npm"
-elif [ -f "$project_dir/pnpm-lock.yaml" ] || [ -f "./pnpm-lock.yaml" ]; then
-    package_manager=" | pnpm"
-fi
-
-# Build compact colorized status line for PowerShell
-printf "\033[1;36m%s\033[0m" "$model_name"
-printf " | \033[1;33m%s\033[0m/\033[1;35m%s\033[0m" "$current_dir_name" "$project_name"
-if [ "$git_branch" != "no-git" ]; then
-    printf " | \033[1;31m%s\033[0m%s" "$git_branch" "$git_status"
-fi
-printf " | \033[1;32m%s\033[0m" "$token_info"
-printf " | \033[1;90m%s\033[0m" "$timestamp"
-printf "%s%s\n" "$node_version" "$package_manager"
+# Line 2: Model info and prompt
+printf "\n\033[90m[%s]\033[0m " "$model_name"

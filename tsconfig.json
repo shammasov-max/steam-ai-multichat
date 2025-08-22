@@ -17,6 +17,7 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
+    
     "plugins": [
       {
         "name": "next"
@@ -34,7 +35,7 @@
     "lib/**/*",
     "components/**/*",
     ".next/types/**/*.ts"
-  ],
+, "packages/steam-agent/src/SteamAgent.ts"  ],
   "exclude": [
     "node_modules"
   ]

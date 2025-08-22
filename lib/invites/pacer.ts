@@ -1,7 +1,7 @@
 import { prisma } from '../db/client'
 import { steamSessionManager } from '../steam/sessionManager'
 
-const INVITE_COOLDOWN_MS = 60000 // 1 minute
+// const INVITE_COOLDOWN_MS = 60000 // 1 minute
 
 export async function processAssignedTasks() {
     const assignedTasks = await prisma.task.findMany({

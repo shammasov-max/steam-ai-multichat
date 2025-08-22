@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  postgres-test:
+    image: postgres:15-alpine
+    container_name: dialog-ai-test-db
+    environment:
+      POSTGRES_DB: dialog_ai_test
+      POSTGRES_USER: testuser
+      POSTGRES_PASSWORD: testpass
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U testuser -d dialog_ai_test"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - test-network
+    tmpfs:
+      - /var/lib/postgresql/data
+
+  dialog-service-test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: dialog-ai-service-test
+    environment:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://testuser:testpass@postgres-test:5432/dialog_ai_test?schema=public
+      OPENAI_API_KEY: test-api-key
+      PORT: 3001
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./src:/app/src:ro
+      - ./prisma:/app/prisma:ro
+      - ./tests:/app/tests:ro
+      - ./package.json:/app/package.json:ro
+      - ./package-lock.json:/app/package-lock.json:ro
+      - ./tsconfig.json:/app/tsconfig.json:ro
+      - ./playwright.config.ts:/app/playwright.config.ts:ro
+      - /app/node_modules
+      - /app/dist
+      - /app/node_modules/.prisma
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+    networks:
+      - test-network
+    command: >
+      sh -c "
+        echo 'Waiting for test database...' &&
+        sleep 5 &&
+        echo 'Running test migrations...' &&
+        npx prisma migrate deploy &&
+        echo 'Building application...' &&
+        npm run build &&
+        echo 'Ready for testing'
+      "
+
+volumes:
+  postgres_test_data:
+
+networks:
+  test-network:
+    driver: bridge

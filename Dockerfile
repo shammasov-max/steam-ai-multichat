@@ -1,18 +1,24 @@
 FROM node:20-alpine
 
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
 WORKDIR /app
 
-COPY package.json yarn.lock ./
-COPY .yarn ./.yarn
-COPY .yarnrc.yml ./
+# Copy package files
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY packages/steam-agent/package.json ./packages/steam-agent/
 
-RUN yarn install --frozen-lockfile
+# Install dependencies
+RUN pnpm install --frozen-lockfile
 
+# Copy application code
 COPY . .
 
-RUN npx prisma generate
-RUN yarn build
+# Generate Prisma client and build
+RUN pnpm exec prisma generate
+RUN pnpm run build
 
 EXPOSE 3000
 
-CMD ["yarn", "start"]
+CMD ["pnpm", "start"]

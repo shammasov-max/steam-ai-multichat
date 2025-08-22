@@ -1,0 +1,91 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Dialog {
+  id                 String         @id @default(uuid())
+  externalId         String         @unique
+  status             DialogStatus   @default(ACTIVE)
+  language           String
+  userInfo           Json?
+  goal               String
+  completionCriteria Json
+  negotiationSettings Json?
+  referenceContext   String?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  
+  messages           Message[]
+  states             DialogState[]
+  logs               Log[]
+  
+  @@index([externalId])
+}
+
+model Message {
+  id             String   @id @default(uuid())
+  dialogId       String
+  dialog         Dialog   @relation(fields: [dialogId], references: [id])
+  role           Role
+  content        String
+  sequenceNumber Int
+  metadata       Json?
+  createdAt      DateTime @default(now())
+  
+  @@index([dialogId, createdAt])
+}
+
+model DialogState {
+  id                String   @id @default(uuid())
+  dialogId          String
+  dialog            Dialog   @relation(fields: [dialogId], references: [id])
+  continuationScore Float
+  compressedContext String?
+  currentStrategy   String
+  tokensUsed        Int
+  goalProgress      Float
+  issuesDetected    Json?
+  createdAt         DateTime @default(now())
+  
+  @@index([dialogId])
+}
+
+model Log {
+  id        Int      @id @default(autoincrement())
+  dialogId  String?
+  dialog    Dialog?  @relation(fields: [dialogId], references: [id])
+  messageId String?
+  botId     String?
+  userId    String?
+  level     LogLevel
+  data      Json?
+  text      String?
+  fullJson  Json?
+  datetime  DateTime @default(now())
+  
+  @@index([dialogId])
+  @@index([datetime])
+}
+
+enum DialogStatus {
+  ACTIVE
+  PAUSED
+  COMPLETED
+  ESCALATED
+}
+
+enum Role {
+  USER
+  ASSISTANT
+}
+
+enum LogLevel {
+  DEBUG
+  INFO
+  ERROR
+}

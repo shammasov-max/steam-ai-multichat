@@ -1,31 +1,40 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
 import './globals.css'
-
-const inter = Inter({ subsets: ['latin'] })
+import Header from '@/components/layout/header'
+import { prisma } from '@/lib/db/client'
 
 export const metadata: Metadata = {
-    title: 'Steam Multichat',
+    title: 'Steam Bot Multichat',
     description: 'Steam bot management and multichat system',
 }
 
-export default function RootLayout({
+async function getBotsStats() {
+    try {
+        const bots = await prisma.bot.findMany({
+            select: { status: true }
+        })
+        const onlineCount = bots.filter((b: any) => b.status === 'connected').length
+        return { total: bots.length, online: onlineCount }
+    } catch {
+        return { total: 0, online: 0 }
+    }
+}
+
+export default async function RootLayout({
     children,
 }: {
-  children: React.ReactNode
+    children: React.ReactNode
 }) {
+    const botsStats = await getBotsStats()
+    
     return (
         <html lang="en">
-            <body className={inter.className}>
-                <nav className="bg-gray-800 text-white p-4">
-                    <div className="container mx-auto flex gap-4">
-                        <a href="/bots" className="hover:text-gray-300">Bots</a>
-                        <a href="/tasks" className="hover:text-gray-300">Tasks</a>
-                        <a href="/chats" className="hover:text-gray-300">Chats</a>
-                        <a href="/settings" className="hover:text-gray-300">Settings</a>
-                    </div>
-                </nav>
-                <main className="container mx-auto p-4">
+            <body className="min-h-screen bg-steam-darkblue text-white font-steam">
+                <Header 
+                    botsCount={botsStats.total} 
+                    onlineBotsCount={botsStats.online}
+                />
+                <main className="container mx-auto px-4 py-6">
                     {children}
                 </main>
             </body>
