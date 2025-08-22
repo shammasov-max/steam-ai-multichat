@@ -34,7 +34,9 @@
       "Bash(grep:*)",
       "Bash(pkill:*)",
       "Bash(npm run dev:*)",
-      "Bash(npx prisma migrate:*)"
+      "Bash(npx prisma migrate:*)",
+      "Bash(powershell:*)",
+      "Bash(echo $SHELL)"
     ],
     "deny": []
   }
