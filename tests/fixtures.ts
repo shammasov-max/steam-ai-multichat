@@ -9,7 +9,7 @@ export interface TestAccount {
 }
 
 export async function loadTestAccounts(): Promise<TestAccount[]> {
-    const fixturesPath = join(process.cwd(), '..', '..', 'fixtures', 'all.txt')
+    const fixturesPath = join(process.cwd(), 'fixtures', 'all.txt')
     const content = await readFile(fixturesPath, 'utf-8')
   
     const accounts: TestAccount[] = []
@@ -26,7 +26,7 @@ export async function loadTestAccounts(): Promise<TestAccount[]> {
     
         if (!login || !password || !proxyInfo) continue
     
-        const maFilePath = join(process.cwd(), '..', '..', 'fixtures', 'mafile', `${login}.maFile`)
+        const maFilePath = join(process.cwd(), 'fixtures', 'mafile', `${login}.maFile`)
         const maFileContent = await readFile(maFilePath, 'utf-8')
     
         accounts.push({

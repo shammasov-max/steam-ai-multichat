@@ -9,6 +9,12 @@
   "exports": {
     ".": "./dist/index.js"
   },
+  "pkg": {
+    "assets": [
+      "node_modules/@doctormckay/steam-crypto",
+      "node_modules/lzma"
+    ]
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",

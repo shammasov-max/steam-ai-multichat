@@ -5,11 +5,17 @@ import { Button } from '@/components/ui/button'
 import { addBot, removeBot, connectBot } from '@/lib/actions/bots'
 import { Bot } from '@/lib/zod/bots'
 
+// Mock data for development environment - using real fixture data
+
+const mockProxy = process.env.NODE_ENV === 'development' ? '188.130.188.216:3000:vlQ0qd:1zsNuGOYS9' : ''
+const mockLabel = process.env.NODE_ENV === 'development' ? 'Test Bot boodb7727' : ''
+
 export default function BotsPage() {
     const [bots, setBots] = useState<Bot[]>([])
     const [maFileJSON, setMaFileJSON] = useState('')
-    const [proxyUrl, setProxyUrl] = useState('')
-    const [label, setLabel] = useState('')
+    const [proxyUrl, setProxyUrl] = useState(mockProxy)
+    const [label, setLabel] = useState(mockLabel)
+    const [password, setPassword] = useState('')
     const [loading, setLoading] = useState(false)
 
     useEffect(() => {
@@ -31,11 +37,12 @@ export default function BotsPage() {
     async function handleAddBot() {
         setLoading(true)
         try {
-            const result = await addBot({ maFileJSON, proxyUrl, label })
+            const result = await addBot({ maFileJSON, proxyUrl, label, password })
             if (result.success) {
                 setMaFileJSON('')
                 setProxyUrl('')
                 setLabel('')
+                setPassword('')
                 fetchBots()
             }
         } catch (error) {
@@ -79,9 +86,17 @@ export default function BotsPage() {
                         value={label}
                         onChange={(e) => setLabel(e.target.value)}
                     />
+                    <input
+                        className="w-full p-2 border rounded"
+                        type="password"
+                        placeholder="Password (required)"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                    />
                     <Button 
                         onClick={handleAddBot} 
-                        disabled={loading || !maFileJSON || !proxyUrl}
+                        disabled={loading || !maFileJSON || !proxyUrl || !password}
                         className="bg-blue-600 text-white hover:bg-blue-700"
                     >
             Add Bot

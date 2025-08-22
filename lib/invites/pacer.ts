@@ -17,13 +17,8 @@ export async function processAssignedTasks() {
             continue
         }
     
-        const session = steamSessionManager.getSession(task.assignedBotId!)
-        if (!session) continue
-    
-        const now = Date.now()
-        if (session.lastInviteAt && now - session.lastInviteAt < INVITE_COOLDOWN_MS) {
-            continue
-        }
+        const agent = steamSessionManager.getSession(task.assignedBotId!)
+        if (!agent) continue
     
         const existingRequest = await prisma.friendRequest.findFirst({
             where: {

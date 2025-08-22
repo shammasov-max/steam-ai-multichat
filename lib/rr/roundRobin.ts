@@ -10,7 +10,7 @@ export async function assignTaskToBot(taskId: string): Promise<boolean> {
         return false
     }
   
-    const nextBot = steamSessionManager.getNextAvailableBot()
+    const nextBot = await steamSessionManager.getNextAvailableBot()
     if (!nextBot) {
         console.log('No available bots for task assignment')
         return false

@@ -12,6 +12,7 @@ model Bot {
   steamId64   String   @map("steam_id64")
   label       String?
   proxyUrl    String   @map("proxy_url")
+  password    String
   status      String   @default("disconnected")
   lastSeen    DateTime? @map("last_seen")
   mafileJson  String   @map("mafile_json")

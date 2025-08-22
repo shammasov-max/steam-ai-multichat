@@ -30,7 +30,11 @@
       "Bash(yarn dev)",
       "Bash(npm run test:*)",
       "Bash(npx eslint:*)",
-      "Bash(npx playwright test:*)"
+      "Bash(npx playwright test:*)",
+      "Bash(grep:*)",
+      "Bash(pkill:*)",
+      "Bash(npm run dev:*)",
+      "Bash(npx prisma migrate:*)"
     ],
     "deny": []
   }

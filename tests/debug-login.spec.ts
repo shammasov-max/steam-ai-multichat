@@ -7,13 +7,15 @@ test('Debug Steam login process', async () => {
   
     const [userAAccount] = await getTestAccountPair()
     console.log(`Testing login for: ${userAAccount.login}`)
-  
-    const agent = createSteamAgent({
+    const logOnOptions = {
         maFile: userAAccount.maFile,
         password: userAAccount.password,
         userName: userAAccount.login,
         proxy: userAAccount.proxy
-    })
+    }
+    
+    console.log('creating agent...', logOnOptions)
+    const agent = createSteamAgent(logOnOptions)
 
     // Add comprehensive event listeners
     agent.on('loggedOn', () => {

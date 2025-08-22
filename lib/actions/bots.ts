@@ -10,13 +10,14 @@ export async function addBot(input: AddBotInput) {
   
     try {
         const maFile = JSON.parse(validated.maFileJSON)
-        const steamId64 = maFile.Session?.SteamID || maFile.account_name
+        const steamId64 = maFile.Session.SteamID = String(maFile.Session?.SteamID)// || maFile.account_name
     
         const bot = await prisma.bot.create({
             data: {
                 steamId64,
                 label: validated.label || null,
                 proxyUrl: validated.proxyUrl,
+                password: validated.password,
                 mafileJson: validated.maFileJSON,
                 status: 'disconnected',
             },

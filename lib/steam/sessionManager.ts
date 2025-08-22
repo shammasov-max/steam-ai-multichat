@@ -1,8 +1,8 @@
 import SteamUser from 'steam-user'
-import SteamCommunity from 'steamcommunity'
 import SteamTotp from 'steam-totp'
 import { prisma } from '../db/client'
 import type { Bot } from '@prisma/client'
+import { SteamAgent } from '../../src/steam-agent/SteamAgent'
 
 interface MaFile {
   account_name: string
@@ -25,46 +25,37 @@ interface MaFile {
   }
 }
 
-export interface BotSession {
-  bot: Bot
-  client: SteamUser
-  community: SteamCommunity
-  maFile: MaFile
-  lastInviteAt?: number
-}
-
 class SteamSessionManager {
-    private sessions: Map<string, BotSession> = new Map()
+    private sessions: Map<string, SteamAgent> = new Map()
+    private bots: Map<string, Bot> = new Map()
+    private lastInviteAt: Map<string, number> = new Map()
     private roundRobinIndex = 0
 
-    async initBot(bot: Bot): Promise<BotSession> {
+    async initBot(bot: Bot): Promise<SteamAgent> {
         const existing = this.sessions.get(bot.id)
         if (existing) {
             return existing
         }
 
         const maFile: MaFile = JSON.parse(bot.mafileJson)
-        const client = new SteamUser()
-        const community = new SteamCommunity()
+        
+        const agent = new SteamAgent({
+            userName: maFile.account_name,
+            password: bot.password,
+            maFile: bot.mafileJson,
+            proxy: bot.proxyUrl || undefined
+        })
 
-        const session: BotSession = {
-            bot,
-            client,
-            community,
-            maFile,
-            lastInviteAt: 0,
-        }
-
-        this.setupClientHandlers(session)
-        this.sessions.set(bot.id, session)
+        this.setupAgentHandlers(agent, bot)
+        this.sessions.set(bot.id, agent)
+        this.bots.set(bot.id, bot)
+        this.lastInviteAt.set(bot.id, 0)
     
-        return session
+        return agent
     }
 
-    private setupClientHandlers(session: BotSession) {
-        const { client, community, bot } = session
-
-        client.on('loggedOn', async () => {
+    private setupAgentHandlers(agent: SteamAgent, bot: Bot) {
+        agent.on('loggedOn', async () => {
             console.log(`Bot ${bot.steamId64} logged on`)
             await prisma.bot.update({
                 where: { id: bot.id },
@@ -74,15 +65,10 @@ class SteamSessionManager {
                 },
             })
       
-            client.setPersona(SteamUser.EPersonaState.Online)
+            agent.setPersonaState(1)
         })
 
-        client.on('webSession', (sessionID, cookies) => {
-            community.setCookies(cookies)
-            console.log(`Bot ${bot.steamId64} web session established`)
-        })
-
-        client.on('error', async (err) => {
+        agent.on('error', async (err: Error) => {
             console.error(`Bot ${bot.steamId64} error:`, err)
             await prisma.bot.update({
                 where: { id: bot.id },
@@ -90,7 +76,7 @@ class SteamSessionManager {
             })
         })
 
-        client.on('disconnected', async () => {
+        agent.on('disconnected', async () => {
             console.log(`Bot ${bot.steamId64} disconnected`)
             await prisma.bot.update({
                 where: { id: bot.id },
@@ -98,15 +84,15 @@ class SteamSessionManager {
             })
         })
 
-        client.on('friendRelationship', async (steamID, relationship) => {
-            if (relationship === SteamUser.EFriendRelationship.RequestRecipient) {
-                client.addFriend(steamID)
+        agent.on('friendRelationship', async (steamID: string, relationship: number) => {
+            if (relationship === 2) {
+                await agent.addFriend(steamID)
                 console.log(`Bot ${bot.steamId64} accepted friend request from ${steamID}`)
         
                 await prisma.friendRequest.updateMany({
                     where: {
                         botId: bot.id,
-                        playerSteamId64: steamID.toString(),
+                        playerSteamId64: steamID,
                         status: 'sent',
                     },
                     data: { status: 'accepted' },
@@ -115,7 +101,7 @@ class SteamSessionManager {
                 const existingChat = await prisma.chat.findFirst({
                     where: {
                         botId: bot.id,
-                        playerSteamId64: steamID.toString(),
+                        playerSteamId64: steamID,
                     },
                 })
 
@@ -123,7 +109,7 @@ class SteamSessionManager {
                     await prisma.chat.create({
                         data: {
                             botId: bot.id,
-                            playerSteamId64: steamID.toString(),
+                            playerSteamId64: steamID,
                             agentEnabled: true,
                         },
                     })
@@ -132,7 +118,7 @@ class SteamSessionManager {
                 await prisma.task.updateMany({
                     where: {
                         assignedBotId: bot.id,
-                        playerSteamId64: steamID.toString(),
+                        playerSteamId64: steamID,
                         status: 'invited',
                     },
                     data: { status: 'accepted' },
@@ -140,11 +126,11 @@ class SteamSessionManager {
             }
         })
 
-        client.on('friendMessage' as any, async (steamID: any, message: string) => {
+        agent.on('friendMessage', async (steamID: string, message: string) => {
             const chat = await prisma.chat.findFirst({
                 where: {
                     botId: bot.id,
-                    playerSteamId64: steamID.toString(),
+                    playerSteamId64: steamID,
                 },
             })
 
@@ -169,54 +155,40 @@ class SteamSessionManager {
             data: { status: 'connecting' },
         })
 
-        const session = await this.initBot(bot)
-        const { client, maFile } = session
-
-        const logOnOptions: {
-            accountName: string;
-            twoFactorCode: string;
-            rememberPassword: boolean;
-            httpProxy?: string;
-        } = {
-            accountName: maFile.account_name,
-            twoFactorCode: SteamTotp.generateAuthCode(maFile.shared_secret),
-            rememberPassword: true,
-        }
-
-        if (bot.proxyUrl) {
-            logOnOptions.httpProxy = bot.proxyUrl
-        }
-
-        client.logOn(logOnOptions)
+        const agent = await this.initBot(bot)
+        await agent.login()
     }
 
     async disconnectBot(botId: string) {
-        const session = this.sessions.get(botId)
-        if (session) {
-            session.client.logOff()
+        const agent = this.sessions.get(botId)
+        if (agent) {
+            agent.logout()
             this.sessions.delete(botId)
+            this.bots.delete(botId)
+            this.lastInviteAt.delete(botId)
         }
     }
 
     async sendMessage(botId: string, playerSteamId64: string, message: string) {
-        const session = this.sessions.get(botId)
-        if (!session) throw new Error('Bot session not found')
+        const agent = this.sessions.get(botId)
+        if (!agent) throw new Error('Bot session not found')
     
-        ;(session.client as any).chatMessage(playerSteamId64, message)
+        await agent.sendMessage(playerSteamId64, message)
     }
 
     async sendFriendRequest(botId: string, playerSteamId64: string): Promise<boolean> {
-        const session = this.sessions.get(botId)
-        if (!session) return false
+        const agent = this.sessions.get(botId)
+        if (!agent) return false
 
         const now = Date.now()
-        if (session.lastInviteAt && now - session.lastInviteAt < 60000) {
+        const lastInvite = this.lastInviteAt.get(botId) || 0
+        if (lastInvite && now - lastInvite < 60000) {
             return false
         }
 
         try {
-            session.client.addFriend(playerSteamId64)
-            session.lastInviteAt = now
+            await agent.addFriend(playerSteamId64)
+            this.lastInviteAt.set(botId, now)
       
             await prisma.friendRequest.create({
                 data: {
@@ -233,25 +205,46 @@ class SteamSessionManager {
         }
     }
 
-    getNextAvailableBot(): BotSession | null {
-        const activeSessions = Array.from(this.sessions.values()).filter(
-            s => s.bot.status === 'connected'
-        )
+    async getNextAvailableBot(): Promise<{ agent: SteamAgent; bot: Bot } | null> {
+        const activeBotIds: string[] = []
+        
+        for (const [botId, agent] of this.sessions) {
+            const bot = this.bots.get(botId)
+            if (bot && agent && bot.status === 'connected' && agent.getIsLoggedIn()) {
+                activeBotIds.push(botId)
+            }
+        }
     
-        if (activeSessions.length === 0) return null
+        if (activeBotIds.length === 0) return null
 
-        const bot = activeSessions[this.roundRobinIndex % activeSessions.length]
+        const botId = activeBotIds[this.roundRobinIndex % activeBotIds.length]
         this.roundRobinIndex++
+        
+        const agent = this.sessions.get(botId)
+        const bot = this.bots.get(botId)
+        
+        if (!agent || !bot) return null
     
-        return bot || null
+        return { agent, bot }
     }
 
-    getSession(botId: string): BotSession | undefined {
+    getSession(botId: string): SteamAgent | undefined {
         return this.sessions.get(botId)
     }
 
-    getAllSessions(): BotSession[] {
-        return Array.from(this.sessions.values())
+    getBot(botId: string): Bot | undefined {
+        return this.bots.get(botId)
+    }
+
+    getAllSessions(): Array<{ agent: SteamAgent; bot: Bot }> {
+        const result: Array<{ agent: SteamAgent; bot: Bot }> = []
+        for (const [botId, agent] of this.sessions) {
+            const bot = this.bots.get(botId)
+            if (bot) {
+                result.push({ agent, bot })
+            }
+        }
+        return result
     }
 }
 

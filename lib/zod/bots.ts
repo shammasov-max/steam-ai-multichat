@@ -19,8 +19,9 @@ export type Bot = z.infer<typeof BotSchema>
 
 export const AddBotInput = z.object({
     maFileJSON: z.string(),
-    proxyUrl: z.string().url(),
+    proxyUrl: z.string(),
     label: z.string().optional(),
+    password: z.string(),
 })
 
 export type AddBotInput = z.infer<typeof AddBotInput>
