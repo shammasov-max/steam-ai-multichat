@@ -6,7 +6,8 @@
     "rootDir": "./src",
     "outDir": "./dist",
     "module": "es2015",
-    "moduleResolution": "bundler"
+    "moduleResolution": "bundler",
+    "noEmit": false
   },
   "include": ["src/**/*"]
 }

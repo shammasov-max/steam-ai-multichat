@@ -1,12 +1,19 @@
 import { EventEmitter } from 'events'
 import SteamUser from 'steam-user'
 import SteamTotp from 'steam-totp'
-import { SteamAgentConfig, Friend, ChatMessage, ChatHistory } from './types.js'
+import { SteamAgentConfig, Friend, SteamAgentEvents } from './types.js'
 
-export class SteamAgent extends EventEmitter {
+// Typed EventEmitter wrapper
+interface TypedEventEmitter<TEvents extends Record<string, any>> {
+    on<K extends keyof TEvents>(event: K, listener: TEvents[K]): this
+    off<K extends keyof TEvents>(event: K, listener: TEvents[K]): this
+    emit<K extends keyof TEvents>(event: K, ...args: Parameters<TEvents[K]>): boolean
+    once<K extends keyof TEvents>(event: K, listener: TEvents[K]): this
+}
+
+export class SteamAgent extends (EventEmitter as new () => TypedEventEmitter<SteamAgentEvents>) {
     private client: SteamUser
     private config: SteamAgentConfig
-    private chatHistories: Map<string, ChatMessage[]> = new Map()
     private isLoggedIn: boolean = false
 
     constructor(config: SteamAgentConfig) {
@@ -32,13 +39,12 @@ export class SteamAgent extends EventEmitter {
             this.emit('error', err)
         })
 
-        this.client.on('friendMessage' as any, (steamID: any, message: string) => {
+        ;(this.client as any).on('friendMessage', (steamID: any, message: string) => {
             const steamIDStr = steamID.toString()
-            this.addMessageToHistory(steamIDStr, message, 'incoming')
             this.emit('friendMessage', steamIDStr, message)
         })
 
-        this.client.on('friendTyping' as any, (steamID: any) => {
+        ;(this.client as any).on('friendTyping', (steamID: any) => {
             this.emit('friendTyping', steamID.toString())
         })
 
@@ -121,45 +127,8 @@ export class SteamAgent extends EventEmitter {
     async sendMessage(steamID: string, message: string): Promise<void> {
         return new Promise((resolve) => {
             ;(this.client as any).chatMessage(steamID, message)
-            this.addMessageToHistory(steamID, message, 'outgoing')
             resolve()
         })
-    }
-
-    private addMessageToHistory(
-        steamID: string,
-        message: string,
-        direction: 'incoming' | 'outgoing'
-    ): void {
-        if (!this.chatHistories.has(steamID)) {
-            this.chatHistories.set(steamID, [])
-        }
-
-        const history = this.chatHistories.get(steamID)!
-        history.push({
-            steamID,
-            message,
-            timestamp: Date.now(),
-            direction,
-        })
-    }
-
-    getChatHistory(steamID: string): ChatHistory {
-        return {
-            steamID,
-            messages: this.chatHistories.get(steamID) || [],
-        }
-    }
-
-    getAllChatHistories(): ChatHistory[] {
-        return Array.from(this.chatHistories.entries()).map(([steamID, messages]) => ({
-            steamID,
-            messages,
-        }))
-    }
-
-    clearChatHistory(steamID: string): void {
-        this.chatHistories.delete(steamID)
     }
 
     getPersonaState(): number {

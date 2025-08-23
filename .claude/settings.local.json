@@ -56,7 +56,9 @@
       "Bash(DATABASE_URL=\"postgresql://test:test@localhost:54320/steambot_test?schema=public\" npx prisma migrate dev --name init)",
       "Bash(DATABASE_URL=\"postgresql://test:test@localhost:54320/steambot_test?schema=public\" OPENAI_API_KEY=\"test-api-key\" NODE_ENV=\"test\" npm test)",
       "Bash(pnpm run typecheck:all:*)",
-      "Bash(pnpm run lint:*)"
+      "Bash(pnpm run lint:*)",
+      "Bash(pnpm build:*)",
+      "Bash(pnpm typecheck:*)"
     ],
     "deny": []
   }
