@@ -44,7 +44,19 @@
       "Bash(npm run lint)",
       "Bash(npm run:*)",
       "Bash(npm run typecheck:*)",
-      "Bash(pnpm install:*)"
+      "Bash(pnpm install:*)",
+      "Bash(cat:*)",
+      "Bash(mv:*)",
+      "Bash(npm test)",
+      "Bash(cross-env:*)",
+      "Bash(npx cross-env:*)",
+      "Bash(npm test:*)",
+      "Bash(docker-compose:*)",
+      "Bash(docker:*)",
+      "Bash(DATABASE_URL=\"postgresql://test:test@localhost:54320/steambot_test?schema=public\" npx prisma migrate dev --name init)",
+      "Bash(DATABASE_URL=\"postgresql://test:test@localhost:54320/steambot_test?schema=public\" OPENAI_API_KEY=\"test-api-key\" NODE_ENV=\"test\" npm test)",
+      "Bash(pnpm run typecheck:all:*)",
+      "Bash(pnpm run lint:*)"
     ],
     "deny": []
   }

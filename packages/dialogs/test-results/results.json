@@ -1,0 +1,1513 @@
+{
+  "config": {
+    "configFile": "X:\\a\\opus-from-scratch\\packages\\dialogs\\playwright.config.ts",
+    "rootDir": "X:/a/opus-from-scratch/packages/dialogs/tests",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": "X:\\a\\opus-from-scratch\\packages\\dialogs\\tests\\setup\\global-setup.ts",
+    "globalTeardown": "X:\\a\\opus-from-scratch\\packages\\dialogs\\tests\\setup\\global-teardown.ts",
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 8
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "html",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/results.json"
+        }
+      ],
+      [
+        "junit",
+        {
+          "outputFile": "test-results/results.xml"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "X:/a/opus-from-scratch/packages/dialogs/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 8
+        },
+        "id": "unit-tests",
+        "name": "unit-tests",
+        "testDir": "X:/a/opus-from-scratch/packages/dialogs/tests/unit",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "X:/a/opus-from-scratch/packages/dialogs/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 8
+        },
+        "id": "integration-tests",
+        "name": "integration-tests",
+        "testDir": "X:/a/opus-from-scratch/packages/dialogs/tests/integration",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "X:/a/opus-from-scratch/packages/dialogs/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 8
+        },
+        "id": "database-tests",
+        "name": "database-tests",
+        "testDir": "X:/a/opus-from-scratch/packages/dialogs/tests/database",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "X:/a/opus-from-scratch/packages/dialogs/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 8
+        },
+        "id": "e2e-tests",
+        "name": "e2e-tests",
+        "testDir": "X:/a/opus-from-scratch/packages/dialogs/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "X:/a/opus-from-scratch/packages/dialogs/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 8
+        },
+        "id": "performance-tests",
+        "name": "performance-tests",
+        "testDir": "X:/a/opus-from-scratch/packages/dialogs/tests/performance",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.55.0",
+    "workers": 8,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "integration\\DialogManager.test.ts",
+      "file": "integration/DialogManager.test.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "DialogManager Integration Tests",
+          "file": "integration/DialogManager.test.ts",
+          "line": 8,
+          "column": 6,
+          "specs": [],
+          "suites": [
+            {
+              "title": "Dialog Creation",
+              "file": "integration/DialogManager.test.ts",
+              "line": 33,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should create dialog successfully with valid parameters",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "integration-tests",
+                      "projectName": "integration-tests",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 22,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [
+                            {
+                              "text": "Could not load config from ./config/test.yaml, using defaults\n"
+                            }
+                          ],
+                          "retry": 0,
+                          "startTime": "2025-08-23T03:04:40.846Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "bbd27589169dd4ca513b-7afd9236b1fb0c176f7d",
+                  "file": "integration/DialogManager.test.ts",
+                  "line": 34,
+                  "column": 9
+                },
+                {
+                  "title": "should create dialog with minimal parameters",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "integration-tests",
+                      "projectName": "integration-tests",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 9,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [
+                            {
+                              "text": "Could not load config from ./config/test.yaml, using defaults\n"
+                            }
+                          ],
+                          "retry": 0,
+                          "startTime": "2025-08-23T03:04:40.870Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "bbd27589169dd4ca513b-dae39acd5260ba095fb4",
+                  "file": "integration/DialogManager.test.ts",
+                  "line": 48,
+                  "column": 9
+                },
+                {
+                  "title": "should create dialog with Chinese language parameters",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "integration-tests",
+                      "projectName": "integration-tests",
+                      "results": [
+                        {
+                          "workerIndex": 2,
+                          "parallelIndex": 2,
+                          "status": "passed",
+                          "duration": 19,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [
+                            {
+                              "text": "Could not load config from ./config/test.yaml, using defaults\n"
+                            }
+                          ],
+                          "retry": 0,
+                          "startTime": "2025-08-23T03:04:40.901Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "bbd27589169dd4ca513b-0b2ab9a484cb915753c8",
+                  "file": "integration/DialogManager.test.ts",
+                  "line": 64,
+                  "column": 9
+                },
+                {
+                  "title": "should create dialog with complex completion criteria",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "integration-tests",
+                      "projectName": "integration-tests",
+                      "results": [
+                        {
+                          "workerIndex": 3,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 19,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [
+                            {
+                              "text": "Could not load config from ./config/test.yaml, using defaults\n"
+                            }
+                          ],
+                          "retry": 0,
+                          "startTime": "2025-08-23T03:04:40.833Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "bbd27589169dd4ca513b-454f3ad15130a8e2c269",
+                  "file": "integration/DialogManager.test.ts",
+                  "line": 82,
+                  "column": 9
+                },
+                {
+                  "title": "should create dialog with negotiation settings",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "integration-tests",
+                      "projectName": "integration-tests",
+                      "results": [
+                        {
+                          "workerIndex": 4,
+                          "parallelIndex": 4,
+                          "status": "passed",
+                          "duration": 14,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [
+                            {
+                              "text": "Could not load config from ./config/test.yaml, using defaults\n"
+                            }
+                          ],
+                          "retry": 0,
+                          "startTime": "2025-08-23T03:04:40.887Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "bbd27589169dd4ca513b-1e0117de9430f8190648",
+                  "file": "integration/DialogManager.test.ts",
+                  "line": 99,
+                  "column": 9
+                },
+                {
+                  "title": "should handle database errors during dialog creation",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "integration-tests",
+                      "projectName": "integration-tests",
+                      "results": [
+                        {
+                          "workerIndex": 5,
+                          "parallelIndex": 5,
+                          "status": "passed",
+                          "duration": 10,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [
+                            {
+                              "text": "Could not load config from ./config/test.yaml, using defaults\n"
+                            }
+                          ],
+                          "retry": 0,
+                          "startTime": "2025-08-23T03:04:40.840Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "bbd27589169dd4ca513b-ed7ca0392a9a49ed0bde",
+                  "file": "integration/DialogManager.test.ts",
+                  "line": 117,
+                  "column": 9
+                },
+                {
+                  "title": "should log dialog creation events",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "integration-tests",
+                      "projectName": "integration-tests",
+                      "results": [
+                        {
+                          "workerIndex": 6,
+                          "parallelIndex": 6,
+                          "status": "passed",
+                          "duration": 24,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [
+                            {
+                              "text": "Could not load config from ./config/test.yaml, using defaults\n"
+                            }
+                          ],
+                          "retry": 0,
+                          "startTime": "2025-08-23T03:04:40.877Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "bbd27589169dd4ca513b-9eaf8883efcbb9e19953",
+                  "file": "integration/DialogManager.test.ts",
+                  "line": 124,
+                  "column": 9
+                }
+              ]
+            },
+            {
+              "title": "Message Processing",
+              "file": "integration/DialogManager.test.ts",
+              "line": 141,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should process message successfully",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "integration-tests",
+                      "projectName": "integration-tests",
+                      "results": [
+                        {
+                          "workerIndex": 7,
+                          "parallelIndex": 7,
+                          "status": "passed",
+                          "duration": 15,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [
+                            {
+                              "text": "Could not load config from ./config/test.yaml, using defaults\n"
+                            }
+                          ],
+                          "retry": 0,
+                          "startTime": "2025-08-23T03:04:40.885Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "bbd27589169dd4ca513b-b62d1bac6b7878cf3779",
+                  "file": "integration/DialogManager.test.ts",
+                  "line": 142,
+                  "column": 9
+                },
+                {
+                  "title": "should process Chinese message correctly",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "integration-tests",
+                      "projectName": "integration-tests",
+                      "results": [
+                        {
+                          "workerIndex": 3,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 9,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [
+                            {
+                              "text": "Could not load config from ./config/test.yaml, using defaults\n"
+                            }
+                          ],
+                          "retry": 0,
+                          "startTime": "2025-08-23T03:04:40.903Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "bbd27589169dd4ca513b-c025f1fcab9162fe933a",
+                  "file": "integration/DialogManager.test.ts",
+                  "line": 165,
+                  "column": 9
+                },
+                {
+                  "title": "should process Japanese message correctly",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "integration-tests",
+                      "projectName": "integration-tests",
+                      "results": [
+                        {
+                          "workerIndex": 5,
+                          "parallelIndex": 5,
+                          "status": "passed",
+                          "duration": 6,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [
+                            {
+                              "text": "Could not load config from ./config/test.yaml, using defaults\n"
+                            }
+                          ],
+                          "retry": 0,
+                          "startTime": "2025-08-23T03:04:40.918Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "bbd27589169dd4ca513b-990b35d78cae3cb93851",
+                  "file": "integration/DialogManager.test.ts",
+                  "line": 185,
+                  "column": 9
+                },
+                {
+                  "title": "should handle dialog not found error",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "integration-tests",
+                      "projectName": "integration-tests",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 4,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [
+                            {
+                              "text": "Could not load config from ./config/test.yaml, using defaults\n"
+                            }
+                          ],
+                          "retry": 0,
+                          "startTime": "2025-08-23T03:04:40.932Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "bbd27589169dd4ca513b-70c170fa6f4b74cc8167",
+                  "file": "integration/DialogManager.test.ts",
+                  "line": 205,
+                  "column": 9
+                },
+                {
+                  "title": "should handle inactive dialog status",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "integration-tests",
+                      "projectName": "integration-tests",
+                      "results": [
+                        {
+                          "workerIndex": 6,
+                          "parallelIndex": 6,
+                          "status": "passed",
+                          "duration": 4,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [
+                            {
+                              "text": "Could not load config from ./config/test.yaml, using defaults\n"
+                            }
+                          ],
+                          "retry": 0,
+                          "startTime": "2025-08-23T03:04:40.954Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "bbd27589169dd4ca513b-b4207f90f8273080170a",
+                  "file": "integration/DialogManager.test.ts",
+                  "line": 216,
+                  "column": 9
+                },
+                {
+                  "title": "should calculate continuation score and detect issues",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "integration-tests",
+                      "projectName": "integration-tests",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 7,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [
+                            {
+                              "text": "Could not load config from ./config/test.yaml, using defaults\n"
+                            }
+                          ],
+                          "retry": 0,
+                          "startTime": "2025-08-23T03:04:40.949Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "bbd27589169dd4ca513b-51f5db8070a31c961f6e",
+                  "file": "integration/DialogManager.test.ts",
+                  "line": 237,
+                  "column": 9
+                },
+                {
+                  "title": "should track token usage correctly",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "integration-tests",
+                      "projectName": "integration-tests",
+                      "results": [
+                        {
+                          "workerIndex": 3,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 3,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [
+                            {
+                              "text": "Could not load config from ./config/test.yaml, using defaults\n"
+                            }
+                          ],
+                          "retry": 0,
+                          "startTime": "2025-08-23T03:04:40.949Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "bbd27589169dd4ca513b-f85f1b71ecccecbde8cd",
+                  "file": "integration/DialogManager.test.ts",
+                  "line": 272,
+                  "column": 9
+                },
+                {
+                  "title": "should generate operator alerts for critical issues",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "integration-tests",
+                      "projectName": "integration-tests",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 6,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [
+                            {
+                              "text": "Could not load config from ./config/test.yaml, using defaults\n"
+                            }
+                          ],
+                          "retry": 0,
+                          "startTime": "2025-08-23T03:04:40.949Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "bbd27589169dd4ca513b-987fec3dff164e39277f",
+                  "file": "integration/DialogManager.test.ts",
+                  "line": 292,
+                  "column": 9
+                },
+                {
+                  "title": "should handle OpenAI API errors during message processing",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "integration-tests",
+                      "projectName": "integration-tests",
+                      "results": [
+                        {
+                          "workerIndex": 5,
+                          "parallelIndex": 5,
+                          "status": "passed",
+                          "duration": 5,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [
+                            {
+                              "text": "Could not load config from ./config/test.yaml, using defaults\n"
+                            },
+                            {
+                              "text": "OpenAI API error: Error: OpenAI API connection failed\n    at MockOpenAI.mockConnectionError (X:\\a\\opus-from-scratch\\packages\\dialogs\\tests\\mocks\\mock-openai.ts:91:20)\n    at X:\\a\\opus-from-scratch\\packages\\dialogs\\tests\\integration\\DialogManager.test.ts:330:18\n    at X:\\a\\opus-from-scratch\\node_modules\\.pnpm\\playwright@1.55.0\\node_modules\\playwright\\lib\\worker\\workerMain.js:309:15\n    at X:\\a\\opus-from-scratch\\node_modules\\.pnpm\\playwright@1.55.0\\node_modules\\playwright\\lib\\worker\\testInfo.js:326:17\n    at TimeoutManager.withRunnable (X:\\a\\opus-from-scratch\\node_modules\\.pnpm\\playwright@1.55.0\\node_modules\\playwright\\lib\\worker\\timeoutManager.js:68:9)\n    at TestInfoImpl._runWithTimeout (X:\\a\\opus-from-scratch\\node_modules\\.pnpm\\playwright@1.55.0\\node_modules\\playwright\\lib\\worker\\testInfo.js:324:34)\n    at X:\\a\\opus-from-scratch\\node_modules\\.pnpm\\playwright@1.55.0\\node_modules\\playwright\\lib\\worker\\workerMain.js:307:22\n    at WorkerMain._runTest (X:\\a\\opus-from-scratch\\node_modules\\.pnpm\\playwright@1.55.0\\node_modules\\playwright\\lib\\worker\\workerMain.js:282:5)\n    at WorkerMain.runTestGroup (X:\\a\\opus-from-scratch\\node_modules\\.pnpm\\playwright@1.55.0\\node_modules\\playwright\\lib\\worker\\workerMain.js:194:11)\n    at process.<anonymous> (X:\\a\\opus-from-scratch\\node_modules\\.pnpm\\playwright@1.55.0\\node_modules\\playwright\\lib\\common\\process.js:65:22)\n"
+                            }
+                          ],
+                          "retry": 0,
+                          "startTime": "2025-08-23T03:04:40.948Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "bbd27589169dd4ca513b-9e69ee0819c8749577be",
+                  "file": "integration/DialogManager.test.ts",
+                  "line": 327,
+                  "column": 9
+                },
+                {
+                  "title": "should compress context for long conversations",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "integration-tests",
+                      "projectName": "integration-tests",
+                      "results": [
+                        {
+                          "workerIndex": 4,
+                          "parallelIndex": 4,
+                          "status": "passed",
+                          "duration": 6,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [
+                            {
+                              "text": "Could not load config from ./config/test.yaml, using defaults\n"
+                            }
+                          ],
+                          "retry": 0,
+                          "startTime": "2025-08-23T03:04:40.972Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "bbd27589169dd4ca513b-ebc65c10ac02a93f9306",
+                  "file": "integration/DialogManager.test.ts",
+                  "line": 340,
+                  "column": 9
+                }
+              ]
+            },
+            {
+              "title": "Dialog State Management",
+              "file": "integration/DialogManager.test.ts",
+              "line": 384,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should retrieve dialog state successfully",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "integration-tests",
+                      "projectName": "integration-tests",
+                      "results": [
+                        {
+                          "workerIndex": 7,
+                          "parallelIndex": 7,
+                          "status": "passed",
+                          "duration": 3,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [
+                            {
+                              "text": "Could not load config from ./config/test.yaml, using defaults\n"
+                            }
+                          ],
+                          "retry": 0,
+                          "startTime": "2025-08-23T03:04:40.986Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "bbd27589169dd4ca513b-5566231824d3648a1548",
+                  "file": "integration/DialogManager.test.ts",
+                  "line": 385,
+                  "column": 9
+                },
+                {
+                  "title": "should handle dialog not found for state retrieval",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "integration-tests",
+                      "projectName": "integration-tests",
+                      "results": [
+                        {
+                          "workerIndex": 2,
+                          "parallelIndex": 2,
+                          "status": "passed",
+                          "duration": 3,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [
+                            {
+                              "text": "Could not load config from ./config/test.yaml, using defaults\n"
+                            }
+                          ],
+                          "retry": 0,
+                          "startTime": "2025-08-23T03:04:40.998Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "bbd27589169dd4ca513b-3ce5f8b6ee801aea49f2",
+                  "file": "integration/DialogManager.test.ts",
+                  "line": 401,
+                  "column": 9
+                },
+                {
+                  "title": "should return correct state for dialog without messages",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "integration-tests",
+                      "projectName": "integration-tests",
+                      "results": [
+                        {
+                          "workerIndex": 6,
+                          "parallelIndex": 6,
+                          "status": "passed",
+                          "duration": 3,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [
+                            {
+                              "text": "Could not load config from ./config/test.yaml, using defaults\n"
+                            }
+                          ],
+                          "retry": 0,
+                          "startTime": "2025-08-23T03:04:40.998Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "bbd27589169dd4ca513b-8da4ead8f10b961dd77c",
+                  "file": "integration/DialogManager.test.ts",
+                  "line": 407,
+                  "column": 9
+                }
+              ]
+            },
+            {
+              "title": "Dialog Control Operations",
+              "file": "integration/DialogManager.test.ts",
+              "line": 430,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should pause dialog successfully",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "integration-tests",
+                      "projectName": "integration-tests",
+                      "results": [
+                        {
+                          "workerIndex": 3,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 2,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [
+                            {
+                              "text": "Could not load config from ./config/test.yaml, using defaults\n"
+                            }
+                          ],
+                          "retry": 0,
+                          "startTime": "2025-08-23T03:04:40.998Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "bbd27589169dd4ca513b-d8ccf801bb2b13b5f6c9",
+                  "file": "integration/DialogManager.test.ts",
+                  "line": 431,
+                  "column": 9
+                },
+                {
+                  "title": "should resume dialog successfully",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "integration-tests",
+                      "projectName": "integration-tests",
+                      "results": [
+                        {
+                          "workerIndex": 5,
+                          "parallelIndex": 5,
+                          "status": "passed",
+                          "duration": 2,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [
+                            {
+                              "text": "Could not load config from ./config/test.yaml, using defaults\n"
+                            }
+                          ],
+                          "retry": 0,
+                          "startTime": "2025-08-23T03:04:40.997Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "bbd27589169dd4ca513b-e54fd64773d7848a4529",
+                  "file": "integration/DialogManager.test.ts",
+                  "line": 450,
+                  "column": 9
+                },
+                {
+                  "title": "should complete dialog successfully",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "integration-tests",
+                      "projectName": "integration-tests",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 2,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [
+                            {
+                              "text": "Could not load config from ./config/test.yaml, using defaults\n"
+                            }
+                          ],
+                          "retry": 0,
+                          "startTime": "2025-08-23T03:04:40.998Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "bbd27589169dd4ca513b-b4a9cf8d9d37286b3bf7",
+                  "file": "integration/DialogManager.test.ts",
+                  "line": 469,
+                  "column": 9
+                },
+                {
+                  "title": "should escalate dialog successfully",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "integration-tests",
+                      "projectName": "integration-tests",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 3,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [
+                            {
+                              "text": "Could not load config from ./config/test.yaml, using defaults\n"
+                            }
+                          ],
+                          "retry": 0,
+                          "startTime": "2025-08-23T03:04:40.998Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "bbd27589169dd4ca513b-628430f82d0a89bc63e3",
+                  "file": "integration/DialogManager.test.ts",
+                  "line": 488,
+                  "column": 9
+                },
+                {
+                  "title": "should handle control operation on non-existent dialog",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "integration-tests",
+                      "projectName": "integration-tests",
+                      "results": [
+                        {
+                          "workerIndex": 4,
+                          "parallelIndex": 4,
+                          "status": "passed",
+                          "duration": 4,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [
+                            {
+                              "text": "Could not load config from ./config/test.yaml, using defaults\n"
+                            }
+                          ],
+                          "retry": 0,
+                          "startTime": "2025-08-23T03:04:40.998Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "bbd27589169dd4ca513b-68126757ef39d85872c5",
+                  "file": "integration/DialogManager.test.ts",
+                  "line": 507,
+                  "column": 9
+                },
+                {
+                  "title": "should log control operations",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "integration-tests",
+                      "projectName": "integration-tests",
+                      "results": [
+                        {
+                          "workerIndex": 7,
+                          "parallelIndex": 7,
+                          "status": "passed",
+                          "duration": 2,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [
+                            {
+                              "text": "Could not load config from ./config/test.yaml, using defaults\n"
+                            }
+                          ],
+                          "retry": 0,
+                          "startTime": "2025-08-23T03:04:40.998Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "bbd27589169dd4ca513b-abea1f42a557d8cb1537",
+                  "file": "integration/DialogManager.test.ts",
+                  "line": 513,
+                  "column": 9
+                },
+                {
+                  "title": "should handle database errors during control operations",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "integration-tests",
+                      "projectName": "integration-tests",
+                      "results": [
+                        {
+                          "workerIndex": 2,
+                          "parallelIndex": 2,
+                          "status": "passed",
+                          "duration": 1,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [
+                            {
+                              "text": "Could not load config from ./config/test.yaml, using defaults\n"
+                            }
+                          ],
+                          "retry": 0,
+                          "startTime": "2025-08-23T03:04:41.043Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "bbd27589169dd4ca513b-14d6b426fc89507113fb",
+                  "file": "integration/DialogManager.test.ts",
+                  "line": 534,
+                  "column": 9
+                }
+              ]
+            },
+            {
+              "title": "Configuration and Setup",
+              "file": "integration/DialogManager.test.ts",
+              "line": 549,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should load configuration from provided path",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "integration-tests",
+                      "projectName": "integration-tests",
+                      "results": [
+                        {
+                          "workerIndex": 4,
+                          "parallelIndex": 4,
+                          "status": "passed",
+                          "duration": 2,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [
+                            {
+                              "text": "Could not load config from ./config/test.yaml, using defaults\n"
+                            },
+                            {
+                              "text": "Could not load config from ./test-config.yaml, using defaults\n"
+                            }
+                          ],
+                          "retry": 0,
+                          "startTime": "2025-08-23T03:04:41.043Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "bbd27589169dd4ca513b-47cf41f6106e5557de1a",
+                  "file": "integration/DialogManager.test.ts",
+                  "line": 550,
+                  "column": 9
+                },
+                {
+                  "title": "should use default configuration when file not found",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "integration-tests",
+                      "projectName": "integration-tests",
+                      "results": [
+                        {
+                          "workerIndex": 7,
+                          "parallelIndex": 7,
+                          "status": "passed",
+                          "duration": 2,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [
+                            {
+                              "text": "Could not load config from ./config/test.yaml, using defaults\n"
+                            },
+                            {
+                              "text": "Could not load config from ./non-existent-config.yaml, using defaults\n"
+                            }
+                          ],
+                          "retry": 0,
+                          "startTime": "2025-08-23T03:04:41.043Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "bbd27589169dd4ca513b-b99d694a6f0bd76005ea",
+                  "file": "integration/DialogManager.test.ts",
+                  "line": 561,
+                  "column": 9
+                },
+                {
+                  "title": "should initialize all services correctly",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "integration-tests",
+                      "projectName": "integration-tests",
+                      "results": [
+                        {
+                          "workerIndex": 3,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 2,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [
+                            {
+                              "text": "Could not load config from ./config/test.yaml, using defaults\n"
+                            },
+                            {
+                              "text": "Could not load config from ./config/test.yaml, using defaults\n"
+                            }
+                          ],
+                          "retry": 0,
+                          "startTime": "2025-08-23T03:04:41.043Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "bbd27589169dd4ca513b-f8f611c3f9195af2c34b",
+                  "file": "integration/DialogManager.test.ts",
+                  "line": 571,
+                  "column": 9
+                },
+                {
+                  "title": "should close database connection",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "integration-tests",
+                      "projectName": "integration-tests",
+                      "results": [
+                        {
+                          "workerIndex": 5,
+                          "parallelIndex": 5,
+                          "status": "passed",
+                          "duration": 3,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [
+                            {
+                              "text": "Could not load config from ./config/test.yaml, using defaults\n"
+                            }
+                          ],
+                          "retry": 0,
+                          "startTime": "2025-08-23T03:04:41.043Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "bbd27589169dd4ca513b-b67d7da159de02be5564",
+                  "file": "integration/DialogManager.test.ts",
+                  "line": 581,
+                  "column": 9
+                }
+              ]
+            },
+            {
+              "title": "Error Handling and Logging",
+              "file": "integration/DialogManager.test.ts",
+              "line": 591,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should log errors during dialog creation",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "integration-tests",
+                      "projectName": "integration-tests",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 3,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [
+                            {
+                              "text": "Could not load config from ./config/test.yaml, using defaults\n"
+                            }
+                          ],
+                          "retry": 0,
+                          "startTime": "2025-08-23T03:04:41.043Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "bbd27589169dd4ca513b-1a854eb6441cb06e8879",
+                  "file": "integration/DialogManager.test.ts",
+                  "line": 592,
+                  "column": 9
+                },
+                {
+                  "title": "should log errors during message processing",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "integration-tests",
+                      "projectName": "integration-tests",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 3,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [
+                            {
+                              "text": "Could not load config from ./config/test.yaml, using defaults\n"
+                            },
+                            {
+                              "text": "OpenAI API error: Error: OpenAI API connection failed\n    at MockOpenAI.mockConnectionError (X:\\a\\opus-from-scratch\\packages\\dialogs\\tests\\mocks\\mock-openai.ts:91:20)\n    at X:\\a\\opus-from-scratch\\packages\\dialogs\\tests\\integration\\DialogManager.test.ts:614:18\n    at X:\\a\\opus-from-scratch\\node_modules\\.pnpm\\playwright@1.55.0\\node_modules\\playwright\\lib\\worker\\workerMain.js:309:15\n    at X:\\a\\opus-from-scratch\\node_modules\\.pnpm\\playwright@1.55.0\\node_modules\\playwright\\lib\\worker\\testInfo.js:326:17\n    at TimeoutManager.withRunnable (X:\\a\\opus-from-scratch\\node_modules\\.pnpm\\playwright@1.55.0\\node_modules\\playwright\\lib\\worker\\timeoutManager.js:68:9)\n    at TestInfoImpl._runWithTimeout (X:\\a\\opus-from-scratch\\node_modules\\.pnpm\\playwright@1.55.0\\node_modules\\playwright\\lib\\worker\\testInfo.js:324:34)\n    at X:\\a\\opus-from-scratch\\node_modules\\.pnpm\\playwright@1.55.0\\node_modules\\playwright\\lib\\worker\\workerMain.js:307:22\n    at WorkerMain._runTest (X:\\a\\opus-from-scratch\\node_modules\\.pnpm\\playwright@1.55.0\\node_modules\\playwright\\lib\\worker\\workerMain.js:282:5)\n    at WorkerMain.runTestGroup (X:\\a\\opus-from-scratch\\node_modules\\.pnpm\\playwright@1.55.0\\node_modules\\playwright\\lib\\worker\\workerMain.js:194:11)\n    at process.<anonymous> (X:\\a\\opus-from-scratch\\node_modules\\.pnpm\\playwright@1.55.0\\node_modules\\playwright\\lib\\common\\process.js:65:22)\n"
+                            }
+                          ],
+                          "retry": 0,
+                          "startTime": "2025-08-23T03:04:41.044Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "bbd27589169dd4ca513b-d02c955dc3d138e671d6",
+                  "file": "integration/DialogManager.test.ts",
+                  "line": 611,
+                  "column": 9
+                },
+                {
+                  "title": "should log errors during control operations",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "integration-tests",
+                      "projectName": "integration-tests",
+                      "results": [
+                        {
+                          "workerIndex": 6,
+                          "parallelIndex": 6,
+                          "status": "passed",
+                          "duration": 1,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [
+                            {
+                              "text": "Could not load config from ./config/test.yaml, using defaults\n"
+                            }
+                          ],
+                          "retry": 0,
+                          "startTime": "2025-08-23T03:04:41.044Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "bbd27589169dd4ca513b-2a7fb626ed164155804f",
+                  "file": "integration/DialogManager.test.ts",
+                  "line": 636,
+                  "column": 9
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2025-08-23T03:04:30.897Z",
+    "duration": 10261.009,
+    "expected": 34,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

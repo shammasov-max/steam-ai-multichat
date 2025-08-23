@@ -3,9 +3,10 @@
 import { prisma } from '../db/client'
 import { steamSessionManager } from '../steam/sessionManager'
 import { AddBotInput, RemoveBotInput, ConnectBotInput } from '../zod/bots'
+import { ActionResult } from '../types/common'
 import { revalidatePath } from 'next/cache'
 
-export async function addBot(input: AddBotInput) {
+export async function addBot(input: AddBotInput): Promise<ActionResult> {
     const validated = AddBotInput.parse(input)
   
     try {
@@ -24,14 +25,14 @@ export async function addBot(input: AddBotInput) {
         })
     
         revalidatePath('/bots')
-        return { success: true, bot }
+        return { success: true, data: bot }
     } catch (error) {
         console.error('Failed to add bot:', error)
         return { success: false, error: 'Failed to add bot' }
     }
 }
 
-export async function removeBot(input: RemoveBotInput) {
+export async function removeBot(input: RemoveBotInput): Promise<ActionResult> {
     const validated = RemoveBotInput.parse(input)
   
     try {
@@ -49,7 +50,7 @@ export async function removeBot(input: RemoveBotInput) {
     }
 }
 
-export async function connectBot(input: ConnectBotInput) {
+export async function connectBot(input: ConnectBotInput): Promise<ActionResult> {
     const validated = ConnectBotInput.parse(input)
   
     try {

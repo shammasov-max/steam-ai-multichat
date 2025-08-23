@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import { ledgerPrismaClient as prisma } from '@local/prisma'
 
 export async function GET() {
   try {

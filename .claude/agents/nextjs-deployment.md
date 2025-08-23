@@ -65,7 +65,7 @@ You are a Next.js 15 deployment expert specializing in production configurations
   "env": {
     "DATABASE_URL": "@database-url"
   },
-  "buildCommand": "npm run build",
+  "buildCommand": "pnpm run build",
   "outputDirectory": ".next"
 }
 ```

@@ -1,12 +1,10 @@
 import { EventEmitter } from 'events'
 import SteamUser from 'steam-user'
-import SteamCommunity from 'steamcommunity'
 import SteamTotp from 'steam-totp'
-import { SteamAgentConfig, Friend, ChatMessage, ChatHistory, SteamAgentEvents } from './types.js'
+import { SteamAgentConfig, Friend, ChatMessage, ChatHistory } from './types.js'
 
 export class SteamAgent extends EventEmitter {
     private client: SteamUser
-    private community: SteamCommunity
     private config: SteamAgentConfig
     private chatHistories: Map<string, ChatMessage[]> = new Map()
     private isLoggedIn: boolean = false
@@ -15,7 +13,6 @@ export class SteamAgent extends EventEmitter {
         super()
         this.config = config
         this.client = new SteamUser()
-        this.community = new SteamCommunity()
 
         this.setupEventHandlers()
     }
@@ -90,7 +87,7 @@ export class SteamAgent extends EventEmitter {
 
     async addFriend(steamID: string): Promise<void> {
         return new Promise((resolve, reject) => {
-            this.client.addFriend(steamID, (err: Error | null, personaName: string) => {
+            this.client.addFriend(steamID, (err: Error | null, _personaName: string) => {
                 if (err) reject(err)
                 else resolve()
             })
@@ -98,7 +95,7 @@ export class SteamAgent extends EventEmitter {
     }
 
     async removeFriend(steamID: string): Promise<void> {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve, _reject) => {
             this.client.removeFriend(steamID)
             resolve()
         })
@@ -122,7 +119,7 @@ export class SteamAgent extends EventEmitter {
     }
 
     async sendMessage(steamID: string, message: string): Promise<void> {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             ;(this.client as any).chatMessage(steamID, message)
             this.addMessageToHistory(steamID, message, 'outgoing')
             resolve()

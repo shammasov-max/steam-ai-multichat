@@ -1,0 +1,233 @@
+<testsuites id="" name="" tests="34" failures="0" skipped="0" errors="0" time="10.261009">
+<testsuite name="integration\DialogManager.test.ts" timestamp="2025-08-23T03:04:38.452Z" hostname="integration-tests" tests="34" failures="0" skipped="0" time="0.223" errors="0">
+<testcase name="DialogManager Integration Tests › Dialog Creation › should create dialog successfully with valid parameters" classname="integration\DialogManager.test.ts" time="0.022">
+<system-err>
+<![CDATA[Could not load config from ./config/test.yaml, using defaults
+]]>
+</system-err>
+</testcase>
+<testcase name="DialogManager Integration Tests › Dialog Creation › should create dialog with minimal parameters" classname="integration\DialogManager.test.ts" time="0.009">
+<system-err>
+<![CDATA[Could not load config from ./config/test.yaml, using defaults
+]]>
+</system-err>
+</testcase>
+<testcase name="DialogManager Integration Tests › Dialog Creation › should create dialog with Chinese language parameters" classname="integration\DialogManager.test.ts" time="0.019">
+<system-err>
+<![CDATA[Could not load config from ./config/test.yaml, using defaults
+]]>
+</system-err>
+</testcase>
+<testcase name="DialogManager Integration Tests › Dialog Creation › should create dialog with complex completion criteria" classname="integration\DialogManager.test.ts" time="0.019">
+<system-err>
+<![CDATA[Could not load config from ./config/test.yaml, using defaults
+]]>
+</system-err>
+</testcase>
+<testcase name="DialogManager Integration Tests › Dialog Creation › should create dialog with negotiation settings" classname="integration\DialogManager.test.ts" time="0.014">
+<system-err>
+<![CDATA[Could not load config from ./config/test.yaml, using defaults
+]]>
+</system-err>
+</testcase>
+<testcase name="DialogManager Integration Tests › Dialog Creation › should handle database errors during dialog creation" classname="integration\DialogManager.test.ts" time="0.01">
+<system-err>
+<![CDATA[Could not load config from ./config/test.yaml, using defaults
+]]>
+</system-err>
+</testcase>
+<testcase name="DialogManager Integration Tests › Dialog Creation › should log dialog creation events" classname="integration\DialogManager.test.ts" time="0.024">
+<system-err>
+<![CDATA[Could not load config from ./config/test.yaml, using defaults
+]]>
+</system-err>
+</testcase>
+<testcase name="DialogManager Integration Tests › Message Processing › should process message successfully" classname="integration\DialogManager.test.ts" time="0.015">
+<system-err>
+<![CDATA[Could not load config from ./config/test.yaml, using defaults
+]]>
+</system-err>
+</testcase>
+<testcase name="DialogManager Integration Tests › Message Processing › should process Chinese message correctly" classname="integration\DialogManager.test.ts" time="0.009">
+<system-err>
+<![CDATA[Could not load config from ./config/test.yaml, using defaults
+]]>
+</system-err>
+</testcase>
+<testcase name="DialogManager Integration Tests › Message Processing › should process Japanese message correctly" classname="integration\DialogManager.test.ts" time="0.006">
+<system-err>
+<![CDATA[Could not load config from ./config/test.yaml, using defaults
+]]>
+</system-err>
+</testcase>
+<testcase name="DialogManager Integration Tests › Message Processing › should handle dialog not found error" classname="integration\DialogManager.test.ts" time="0.004">
+<system-err>
+<![CDATA[Could not load config from ./config/test.yaml, using defaults
+]]>
+</system-err>
+</testcase>
+<testcase name="DialogManager Integration Tests › Message Processing › should handle inactive dialog status" classname="integration\DialogManager.test.ts" time="0.004">
+<system-err>
+<![CDATA[Could not load config from ./config/test.yaml, using defaults
+]]>
+</system-err>
+</testcase>
+<testcase name="DialogManager Integration Tests › Message Processing › should calculate continuation score and detect issues" classname="integration\DialogManager.test.ts" time="0.007">
+<system-err>
+<![CDATA[Could not load config from ./config/test.yaml, using defaults
+]]>
+</system-err>
+</testcase>
+<testcase name="DialogManager Integration Tests › Message Processing › should track token usage correctly" classname="integration\DialogManager.test.ts" time="0.003">
+<system-err>
+<![CDATA[Could not load config from ./config/test.yaml, using defaults
+]]>
+</system-err>
+</testcase>
+<testcase name="DialogManager Integration Tests › Message Processing › should generate operator alerts for critical issues" classname="integration\DialogManager.test.ts" time="0.006">
+<system-err>
+<![CDATA[Could not load config from ./config/test.yaml, using defaults
+]]>
+</system-err>
+</testcase>
+<testcase name="DialogManager Integration Tests › Message Processing › should handle OpenAI API errors during message processing" classname="integration\DialogManager.test.ts" time="0.005">
+<system-err>
+<![CDATA[Could not load config from ./config/test.yaml, using defaults
+OpenAI API error: Error: OpenAI API connection failed
+    at MockOpenAI.mockConnectionError (X:\a\opus-from-scratch\packages\dialogs\tests\mocks\mock-openai.ts:91:20)
+    at X:\a\opus-from-scratch\packages\dialogs\tests\integration\DialogManager.test.ts:330:18
+    at X:\a\opus-from-scratch\node_modules\.pnpm\playwright@1.55.0\node_modules\playwright\lib\worker\workerMain.js:309:15
+    at X:\a\opus-from-scratch\node_modules\.pnpm\playwright@1.55.0\node_modules\playwright\lib\worker\testInfo.js:326:17
+    at TimeoutManager.withRunnable (X:\a\opus-from-scratch\node_modules\.pnpm\playwright@1.55.0\node_modules\playwright\lib\worker\timeoutManager.js:68:9)
+    at TestInfoImpl._runWithTimeout (X:\a\opus-from-scratch\node_modules\.pnpm\playwright@1.55.0\node_modules\playwright\lib\worker\testInfo.js:324:34)
+    at X:\a\opus-from-scratch\node_modules\.pnpm\playwright@1.55.0\node_modules\playwright\lib\worker\workerMain.js:307:22
+    at WorkerMain._runTest (X:\a\opus-from-scratch\node_modules\.pnpm\playwright@1.55.0\node_modules\playwright\lib\worker\workerMain.js:282:5)
+    at WorkerMain.runTestGroup (X:\a\opus-from-scratch\node_modules\.pnpm\playwright@1.55.0\node_modules\playwright\lib\worker\workerMain.js:194:11)
+    at process.<anonymous> (X:\a\opus-from-scratch\node_modules\.pnpm\playwright@1.55.0\node_modules\playwright\lib\common\process.js:65:22)
+]]>
+</system-err>
+</testcase>
+<testcase name="DialogManager Integration Tests › Message Processing › should compress context for long conversations" classname="integration\DialogManager.test.ts" time="0.006">
+<system-err>
+<![CDATA[Could not load config from ./config/test.yaml, using defaults
+]]>
+</system-err>
+</testcase>
+<testcase name="DialogManager Integration Tests › Dialog State Management › should retrieve dialog state successfully" classname="integration\DialogManager.test.ts" time="0.003">
+<system-err>
+<![CDATA[Could not load config from ./config/test.yaml, using defaults
+]]>
+</system-err>
+</testcase>
+<testcase name="DialogManager Integration Tests › Dialog State Management › should handle dialog not found for state retrieval" classname="integration\DialogManager.test.ts" time="0.003">
+<system-err>
+<![CDATA[Could not load config from ./config/test.yaml, using defaults
+]]>
+</system-err>
+</testcase>
+<testcase name="DialogManager Integration Tests › Dialog State Management › should return correct state for dialog without messages" classname="integration\DialogManager.test.ts" time="0.003">
+<system-err>
+<![CDATA[Could not load config from ./config/test.yaml, using defaults
+]]>
+</system-err>
+</testcase>
+<testcase name="DialogManager Integration Tests › Dialog Control Operations › should pause dialog successfully" classname="integration\DialogManager.test.ts" time="0.002">
+<system-err>
+<![CDATA[Could not load config from ./config/test.yaml, using defaults
+]]>
+</system-err>
+</testcase>
+<testcase name="DialogManager Integration Tests › Dialog Control Operations › should resume dialog successfully" classname="integration\DialogManager.test.ts" time="0.002">
+<system-err>
+<![CDATA[Could not load config from ./config/test.yaml, using defaults
+]]>
+</system-err>
+</testcase>
+<testcase name="DialogManager Integration Tests › Dialog Control Operations › should complete dialog successfully" classname="integration\DialogManager.test.ts" time="0.002">
+<system-err>
+<![CDATA[Could not load config from ./config/test.yaml, using defaults
+]]>
+</system-err>
+</testcase>
+<testcase name="DialogManager Integration Tests › Dialog Control Operations › should escalate dialog successfully" classname="integration\DialogManager.test.ts" time="0.003">
+<system-err>
+<![CDATA[Could not load config from ./config/test.yaml, using defaults
+]]>
+</system-err>
+</testcase>
+<testcase name="DialogManager Integration Tests › Dialog Control Operations › should handle control operation on non-existent dialog" classname="integration\DialogManager.test.ts" time="0.004">
+<system-err>
+<![CDATA[Could not load config from ./config/test.yaml, using defaults
+]]>
+</system-err>
+</testcase>
+<testcase name="DialogManager Integration Tests › Dialog Control Operations › should log control operations" classname="integration\DialogManager.test.ts" time="0.002">
+<system-err>
+<![CDATA[Could not load config from ./config/test.yaml, using defaults
+]]>
+</system-err>
+</testcase>
+<testcase name="DialogManager Integration Tests › Dialog Control Operations › should handle database errors during control operations" classname="integration\DialogManager.test.ts" time="0.001">
+<system-err>
+<![CDATA[Could not load config from ./config/test.yaml, using defaults
+]]>
+</system-err>
+</testcase>
+<testcase name="DialogManager Integration Tests › Configuration and Setup › should load configuration from provided path" classname="integration\DialogManager.test.ts" time="0.002">
+<system-err>
+<![CDATA[Could not load config from ./config/test.yaml, using defaults
+Could not load config from ./test-config.yaml, using defaults
+]]>
+</system-err>
+</testcase>
+<testcase name="DialogManager Integration Tests › Configuration and Setup › should use default configuration when file not found" classname="integration\DialogManager.test.ts" time="0.002">
+<system-err>
+<![CDATA[Could not load config from ./config/test.yaml, using defaults
+Could not load config from ./non-existent-config.yaml, using defaults
+]]>
+</system-err>
+</testcase>
+<testcase name="DialogManager Integration Tests › Configuration and Setup › should initialize all services correctly" classname="integration\DialogManager.test.ts" time="0.002">
+<system-err>
+<![CDATA[Could not load config from ./config/test.yaml, using defaults
+Could not load config from ./config/test.yaml, using defaults
+]]>
+</system-err>
+</testcase>
+<testcase name="DialogManager Integration Tests › Configuration and Setup › should close database connection" classname="integration\DialogManager.test.ts" time="0.003">
+<system-err>
+<![CDATA[Could not load config from ./config/test.yaml, using defaults
+]]>
+</system-err>
+</testcase>
+<testcase name="DialogManager Integration Tests › Error Handling and Logging › should log errors during dialog creation" classname="integration\DialogManager.test.ts" time="0.003">
+<system-err>
+<![CDATA[Could not load config from ./config/test.yaml, using defaults
+]]>
+</system-err>
+</testcase>
+<testcase name="DialogManager Integration Tests › Error Handling and Logging › should log errors during message processing" classname="integration\DialogManager.test.ts" time="0.003">
+<system-err>
+<![CDATA[Could not load config from ./config/test.yaml, using defaults
+OpenAI API error: Error: OpenAI API connection failed
+    at MockOpenAI.mockConnectionError (X:\a\opus-from-scratch\packages\dialogs\tests\mocks\mock-openai.ts:91:20)
+    at X:\a\opus-from-scratch\packages\dialogs\tests\integration\DialogManager.test.ts:614:18
+    at X:\a\opus-from-scratch\node_modules\.pnpm\playwright@1.55.0\node_modules\playwright\lib\worker\workerMain.js:309:15
+    at X:\a\opus-from-scratch\node_modules\.pnpm\playwright@1.55.0\node_modules\playwright\lib\worker\testInfo.js:326:17
+    at TimeoutManager.withRunnable (X:\a\opus-from-scratch\node_modules\.pnpm\playwright@1.55.0\node_modules\playwright\lib\worker\timeoutManager.js:68:9)
+    at TestInfoImpl._runWithTimeout (X:\a\opus-from-scratch\node_modules\.pnpm\playwright@1.55.0\node_modules\playwright\lib\worker\testInfo.js:324:34)
+    at X:\a\opus-from-scratch\node_modules\.pnpm\playwright@1.55.0\node_modules\playwright\lib\worker\workerMain.js:307:22
+    at WorkerMain._runTest (X:\a\opus-from-scratch\node_modules\.pnpm\playwright@1.55.0\node_modules\playwright\lib\worker\workerMain.js:282:5)
+    at WorkerMain.runTestGroup (X:\a\opus-from-scratch\node_modules\.pnpm\playwright@1.55.0\node_modules\playwright\lib\worker\workerMain.js:194:11)
+    at process.<anonymous> (X:\a\opus-from-scratch\node_modules\.pnpm\playwright@1.55.0\node_modules\playwright\lib\common\process.js:65:22)
+]]>
+</system-err>
+</testcase>
+<testcase name="DialogManager Integration Tests › Error Handling and Logging › should log errors during control operations" classname="integration\DialogManager.test.ts" time="0.001">
+<system-err>
+<![CDATA[Could not load config from ./config/test.yaml, using defaults
+]]>
+</system-err>
+</testcase>
+</testsuite>
+</testsuites>

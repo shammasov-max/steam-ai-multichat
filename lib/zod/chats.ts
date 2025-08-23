@@ -1,12 +1,11 @@
 import { z } from 'zod'
+import { BaseEntitySchema, SteamId64Schema, MessageTextSchema, DateTimeStringSchema } from './base'
+import { MessageSource } from '../types/status'
 
-export const ChatSchema = z.object({
-    id: z.string(),
+export const ChatSchema = BaseEntitySchema.extend({
     botId: z.string(),
-    playerSteamId64: z.string(),
+    playerSteamId64: SteamId64Schema,
     agentEnabled: z.boolean(),
-    createdAt: z.date(),
-    updatedAt: z.date(),
 })
 
 export type Chat = z.infer<typeof ChatSchema>
@@ -14,8 +13,8 @@ export type Chat = z.infer<typeof ChatSchema>
 export const MessageSchema = z.object({
     id: z.string(),
     chatId: z.string(),
-    from: z.enum(['bot', 'player']),
-    text: z.string(),
+    from: MessageSource,
+    text: MessageTextSchema,
     ts: z.date(),
 })
 
@@ -30,13 +29,13 @@ export type ToggleAgentInput = z.infer<typeof ToggleAgentInput>
 
 export const SendMessageInput = z.object({
     chatId: z.string(),
-    text: z.string().min(1).max(1000),
+    text: MessageTextSchema,
 })
 
 export type SendMessageInput = z.infer<typeof SendMessageInput>
 
 export const GetMessagesInput = z.object({
-    since: z.string().datetime().optional(),
+    since: DateTimeStringSchema,
 })
 
 export type GetMessagesInput = z.infer<typeof GetMessagesInput>

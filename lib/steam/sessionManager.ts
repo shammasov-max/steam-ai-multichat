@@ -1,7 +1,7 @@
 // import SteamUser from 'steam-user'
 // import SteamTotp from 'steam-totp'
 import { prisma } from '../db/client'
-import type { Bot } from '@prisma/client'
+import type { LedgerBot as Bot } from '@local/prisma'
 import { SteamAgent } from '../../packages/steam-agent/src/SteamAgent'
 
 interface MaFile {

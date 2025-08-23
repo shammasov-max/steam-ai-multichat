@@ -34,8 +34,10 @@
     "app/**/*",
     "lib/**/*",
     "components/**/*",
+    "hooks/**/*",
+    "packages/**/*",
     ".next/types/**/*.ts"
-, "packages/steam-agent/src/SteamAgent.ts"  ],
+  ],
   "exclude": [
     "node_modules"
   ]

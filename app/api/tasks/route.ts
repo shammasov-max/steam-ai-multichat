@@ -1,17 +1,18 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/db/client'
+import { createPollingApiHandler } from '@/lib/api/createHandler'
 
-export async function GET(request: NextRequest) {
-    try {
-        const searchParams = request.nextUrl.searchParams
-        const status = searchParams.get('status')
-        const assignedBotId = searchParams.get('assignedBotId')
-    
-        const where: { status?: string; assignedBotId?: string } = {}
-        if (status) where.status = status
-        if (assignedBotId) where.assignedBotId = assignedBotId
-    
-        const tasks = await prisma.task.findMany({
+export function GET(request: NextRequest) {
+    const searchParams = request.nextUrl.searchParams
+    const status = searchParams.get('status')
+    const assignedBotId = searchParams.get('assignedBotId')
+
+    const where: { status?: string; assignedBotId?: string } = {}
+    if (status) where.status = status
+    if (assignedBotId) where.assignedBotId = assignedBotId
+
+    return createPollingApiHandler({
+        fetcher: () => prisma.task.findMany({
             where,
             include: {
                 assignedBot: true,
@@ -20,10 +21,5 @@ export async function GET(request: NextRequest) {
             },
             orderBy: { createdAt: 'desc' },
         })
-    
-        return NextResponse.json(tasks)
-    } catch (error) {
-        console.error('Failed to fetch tasks:', error)
-        return NextResponse.json({ error: 'Failed to fetch tasks' }, { status: 500 })
-    }
+    })(request)
 }

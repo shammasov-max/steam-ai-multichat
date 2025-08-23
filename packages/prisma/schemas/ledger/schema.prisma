@@ -1,0 +1,115 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../generated/ledger"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("LEDGER_DATABASE_URL")
+}
+
+model Bot {
+  id          String   @id @default(uuid())
+  steamId64   String   @map("steam_id64")
+  label       String?
+  proxyUrl    String   @map("proxy_url")
+  password    String
+  status      String   @default("disconnected")
+  lastSeen    DateTime? @map("last_seen")
+  mafileJson  String   @map("mafile_json")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  tasks          Task[]
+  friendRequests FriendRequest[]
+  chats          Chat[]
+
+  @@map("bots")
+}
+
+model Task {
+  id              String   @id @default(uuid())
+  playerSteamId64 String   @map("player_steam_id64")
+  item            String
+  priceMin        Float    @map("price_min")
+  priceMax        Float    @map("price_max")
+  status          String   @default("created")
+  assignedBotId   String?  @map("assigned_bot_id")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  assignedBot     Bot?             @relation(fields: [assignedBotId], references: [id])
+  target          TaskTarget?
+  preconditions   TaskPrecondition?
+
+  @@map("tasks")
+}
+
+model TaskTarget {
+  taskId         String @id @map("task_id")
+  targetType     String @map("target_type")
+  targetPayload  String @map("target_payload")
+  successCriteria String @map("success_criteria")
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@map("task_targets")
+}
+
+model TaskPrecondition {
+  taskId            String  @id @map("task_id")
+  requireFriendship Boolean @default(true) @map("require_friendship")
+  scriptId          String? @map("script_id")
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@map("task_preconditions")
+}
+
+model FriendRequest {
+  id              String   @id @default(uuid())
+  botId           String   @map("bot_id")
+  playerSteamId64 String   @map("player_steam_id64")
+  status          String   @default("sent")
+  error           String?
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  bot Bot @relation(fields: [botId], references: [id], onDelete: Cascade)
+
+  @@map("friend_requests")
+}
+
+model Chat {
+  id              String   @id @default(uuid())
+  botId           String   @map("bot_id")
+  playerSteamId64 String   @map("player_steam_id64")
+  agentEnabled    Boolean  @default(true) @map("agent_enabled")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  bot      Bot       @relation(fields: [botId], references: [id], onDelete: Cascade)
+  messages Message[]
+
+  @@unique([botId, playerSteamId64])
+  @@map("chats")
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  chatId    String   @map("chat_id")
+  from      String
+  text      String
+  ts        DateTime @default(now())
+
+  chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+
+  @@map("messages")
+}
+
+model Setting {
+  key   String @id
+  value String
+
+  @@map("settings")
+}

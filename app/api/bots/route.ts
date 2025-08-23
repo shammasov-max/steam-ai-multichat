@@ -1,15 +1,8 @@
-import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db/client'
+import { createPollingApiHandler } from '@/lib/api/createHandler'
 
-export async function GET() {
-    try {
-        const bots = await prisma.bot.findMany({
-            orderBy: { createdAt: 'desc' },
-        })
-    
-        return NextResponse.json(bots)
-    } catch (error) {
-        console.error('Failed to fetch bots:', error)
-        return NextResponse.json({ error: 'Failed to fetch bots' }, { status: 500 })
-    }
-}
+export const GET = createPollingApiHandler({
+    fetcher: () => prisma.bot.findMany({
+        orderBy: { createdAt: 'desc' },
+    })
+})

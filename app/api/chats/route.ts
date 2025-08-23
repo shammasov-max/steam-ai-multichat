@@ -1,17 +1,18 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/db/client'
+import { createPollingApiHandler } from '@/lib/api/createHandler'
 
-export async function GET(request: NextRequest) {
-    try {
-        const searchParams = request.nextUrl.searchParams
-        const botId = searchParams.get('botId')
-        const playerSteamId64 = searchParams.get('playerSteamId64')
-    
-        const where: { botId?: string; playerSteamId64?: string } = {}
-        if (botId) where.botId = botId
-        if (playerSteamId64) where.playerSteamId64 = playerSteamId64
-    
-        const chats = await prisma.chat.findMany({
+export function GET(request: NextRequest) {
+    const searchParams = request.nextUrl.searchParams
+    const botId = searchParams.get('botId')
+    const playerSteamId64 = searchParams.get('playerSteamId64')
+
+    const where: { botId?: string; playerSteamId64?: string } = {}
+    if (botId) where.botId = botId
+    if (playerSteamId64) where.playerSteamId64 = playerSteamId64
+
+    return createPollingApiHandler({
+        fetcher: () => prisma.chat.findMany({
             where,
             include: {
                 bot: true,
@@ -21,10 +22,5 @@ export async function GET(request: NextRequest) {
             },
             orderBy: { updatedAt: 'desc' },
         })
-    
-        return NextResponse.json(chats)
-    } catch (error) {
-        console.error('Failed to fetch chats:', error)
-        return NextResponse.json({ error: 'Failed to fetch chats' }, { status: 500 })
-    }
+    })(request)
 }

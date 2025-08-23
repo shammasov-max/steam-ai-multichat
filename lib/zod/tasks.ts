@@ -1,26 +1,14 @@
 import { z } from 'zod'
+import { BaseEntitySchema, SteamId64Schema, ItemNameSchema, PriceSchema } from './base'
+import { TaskStatus } from '../types/status'
 
-export const TaskStatus = z.enum([
-    'created',
-    'assigned',
-    'invited',
-    'accepted',
-    'failed',
-    'disposed',
-    'resolved'
-])
-export type TaskStatus = z.infer<typeof TaskStatus>
-
-export const TaskSchema = z.object({
-    id: z.string(),
-    playerSteamId64: z.string(),
-    item: z.string(),
-    priceMin: z.number(),
-    priceMax: z.number(),
+export const TaskSchema = BaseEntitySchema.extend({
+    playerSteamId64: SteamId64Schema,
+    item: ItemNameSchema,
+    priceMin: PriceSchema,
+    priceMax: PriceSchema,
     status: TaskStatus,
     assignedBotId: z.string().nullable(),
-    createdAt: z.date(),
-    updatedAt: z.date(),
 })
 
 export type Task = z.infer<typeof TaskSchema>
@@ -47,16 +35,16 @@ export const TaskPreconditionSchema = z.object({
 export type TaskPrecondition = z.infer<typeof TaskPreconditionSchema>
 
 export const CreateTaskInput = z.object({
-    playerSteamId64: z.string(),
-    item: z.string(),
-    priceMin: z.number().min(0),
-    priceMax: z.number().min(0),
+    playerSteamId64: SteamId64Schema,
+    item: ItemNameSchema,
+    priceMin: PriceSchema,
+    priceMax: PriceSchema,
     target: z.object({
         type: z.enum(['buy_item']),
         payload: z.object({
-            item: z.string(),
-            priceMin: z.number(),
-            priceMax: z.number(),
+            item: ItemNameSchema,
+            priceMin: PriceSchema,
+            priceMax: PriceSchema,
         }),
         successCriteria: z.string(),
     }).optional(),

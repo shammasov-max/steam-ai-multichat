@@ -1,26 +1,23 @@
 import { z } from 'zod'
+import { BaseEntitySchema, SteamId64Schema, ProxyUrlSchema, LabelSchema } from './base'
+import { BotStatus } from '../types/status'
 
-export const BotStatus = z.enum(['connecting', 'connected', 'disconnected', 'authFailed'])
-export type BotStatus = z.infer<typeof BotStatus>
-
-export const BotSchema = z.object({
-    id: z.string(),
-    steamId64: z.string(),
-    label: z.string().nullable(),
-    proxyUrl: z.string(),
+export const BotSchema = BaseEntitySchema.extend({
+    steamId64: SteamId64Schema,
+    label: LabelSchema.nullable(),
+    proxyUrl: ProxyUrlSchema,
     status: BotStatus,
     lastSeen: z.date().nullable(),
     mafileJson: z.string(),
-    createdAt: z.date(),
-    updatedAt: z.date(),
+    password: z.string(),
 })
 
 export type Bot = z.infer<typeof BotSchema>
 
 export const AddBotInput = z.object({
     maFileJSON: z.string(),
-    proxyUrl: z.string(),
-    label: z.string().optional(),
+    proxyUrl: ProxyUrlSchema,
+    label: LabelSchema,
     password: z.string(),
 })
 
