@@ -103,7 +103,7 @@ const ActionsPage: React.FC = () => {
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <Zap size={24} className="text-steam-green" />
-          <h1 className="text-2xl font-bold text-white">Bot Actions</h1>
+          <h1 className="text-2xl font-bold text-white">Account Actions</h1>
         </div>
         <div className="text-sm text-gray-300">
           {filteredActions.length} of {actions.length} actions

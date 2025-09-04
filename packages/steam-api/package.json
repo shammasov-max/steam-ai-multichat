@@ -1,0 +1,35 @@
+{
+  "name": "@packages/steam-api",
+  "version": "0.0.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch",
+    "clean": "rm -rf dist tsconfig.tsbuildinfo",
+    "test": "playwright test",
+    "test:mock": "playwright test mock-agent-state.spec.ts",
+    "test:unified": "playwright test unified-steam-tests.spec.ts",
+    "test:watch": "playwright test --ui",
+    "test:debug": "playwright test --debug",
+    "test:report": "playwright show-report"
+  },
+  "dependencies": {
+    "@doctormckay/stdlib": "1.16.1",
+    "@packages/db": "workspace:*",
+    "p-queue": "^8.0.1",
+    "protobufjs": "^7.5.4",
+    "steam-totp": "^2.1.1",
+    "steam-user": "^4.29.3",
+    "steamcommunity": "^3.47.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.45.0",
+    "@types/node": "^22.5.4",
+    "typescript": "^5.9.2"
+  }
+}

@@ -1,115 +1,105 @@
-// ============= Bots Slice =============
+// ============= Accounts Slice =============
 export { 
-  botSlice, 
-  type Bot, 
-  BotSchema 
-} from './bots';
-
-// ============= Tasks Slice =============
-export { 
-  taskSlice, 
-  type Task, 
-  TaskSchema 
-} from './tasks';
+  accountSlice,
+  accountActions,
+  accountReducer, 
+  type Account, 
+  AccountSchema,
+  type AccountConnectedPayload,
+  type AccountDisconnectedPayload,
+  type AccountAuthenticationFailedPayload
+} from './accounts';
 
 // ============= Core Types =============
 export { 
-  type BotStatus, 
-  type TaskStatus,
-  BotId,
-  TaskId,
-  ChatId,
+  type AccountStatus,
   SteamID64 
 } from '../events/core';
 
-// ============= Chats Slice =============
+// ============= Dialogs Slice =============
 export { 
-  chatSlice, 
-  type Chat, 
-  type ChatMsg,
-  type ChatMsgFrom,
-  ChatSchema,
-  ChatMsgSchema
-} from './chats';
+  dialogSlice,
+  dialogActions,
+  dialogReducer, 
+  type Dialog, 
+  type DialogMsg,
+  type DialogMsgFrom,
+  type DialogStatus,
+  type UserInfo,
+  type ScoringFactors,
+  type Issue,
+  DialogSchema,
+  DialogMsgSchema,
+  UserInfoSchema,
+  ScoringFactorsSchema,
+  IssueSchema,
+  type DialogCreatedPayload,
+  type MessageReceivedPayload,
+  type MessageSentPayload,
+  type DialogAssessedPayload,
+  type DialogStatusUpdatedPayload,
+  type OperatorAlertPayload,
+  type DialogProgressUpdatedPayload
+} from './dialogs';
 
 // ============= System Slice =============
 export { 
-  systemSlice, 
+  systemSlice,
+  systemActions,
+  systemReducer, 
   type System,
   type RoundRobinState,
   type RateLimitEntry,
   SystemSchema,
   RoundRobinSchema,
-  RateLimitEntrySchema
+  RateLimitEntrySchema,
+  type SnapshotPayload,
+  type FriendInviteSentPayload,
+  type FriendInviteAcceptedPayload,
+  type FriendInviteFailedPayload,
+  type MaFileAssignedPayload,
+  type MaFileReleasedPayload,
+  type ErrorLoggedPayload
 } from './system';
-
-// ============= Proxies Slice =============
-export { 
-  proxySlice, 
-  type Proxy, 
-  type ProxyStatus, 
-  ProxySchema 
-} from './proxies';
-
-// ============= MaFiles Slice =============
-export { 
-  maFileSlice, 
-  type MaFile, 
-  MaFileSchema 
-} from './maFiles';
 
 // ============= Re-export all slices for convenient store setup =============
 
-import { botSlice } from './bots';
-import { taskSlice } from './tasks';
-import { chatSlice } from './chats';
+import { accountSlice } from './accounts';
+import { dialogSlice } from './dialogs';
 import { systemSlice } from './system';
-import { proxySlice } from './proxies';
-import { maFileSlice } from './maFiles';
 
 /**
  * All slice reducers ready to be mounted in the store
  * Keys are pluralized as per createEntitySlice convention
  */
 export const sliceReducers = {
-  bots: botSlice.reducer,
-  tasks: taskSlice.reducer,
-  chats: chatSlice.reducer,
+  accounts: accountSlice.reducer,
+  dialogs: dialogSlice.reducer,
   systems: systemSlice.reducer, // Note: 'systems' plural even though it's singleton
-  proxies: proxySlice.reducer,
-  maFiles: maFileSlice.reducer
 } as const;
 
 /**
  * All slice actions for convenient access
  */
 export const sliceActions = {
-  bots: botSlice.actions,
-  tasks: taskSlice.actions,
-  chats: chatSlice.actions,
+  accounts: accountSlice.actions,
+  dialogs: dialogSlice.actions,
   systems: systemSlice.actions,
-  proxies: proxySlice.actions,
-  maFiles: maFileSlice.actions
 } as const;
 
 /**
  * All slice selectors for convenient access
  */
 export const sliceSelectors = {
-  bots: {
-    selectEntity: botSlice.selectEntity,
-    selectAllEntities: botSlice.selectAllEntities,
-    selectEntityIds: botSlice.selectEntityIds
+  accounts: {
+    selectEntity: accountSlice.selectEntity,
+    selectAllEntities: accountSlice.selectAllEntities,
+    selectEntityIds: accountSlice.selectEntityIds
   },
-  tasks: {
-    selectEntity: taskSlice.selectEntity,
-    selectAllEntities: taskSlice.selectAllEntities,
-    selectEntityIds: taskSlice.selectEntityIds
-  },
-  chats: {
-    selectEntity: chatSlice.selectEntity,
-    selectAllEntities: chatSlice.selectAllEntities,
-    selectEntityIds: chatSlice.selectEntityIds
+  dialogs: {
+    selectEntity: dialogSlice.selectEntity,
+    selectAllEntities: dialogSlice.selectAllEntities,
+    selectEntityIds: dialogSlice.selectEntityIds
   },
   systems: {
     selectEntity: systemSlice.selectEntity,
@@ -118,26 +108,13 @@ export const sliceSelectors = {
     // Helper selector for the singleton system entity
     selectSystem: (state: ReturnType<typeof systemSlice.reducer>) => 
       systemSlice.selectEntity(state, 'system')
-  },
-  proxies: {
-    selectEntity: proxySlice.selectEntity,
-    selectAllEntities: proxySlice.selectAllEntities,
-    selectEntityIds: proxySlice.selectEntityIds
-  },
-  maFiles: {
-    selectEntity: maFileSlice.selectEntity,
-    selectAllEntities: maFileSlice.selectAllEntities,
-    selectEntityIds: maFileSlice.selectEntityIds
   }
 } as const;
 
 // ============= Type exports for store setup =============
 
 export type RootState = {
-  bots: ReturnType<typeof botSlice.reducer>;
-  tasks: ReturnType<typeof taskSlice.reducer>;
-  chats: ReturnType<typeof chatSlice.reducer>;
+  accounts: ReturnType<typeof accountSlice.reducer>;
+  dialogs: ReturnType<typeof dialogSlice.reducer>;
   systems: ReturnType<typeof systemSlice.reducer>;
-  proxies: ReturnType<typeof proxySlice.reducer>;
-  maFiles: ReturnType<typeof maFileSlice.reducer>;
 };

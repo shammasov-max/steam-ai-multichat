@@ -21,7 +21,7 @@ const Console: React.FC<ConsoleProps> = ({ entries }) => {
       case 'error': return <XCircle size={14} className="text-red-400" />
       default: return <Info size={14} className="text-gray-400" />
     }
-  }1
+  }
 
   const getLevelColor = (level: ConsoleEntry['level']) => {
     switch (level) {

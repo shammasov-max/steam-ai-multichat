@@ -1,5 +1,6 @@
-/* import { DevTools } from "@effect/experimental"
-const s = 'a-b'.capitalize()
-type A = typeof s
+// Server package - placeholder for future implementation
+export const SERVER_VERSION = '0.0.1'
 
-const a:A = 'sdsf' */
+export default {
+    version: SERVER_VERSION
+}

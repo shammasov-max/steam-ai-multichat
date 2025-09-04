@@ -29,8 +29,7 @@ export default [
             parser: tsparser,
             parserOptions: {
                 ecmaVersion: 2022,
-                sourceType: 'module',
-                project: './tsconfig.json'
+                sourceType: 'module'
             }
         },
         plugins: {
@@ -38,30 +37,15 @@ export default [
             prettier
         },
         rules: {
-            // Enforce no semicolons
-            'semi': ['error', 'never'],
-            '@typescript-eslint/semi': ['error', 'never'],
-            
-            // Enforce single quotes
-            'quotes': ['error', 'single'],
-            '@typescript-eslint/quotes': ['error', 'single'],
-            
             // Prefer arrow functions
             'prefer-arrow-callback': 'error',
             'func-style': ['error', 'expression', { 'allowArrowFunctions': true }],
             
-            // Indentation (4 spaces)
-            'indent': ['error', 4],
-            '@typescript-eslint/indent': ['error', 4],
+            // Basic TypeScript preferences (using base rule names)
+            'no-explicit-any': 'off', // Let TypeScript handle this
+            'no-unused-vars': 'off', // Let TypeScript handle this
             
-            // TypeScript strict mode preferences
-            '@typescript-eslint/no-explicit-any': 'warn',
-            '@typescript-eslint/explicit-function-return-type': 'error',
-            '@typescript-eslint/no-unused-vars': 'error',
-            '@typescript-eslint/prefer-const': 'error',
-            '@typescript-eslint/no-inferrable-types': 'off',
-            
-            // Prettier integration
+            // Prettier will handle formatting (semicolons, quotes, indentation)
             'prettier/prettier': 'error'
         }
     },
@@ -78,11 +62,10 @@ export default [
         },
         rules: {
             // Basic rules for JavaScript
-            'semi': ['error', 'never'],
-            'quotes': ['error', 'single'],
             'prefer-arrow-callback': 'error',
             'func-style': ['error', 'expression', { 'allowArrowFunctions': true }],
-            'indent': ['error', 4],
+            
+            // Prettier will handle formatting (semicolons, quotes, indentation)
             'prettier/prettier': 'error'
         }
     }

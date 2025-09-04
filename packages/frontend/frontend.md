@@ -1,6 +1,6 @@
 # README — Frontend Package for Steam Multichat (MVP)
 
-This package contains the **React TypeScript frontend** for the Steam Bot Multichat application. It provides a modern, responsive web interface for managing Steam bot accounts, monitoring chat activities, and controlling automation features.
+This package contains the **React TypeScript frontend** for the Steam Account Multichat application. It provides a modern, responsive web interface for managing Steam accounts, monitoring chat activities, and controlling automation features.
 
 > **Tech Stack**: React 18 + TypeScript + Tailwind CSS + Vite
 
@@ -10,11 +10,11 @@ This package contains the **React TypeScript frontend** for the Steam Bot Multic
 
 ### 🎯 **Objective**
 Created a complete, production-ready React frontend that provides:
-- **Real-time monitoring** of Steam bot activities through a console interface
-- **Account management** for multiple Steam bot accounts
+- **Real-time monitoring** of Steam account activities through a console interface
+- **Account management** for multiple Steam accounts
 - **Friend management** and messaging capabilities  
-- **Proxy server management** for routing bot traffic
-- **Bot automation controls** with safety warnings
+- **Proxy server management** for routing account traffic
+- **Account automation controls** with safety warnings
 - **Comprehensive settings** for fine-tuning behavior
 
 ### 🏗️ **Architecture Decisions**
@@ -32,7 +32,7 @@ Created a complete, production-ready React frontend that provides:
 - **Benefits**: Hot module replacement, fast builds, optimized production bundles
 
 #### **Steam-Themed Design System**
-- **Why**: Creates familiar, professional interface for Steam bot operators
+- **Why**: Creates familiar, professional interface for Steam account operators
 - **Colors**: Dark theme with Steam blues (`#1b2838`, `#171a21`) and signature green (`#90ba3c`)
 - **Typography**: Clean, monospace fonts for technical data
 
@@ -98,7 +98,7 @@ App.tsx
 ## Specialized Modal Components
 
 ### 👥 **AccountsModal** (`AccountsModal.tsx`)
-- **Purpose**: Bulk management of Steam bot accounts
+- **Purpose**: Bulk management of Steam accounts
 - **Features**:
   - Checkbox-based multi-selection
   - Bulk actions (start, stop, restart, remove)
@@ -114,7 +114,7 @@ App.tsx
   - Account assignment to specific proxies
   - Connection testing
   - Authentication credential management
-- **Use Case**: When users need to route bot traffic through proxy servers for IP rotation
+- **Use Case**: When users need to route account traffic through proxy servers for IP rotation
 
 ### 🤝 **FriendsModal** (`FriendsModal.tsx`)
 - **Purpose**: Steam friends management and messaging
@@ -124,7 +124,7 @@ App.tsx
   - Last message preview
   - Direct messaging actions
   - Steam profile access
-- **Use Case**: When users need to manage bot friend lists and initiate conversations
+- **Use Case**: When users need to manage account friend lists and initiate conversations
 
 ### ⚙️ **SettingsModal** (`SettingsModal.tsx`)
 - **Purpose**: Application configuration and preferences
@@ -133,10 +133,10 @@ App.tsx
   - Form validation and real-time updates
   - Reset to defaults functionality
   - Comprehensive configuration options
-- **Use Case**: When users need to configure bot behavior, delays, security settings
+- **Use Case**: When users need to configure account behavior, delays, security settings
 
 ### 🚀 **ActionsModal** (`ActionsModal.tsx`)
-- **Purpose**: Bot automation and scripted actions
+- **Purpose**: Account automation and scripted actions
 - **Features**:
   - Categorized actions (Messaging, Social, Gaming)
   - Expandable action configurations
@@ -236,7 +236,7 @@ The frontend is designed to integrate with:
 1. **Isomorphic Events Package**: 
    - Replace mock data with real-time SSE events
    - Implement Redux store with event-driven updates
-   - Use validated event schemas from `@steam-bot/isomorphic`
+   - Use validated event schemas from `@packages/isomorphic`
 
 2. **WebSocket/SSE Connections**:
    - Real-time console log streaming
@@ -246,7 +246,7 @@ The frontend is designed to integrate with:
 3. **REST API Endpoints**:
    - Account CRUD operations
    - Proxy configuration management
-   - Bot action execution
+   - Account action execution
 
 ### 📊 **State Management Evolution**
 - **Current**: Local component state with props drilling
@@ -291,7 +291,7 @@ The frontend is designed to integrate with:
 
 // Account management
 <AccountsModal 
-  accounts={botAccounts}
+  accounts={steamAccounts}
   onAccountAction={handleAccountAction}
 />
 
@@ -373,8 +373,8 @@ The frontend is designed to integrate with:
 ### 🎯 **Perfect For**
 - **Developers/DevOps**: Technical interface with detailed controls
 - **Project Managers**: High-level monitoring and reporting
-- **Steam Bot Operators**: Day-to-day account and chat management
+- **Steam Account Operators**: Day-to-day account and chat management
 
 ---
 
-This frontend package provides a solid foundation for the Steam Bot Multichat application, with a focus on usability, maintainability, and future extensibility. The component-based architecture ensures that new features can be added incrementally while maintaining code quality and user experience.
+This frontend package provides a solid foundation for the Steam Account Multichat application, with a focus on usability, maintainability, and future extensibility. The component-based architecture ensures that new features can be added incrementally while maintaining code quality and user experience.

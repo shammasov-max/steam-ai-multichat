@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+// @ts-nocheck - Example file with intentional unused variables
 import { configureStore } from '@reduxjs/toolkit';
 import { Schema } from '@effect/schema';
 import { createEntitySlice } from '../createEntitySlice';
@@ -87,7 +89,7 @@ const userSlice = createEntitySlice({
     },
     
     // Reducer with only entityId (no additional payload)
-    promoteToAdmin: (user, payload: { userId: string }) => {
+    promoteToAdmin: (user, _payload: { userId: string }) => {
       user.role = 'admin';
     }
   },

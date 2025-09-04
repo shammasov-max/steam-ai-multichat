@@ -1,0 +1,28 @@
+scoring:
+  thresholds:
+    highSuccess: 0.7
+    moderateSuccess: 0.5
+    riskZone: 0.3
+    critical: 0.2
+  weights:
+    userEngagement: 0.30
+    topicRelevance: 0.25
+    emotionalTone: 0.20
+    responseQuality: 0.15
+    goalProximity: 0.10
+
+rejection:
+  firstRejectionScore: 0.4
+  secondRejectionScore: 0.2
+  thirdRejectionScore: 0.05
+  aggressiveRejectionScore: 0.1
+
+topicDrift:
+  allowedOfftopicMessages: 4
+  scorePenaltyPerDrift: 0.05
+  directReturnAttemptAfter: 5
+
+context:
+  compressionAfterMessages: 10
+  maxMessagesInContext: 20
+  keepLastMessagesVerbatim: 5

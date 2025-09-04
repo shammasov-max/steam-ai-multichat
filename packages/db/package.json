@@ -1,5 +1,5 @@
 {
-    "name": "@steam-bot/db",
+    "name": "@packages/db",
     "version": "1.0.0",
     "type": "module",
     "main": "./src/index.ts",
@@ -17,7 +17,9 @@
     },
     "dependencies": {
         "@clickhouse/client": "^1.7.0",
-        "@steam-bot/isomorphic": "workspace:*"
+        "@packages/isomorphic": "workspace:*",
+        "dotenv": "^17.2.1",
+        "mongodb": "^6.19.0"
     },
     "devDependencies": {
         "@types/node": "^22.7.9",

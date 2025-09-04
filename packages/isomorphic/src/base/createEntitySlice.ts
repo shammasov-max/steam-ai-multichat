@@ -1,4 +1,4 @@
-import { createSlice, PayloadAction, Draft, Slice, SliceCaseReducers, ValidateSliceCaseReducers } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction, Draft, Slice, ValidateSliceCaseReducers } from '@reduxjs/toolkit';
 import { Schema } from '@effect/schema';
 
 // ============= Core Types =============

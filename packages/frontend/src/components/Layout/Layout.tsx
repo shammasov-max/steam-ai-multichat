@@ -28,7 +28,7 @@ const Layout: React.FC = () => {
       id: '1',
       timestamp: new Date(),
       level: 'info',
-      message: 'Steam Bot Multichat started successfully',
+      message: 'Steam Account Multichat started successfully',
     },
     {
       id: '2',
@@ -62,7 +62,7 @@ const Layout: React.FC = () => {
     },
     {
       id: '2',
-      username: 'botaccount456',
+      username: 'account456',
       status: 'idle',
       isLoggedIn: true,
       lastActivity: new Date(Date.now() - 300000)

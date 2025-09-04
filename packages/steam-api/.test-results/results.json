@@ -1,0 +1,320 @@
+{
+  "config": {
+    "configFile": "X:\\a\\a_main\\packages\\steam-api\\playwright.config.ts",
+    "rootDir": "X:/a/a_main/packages/steam-api/tests",
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "html",
+        null
+      ],
+      [
+        "line",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": ".test-results/results.json"
+        }
+      ],
+      [
+        "junit",
+        {
+          "outputFile": ".test-results/results.xml"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "X:/a/a_main/packages/steam-api/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "unit",
+        "name": "unit",
+        "testDir": "X:/a/a_main/packages/steam-api/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/mock-*.spec.ts"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "X:/a/a_main/packages/steam-api/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "integration",
+        "name": "integration",
+        "testDir": "X:/a/a_main/packages/steam-api/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/unified-*.spec.ts"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.55.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "mock-agent-state.spec.ts",
+      "file": "mock-agent-state.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Mock Steam Agent Unit Tests",
+          "file": "mock-agent-state.spec.ts",
+          "line": 75,
+          "column": 6,
+          "specs": [
+            {
+              "title": "login and state management",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "unit",
+                  "projectName": "unit",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 17,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-26T14:29:48.311Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "cafc75cd0713961ddf1c-2383afc280f1492aa522",
+              "file": "mock-agent-state.spec.ts",
+              "line": 76,
+              "column": 3
+            },
+            {
+              "title": "friend management",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "unit",
+                  "projectName": "unit",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 11,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-26T14:29:48.359Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "cafc75cd0713961ddf1c-7630498b511db8e4f721",
+              "file": "mock-agent-state.spec.ts",
+              "line": 96,
+              "column": 3
+            },
+            {
+              "title": "message and chat history",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "unit",
+                  "projectName": "unit",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-26T14:29:48.388Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "cafc75cd0713961ddf1c-80d1da0b8556852028f7",
+              "file": "mock-agent-state.spec.ts",
+              "line": 114,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "unified-steam-tests.spec.ts",
+      "file": "unified-steam-tests.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Steam API Integration Tests",
+          "file": "unified-steam-tests.spec.ts",
+          "line": 57,
+          "column": 6,
+          "specs": [
+            {
+              "title": "login and basic operations",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "integration",
+                  "projectName": "integration",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 8973,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Using test account: aadjk5590\n"
+                        },
+                        {
+                          "text": "✅ Logged in with SteamID: 76561199831204148\n"
+                        },
+                        {
+                          "text": "✅ Retrieved 0 friends\n"
+                        },
+                        {
+                          "text": "✅ Retrieved 0 chat histories\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-26T14:29:50.778Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9c1375b3dd019f5e1dc4-8b106c9adc2f6c63a239",
+              "file": "unified-steam-tests.spec.ts",
+              "line": 82,
+              "column": 3
+            },
+            {
+              "title": "send message to self (echo test)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "integration",
+                  "projectName": "integration",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1020,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "✅ Sent message to self: \"Self test - 2025-08-26T14:30:00.037Z\"\n"
+                        },
+                        {
+                          "text": "✅ Message verified in chat history\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-26T14:30:00.023Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9c1375b3dd019f5e1dc4-f161687531d0c3986f0c",
+              "file": "unified-steam-tests.spec.ts",
+              "line": 110,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2025-08-26T14:29:44.588Z",
+    "duration": 17560.371000000003,
+    "expected": 5,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

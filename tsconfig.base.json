@@ -1,8 +1,9 @@
 {
   "compilerOptions": {
     "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "es2022",
-    "moduleResolution": "nodenext",
+    "moduleResolution": "bundler",
     
     // Strict mode settings
     "strict": true,
@@ -17,6 +18,10 @@
     "noUncheckedIndexedAccess": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
+    
+    // JSX settings
+    "jsx": "react-jsx",
+    "jsxImportSource": "react",
     
     // Module settings
     "esModuleInterop": true,

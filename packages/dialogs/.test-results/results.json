@@ -1,0 +1,167 @@
+{
+  "config": {
+    "configFile": "X:\\a\\a_main\\packages\\dialogs\\playwright.config.ts",
+    "rootDir": "X:/a/a_main/packages/dialogs/tests",
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": "X:\\a\\a_main\\packages\\dialogs\\tests\\setup\\global-setup.ts",
+    "globalTeardown": "X:\\a\\a_main\\packages\\dialogs\\tests\\setup\\global-teardown.ts",
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "html",
+        null
+      ],
+      [
+        "line",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": ".test-results/results.json"
+        }
+      ],
+      [
+        "junit",
+        {
+          "outputFile": ".test-results/results.xml"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "X:/a/a_main/packages/dialogs/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "core",
+        "name": "core",
+        "testDir": "X:/a/a_main/packages/dialogs/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/core-services.test.ts"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "X:/a/a_main/packages/dialogs/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "integration",
+        "name": "integration",
+        "testDir": "X:/a/a_main/packages/dialogs/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/integration.test.ts"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.55.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "integration.test.ts",
+      "file": "integration.test.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Integration Tests",
+          "file": "integration.test.ts",
+          "line": 13,
+          "column": 6,
+          "specs": [],
+          "suites": [
+            {
+              "title": "AI & DialogManager Integration",
+              "file": "integration.test.ts",
+              "line": 14,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should handle basic AI operations and dialog flow",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "integration",
+                      "projectName": "integration",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "failed",
+                          "duration": 76,
+                          "error": {
+                            "message": "AggregateError: ",
+                            "stack": "AggregateError: "
+                          },
+                          "errors": [
+                            {
+                              "message": "AggregateError: "
+                            },
+                            {
+                              "message": "AggregateError: "
+                            }
+                          ],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-26T15:15:54.700Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "6099eb35ccee2f53ef4e-1d8d77fc2453baed6673",
+                  "file": "integration.test.ts",
+                  "line": 45,
+                  "column": 9
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2025-08-26T15:15:48.748Z",
+    "duration": 6103.443,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

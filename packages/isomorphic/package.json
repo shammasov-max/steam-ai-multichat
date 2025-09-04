@@ -1,5 +1,5 @@
 {
-  "name": "@steam-bot/isomorphic",
+  "name": "@packages/isomorphic",
   "version": "0.0.0",
   "private": true,
   "packageManager": "yarn@4.9.2",

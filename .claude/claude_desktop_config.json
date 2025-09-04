@@ -1,0 +1,74 @@
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "node",
+      "args": [
+        "C:/Users/miram/AppData/Roaming/npm/node_modules/@playwright/mcp/dist/index.js"
+      ],
+      "env": {
+        "PLAYWRIGHT_HEADLESS": "false",
+        "PLAYWRIGHT_BROWSER": "chromium",
+        "PLAYWRIGHT_TIMEOUT": "30000"
+      }
+    },
+    "better-playwright": {
+      "command": "node",
+      "args": [
+        "C:/Users/miram/AppData/Roaming/npm/node_modules/better-playwright-mcp/dist/index.js"
+      ],
+      "env": {
+        "PLAYWRIGHT_HEADLESS": "false",
+        "PLAYWRIGHT_DEFAULT_BROWSER": "chromium",
+        "PLAYWRIGHT_TIMEOUT": "30000",
+        "PLAYWRIGHT_VIEWPORT_WIDTH": "1280",
+        "PLAYWRIGHT_VIEWPORT_HEIGHT": "720",
+        "PLAYWRIGHT_DEVICE_SCALE_FACTOR": "1",
+        "PLAYWRIGHT_IGNORE_HTTPS_ERRORS": "true",
+        "PLAYWRIGHT_JAVA_SCRIPT_ENABLED": "true",
+        "PLAYWRIGHT_BYPASS_CSP": "false",
+        "PLAYWRIGHT_USER_AGENT": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "PLAYWRIGHT_LOCALE": "en-US",
+        "PLAYWRIGHT_TIMEZONE": "America/New_York",
+        "PLAYWRIGHT_GEOLOCATION": "",
+        "PLAYWRIGHT_PERMISSIONS": "",
+        "PLAYWRIGHT_EXTRA_HTTP_HEADERS": "",
+        "PLAYWRIGHT_HTTP_CREDENTIALS": "",
+        "PLAYWRIGHT_COLOR_SCHEME": "light",
+        "PLAYWRIGHT_LOGGER": "true",
+        "PLAYWRIGHT_VIDEO": "off",
+        "PLAYWRIGHT_TRACE": "off",
+        "PLAYWRIGHT_SCREENSHOT": "off",
+        "PLAYWRIGHT_SLOW_MO": "0",
+        "PLAYWRIGHT_NAVIGATION_TIMEOUT": "30000",
+        "PLAYWRIGHT_LOAD_TIMEOUT": "30000",
+        "PLAYWRIGHT_SCRIPT_TIMEOUT": "30000",
+        "PLAYWRIGHT_ACTION_TIMEOUT": "30000",
+        "PLAYWRIGHT_REQUEST_TIMEOUT": "30000"
+      }
+    },
+    "puppeteer": {
+      "command": "node",
+      "args": [
+        "C:/Users/miram/AppData/Roaming/npm/node_modules/puppeteer-mcp-server/dist/index.js"
+      ],
+      "env": {
+        "PUPPETEER_HEADLESS": "false",
+        "PUPPETEER_EXECUTABLE_PATH": "",
+        "PUPPETEER_BROWSER": "chrome",
+        "PUPPETEER_TIMEOUT": "30000",
+        "PUPPETEER_VIEWPORT_WIDTH": "1280",
+        "PUPPETEER_VIEWPORT_HEIGHT": "720",
+        "PUPPETEER_DEVICE_SCALE_FACTOR": "1",
+        "PUPPETEER_USER_AGENT": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "PUPPETEER_IGNORE_HTTPS_ERRORS": "true",
+        "PUPPETEER_DEFAULT_VIEWPORT": "1280x720",
+        "PUPPETEER_SLOW_MO": "0",
+        "PUPPETEER_ARGS": "--no-sandbox,--disable-setuid-sandbox,--disable-dev-shm-usage",
+        "PUPPETEER_IGNORE_DEFAULT_ARGS": "",
+        "PUPPETEER_DUMPIO": "false",
+        "PUPPETEER_DEVTOOLS": "false"
+      }
+    }
+  },
+  "globalShortcut": "alt+enter"
+}

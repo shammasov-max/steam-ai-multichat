@@ -48,7 +48,7 @@ const ModalManager: React.FC<ModalManagerProps> = ({
         )
       case 'actions':
         return (
-          <Modal isOpen={modalState.isOpen} onClose={onClose} title="Bot Actions" size="lg">
+          <Modal isOpen={modalState.isOpen} onClose={onClose} title="Account Actions" size="lg">
             <ActionsModal />
           </Modal>
         )

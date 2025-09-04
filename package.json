@@ -7,17 +7,31 @@
     "packages/*"
   ],
   "scripts": {
+    "ensure-docker": "tsx scripts/ensure-docker-compose.ts",
     "build": "tsc -b",
     "typecheck": "tsc -b --noEmit",
-    "build:isomorphic": "yarn workspace @steam-bot/isomorphic build",
-    "build:server": "yarn workspace @steam-bot/server build",
-    "build:frontend": "yarn workspace @steam-bot/frontend build",
-    "build:db": "yarn workspace @steam-bot/db build",
-    "dev": "yarn workspace @steam-bot/server dev",
-    "start": "yarn workspace @steam-bot/server start",
-    "test": "tsx --test packages/isomorphic/src/**/*.test.ts packages/server/src/**/*.test.ts",
+    "build:isomorphic": "yarn workspace @packages/isomorphic build",
+    "build:server": "yarn workspace @packages/server build",
+    "build:frontend": "yarn workspace @packages/frontend build",
+    "build:db": "yarn workspace @packages/db build",
+    "dev": "yarn ensure-docker && yarn workspace @packages/server dev",
+    "start": "yarn ensure-docker && yarn workspace @packages/server start",
+    "test": "yarn ensure-docker && tsx --test packages/isomorphic/src/**/*.test.ts packages/server/src/**/*.test.ts",
     "test:ui": "playwright test --ui",
     "test:isomorphic": "tsx --test packages/isomorphic/src/**/*.test.ts",
+    "test:unit": "playwright test --project=unit",
+    "test:integration": "playwright test --project=integration",
+    "test:e2e": "playwright test --project=e2e",
+    "test:steam": "playwright test --project=steam",
+    "test:api": "playwright test tests/api-routes.spec.ts",
+    "test:core": "playwright test tests/app-core.spec.ts",
+    "test:crud": "playwright test tests/*-crud.spec.ts",
+    "test:all": "playwright test",
+    "test:watch": "playwright test --watch",
+    "test:debug": "playwright test --debug",
+    "test:headed": "playwright test --headed",
+    "test:setup": "tsx tests/setup.ts",
+    "test:clean": "rm -rf test-results && rm -rf playwright-report",
     "lint": "eslint . --ext .ts,.tsx,.js,.jsx",
     "lint:fix": "eslint . --ext .ts,.tsx,.js,.jsx --fix",
     "format": "prettier --write .",
@@ -25,6 +39,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.45.0",
+    "@types/js-yaml": "^4.0.0",
     "@typescript-eslint/eslint-plugin": "^8.39.1",
     "@typescript-eslint/parser": "^8.39.1",
     "eslint": "^9.33.0",
@@ -35,6 +50,7 @@
     "typescript": "^5.9.2"
   },
   "dependencies": {
-    "fastq": "^1.19.1"
+    "fastq": "^1.19.1",
+    "js-yaml": "^4.1.0"
   }
 }

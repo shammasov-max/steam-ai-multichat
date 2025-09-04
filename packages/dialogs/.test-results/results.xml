@@ -1,0 +1,14 @@
+<testsuites id="" name="" tests="1" failures="1" skipped="0" errors="0" time="6.103443">
+<testsuite name="integration.test.ts" timestamp="2025-08-26T15:15:51.162Z" hostname="integration" tests="1" failures="1" skipped="0" time="0.076" errors="0">
+<testcase name="Integration Tests › AI &amp; DialogManager Integration › should handle basic AI operations and dialog flow" classname="integration.test.ts" time="0.076">
+<failure message="integration.test.ts:45:9 should handle basic AI operations and dialog flow" type="FAILURE">
+<![CDATA[  [integration] › integration.test.ts:45:9 › Integration Tests › AI & DialogManager Integration › should handle basic AI operations and dialog flow 
+
+    AggregateError: 
+
+    AggregateError: 
+]]>
+</failure>
+</testcase>
+</testsuite>
+</testsuites>

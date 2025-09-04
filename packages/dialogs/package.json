@@ -1,0 +1,42 @@
+{
+  "name": "@packages/dialogs",
+  "version": "1.0.0",
+  "description": "AI-powered dialog management service using GPT-4",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "cd ../.. && playwright test --project=dialogs",
+    "test:with-ai": "cd ../.. && cross-env OPENAI_API_KEY=$OPENAI_API_KEY playwright test --project=dialogs",
+    "db:migrate": "pnpm --filter @packages/db run migrate",
+    "db:studio": "pnpm --filter @packages/db run studio"
+  },
+  "keywords": [
+    "ai",
+    "dialog",
+    "gpt-4",
+    "conversation",
+    "chatbot"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@packages/db": "workspace:^",
+    "dotenv": "^16.0.0",
+    "js-yaml": "^4.1.0",
+    "openai": "^4.0.0",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "@faker-js/faker": "^8.0.0",
+    "@playwright/test": "^1.40.0",
+    "@types/js-yaml": "^4.0.0",
+    "@types/node": "^20.0.0",
+    "@types/sinon": "^17.0.0",
+    "@types/uuid": "^9.0.0",
+    "sinon": "^17.0.0",
+    "tsx": "^4.20.4",
+    "typescript": "^5.9.2"
+  }
+}

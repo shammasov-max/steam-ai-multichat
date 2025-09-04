@@ -13,7 +13,7 @@ Senior Effect-TS architect & Socratic coach.
 
 ## Project Overview
 
-This is a Steam multichat automation system built as a TypeScript monorepo using Yarn workspaces. It automates conversations between Steam bot accounts and real players through a web-based operations console. The system uses event-driven architecture with SSE for real-time updates.
+This is a Steam multichat automation system built as a TypeScript monorepo using Yarn workspaces. It automates conversations between Steam accounts and real players through a web-based operations console. The system uses event-driven architecture with SSE for real-time updates and incorporates AI-powered dialog assessment for quality monitoring.
 
 ## Architecture
 
@@ -21,19 +21,22 @@ This is a Steam multichat automation system built as a TypeScript monorepo using
 - `packages/frontend/` - React SPA frontend (not yet implemented)
 - `packages/server/` - Node.js backend with Effect-TS
 - `packages/isomorphic/` - Shared event/action definitions and types
-- `packages/steam-agent/` - Effect-TS based Steam utilities (referenced but not present)
+- `packages/steam-api/` - Steam API integration utilities
+- `packages/dialogs/` - Dialog management and AI assessment functionality
 
 ### Core Design Principles
 - **Event-driven**: `action === event` - Reduxjs/toolkit slices are aggregators and slice case actions are events
 - **CQRS-lite**: SSE for events subscribtion, HTTP POST for commands
 - **Isomorphic state**: Same Redux store shape on frontend/backend
 - **Effect-TS**: Functional programming with Effect framework
-- **TypeID**: Entity IDs with slice prefixes (`bot_*`, `task_*`, `chat_*`)
+- **TypeID**: Entity IDs with slice prefixes (`account_*`, `dialog_*`, `system_*`)
 
 ### Data Flow
 1. Commands sent to `POST /api/command`
 2. Events emitted and stored in Redux store
 3. Events broadcast over SSE (`GET /api/event-stream`)
+4. AI assessment processes dialog messages and updates scores
+5. Operator alerts triggered when thresholds exceeded
 
 
 ## Development Commands
@@ -78,26 +81,66 @@ yarn test:isomorphic
 
 ## Key Architecture Details
 
+### Recent Architectural Changes
+- **Bot → Account**: All "Bot" entities renamed to "Account" for clarity
+- **Chat → Dialog**: "Chat" entities renamed to "Dialog" to reflect AI-enhanced conversations
+- **Removed Slices**: Task and Proxy slices removed to simplify architecture
+- **Decentralized Events**: Removed centralized event builders; events now defined per slice
+- **Enhanced Schemas**: All schemas include detailed annotations for better documentation
+- **AI Integration**: Dialog entities now include comprehensive AI assessment capabilities
+
 ### Event System (Isomorphic Package)
 - All events are Redux actions with `{ type, payload, meta }` shape
-- Event builder in `packages/isomorphic/src/events/event-builder.ts`
-- Event schemas defined per slice using Effect Schema
-- Event creators in `packages/isomorphic/src/events/actions.ts`
+- Event payload types defined directly in each slice module
 - Uses Effect Schema for validation at boundaries
+- Slice-specific actions exported from each slice (`accountActions`, `dialogActions`, etc.)
 - Simplified meta structure for flexibility
+- No centralized event builders - each slice manages its own events
+
+#### Example Event Pattern
+```typescript
+// In accounts.ts slice
+export type AccountConnectedPayload = {
+    accountId: string
+    ts?: number
+}
+
+// Reducer handles the event
+entityReducers: {
+    connected: (account, payload) => {
+        account.status = 'connected'
+        if (payload.ts) account.lastSeen = payload.ts
+    }
+}
+```
 
 ### Entity Slices
 Located in `packages/isomorphic/src/slices/`:
-- **Bot**: Steam account status, proxy, auth state
-- **Task**: Player targeting, item requests, price ranges  
-- **Chat**: Conversation state, agent toggle, message history
+- **Account**: Steam account status, proxy URL, auth state, maFile integration
+- **Dialog**: AI-powered conversation management with assessment scoring and operator alerts
 - **System**: Round-robin assignment, rate limits
+
+#### Dialog Entity (Enhanced with AI)
+The Dialog entity represents AI-driven conversations with comprehensive assessment:
+- **Continuation Score**: 0-1 value indicating conversation health
+- **Trend Analysis**: Rising/stable/declining conversation trajectory
+- **Scoring Factors**:
+  - User engagement (0-1)
+  - Topic relevance (0-1)
+  - Emotional tone (0-1)
+  - Response quality (0-1)
+  - Goal proximity (0-1)
+- **Issue Detection**: Identifies problems like explicit rejection, topic drift, aggressive responses
+- **Operator Alerts**: Automatic alerting based on assessment thresholds
+- **Multi-language Support**: zh, ja, ko, en, es
+- **Goal Tracking**: Progress towards defined conversation objectives
+- **Token Usage**: OpenAI API token consumption tracking
 
 ### Steam Integration
 - Uses unofficial Steam npm packages (`steam-user`, `steamcommunity`, etc.)
-- Bot authentication via maFile (Steam Guard mobile authenticator JSON)
-- Rate limited to 1 friend invite per minute per bot
-- Sticky proxy policy (1 bot ↔ 1 proxy)
+- Account authentication via maFile (Steam Guard mobile authenticator JSON)
+- Rate limited to 1 friend invite per minute per account
+- Each account has a dedicated proxy URL for connection
 
 ### State Management
 - Redux Toolkit with `createEntitySlice` for normalized entities
@@ -107,11 +150,11 @@ Located in `packages/isomorphic/src/slices/`:
 
 ## Important Constraints
 
-- **Rate Limits**: Maximum 1 friend invite per minute per bot (strict enforcement)
-- **Proxy Policy**: Each bot must use dedicated sticky proxy
+- **Rate Limits**: Maximum 1 friend invite per minute per account (strict enforcement)
+- **Proxy Policy**: Each account uses a dedicated proxy URL
 - **Steam ToS Risk**: This uses unofficial Steam access - maintain conservative behaviors
 - **MVP Scope**: No payments, escrow, or external marketplace integrations
-- **Scale Target**: Up to 10,000 concurrent bots, 100,000 active chats
+- **Scale Target**: Up to 10,000 concurrent accounts, 100,000 active dialogs
 
 ## Development Notes
 
@@ -119,8 +162,8 @@ Located in `packages/isomorphic/src/slices/`:
 - Use TypeID for all entity IDs with appropriate prefixes
 - UTC epoch milliseconds for all timestamps
 - Keep SSE batches short (50-100ms intervals) to avoid UI lag
-- Maintain round-robin bot assignment for task distribution
-- Agent can be toggled per chat for manual operator takeover
+- Maintain round-robin account assignment for dialog distribution
+- Dialog AI assessment monitors conversation quality and triggers operator alerts when needed
 
 ## Code Style Guidelines
 
@@ -151,6 +194,14 @@ yarn format:check
 - `eslint.config.js` - ESLint rules and TypeScript integration
 - `prettier.config.cjs` - Code formatting rules
 - `tsconfig.base.json` - TypeScript strict mode configuration
+
+## Command System
+
+### Available Commands
+- `AddAccountFromMaFile`: Register new Steam account with maFile and proxy URL
+- `RemoveAccount`: Remove an account from the system
+- `ToggleAgent`: Enable/disable AI agent for a dialog
+- `SendMessage`: Send message in a dialog
 
 ## Legacy Code
 Skip folders and files which names starts with symbol "_".

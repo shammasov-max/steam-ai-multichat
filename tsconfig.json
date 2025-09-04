@@ -3,6 +3,7 @@
   "references": [
     { "path": "./packages/server" },
     { "path": "./packages/frontend" },
-    { "path": "./packages/isomorphic" }
+    { "path": "./packages/isomorphic" },
+    { "path": "./packages/steam-api" }
   ]
 }

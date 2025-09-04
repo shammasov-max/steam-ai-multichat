@@ -1,5 +1,5 @@
 {
-  "name": "@steam-bot/frontend",
+  "name": "@packages/frontend",
   "version": "0.0.0",
   "private": true,
   "packageManager": "yarn@4.9.2",
@@ -11,9 +11,9 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@packages/isomorphic": "workspace:^",
     "@radix-ui/react-select": "^2.1.2",
     "@radix-ui/react-slot": "^1.1.0",
-    "@steam-bot/isomorphic": "workspace:^",
     "ag-grid-community": "^32.2.1",
     "ag-grid-react": "^32.2.1",
     "class-variance-authority": "^0.7.1",

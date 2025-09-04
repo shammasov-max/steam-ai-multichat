@@ -1,6 +1,24 @@
 {
+
+    "env": {
+    "NEXT_TELEMETRY_DISABLED": "1",
+    "NODE_ENV": "development"
+  },
+  "hooks": {},
   "statusLine": {
     "type": "command",
-    "command": "bash ~/.claude/statusline-script.sh"
+    "command": "bash ~/.claude/statusline-git.sh",
+    "padding": 0
+  },
+  "_metadata": {
+    "generated": "2025-08-22T09:40:13.644Z",
+    "generator": "claude-config-composer@1.0.0",
+    "sources": [
+      "Next.js 15",
+      "Tailwind CSS",
+      "TypeScript",
+      "Prisma"
+    ],
+    "note": "This is a composed configuration. Review and adjust as needed."
   }
 }

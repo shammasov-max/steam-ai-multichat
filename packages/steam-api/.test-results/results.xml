@@ -1,0 +1,28 @@
+<testsuites id="" name="" tests="5" failures="0" skipped="0" errors="0" time="17.560371000000004">
+<testsuite name="mock-agent-state.spec.ts" timestamp="2025-08-26T14:29:47.129Z" hostname="unit" tests="3" failures="0" skipped="0" time="0.035" errors="0">
+<testcase name="Mock Steam Agent Unit Tests › login and state management" classname="mock-agent-state.spec.ts" time="0.017">
+</testcase>
+<testcase name="Mock Steam Agent Unit Tests › friend management" classname="mock-agent-state.spec.ts" time="0.011">
+</testcase>
+<testcase name="Mock Steam Agent Unit Tests › message and chat history" classname="mock-agent-state.spec.ts" time="0.007">
+</testcase>
+</testsuite>
+<testsuite name="unified-steam-tests.spec.ts" timestamp="2025-08-26T14:29:47.129Z" hostname="integration" tests="2" failures="0" skipped="0" time="9.993" errors="0">
+<testcase name="Steam API Integration Tests › login and basic operations" classname="unified-steam-tests.spec.ts" time="8.973">
+<system-out>
+<![CDATA[Using test account: aadjk5590
+✅ Logged in with SteamID: 76561199831204148
+✅ Retrieved 0 friends
+✅ Retrieved 0 chat histories
+]]>
+</system-out>
+</testcase>
+<testcase name="Steam API Integration Tests › send message to self (echo test)" classname="unified-steam-tests.spec.ts" time="1.02">
+<system-out>
+<![CDATA[✅ Sent message to self: "Self test - 2025-08-26T14:30:00.037Z"
+✅ Message verified in chat history
+]]>
+</system-out>
+</testcase>
+</testsuite>
+</testsuites>

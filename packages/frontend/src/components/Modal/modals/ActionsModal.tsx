@@ -65,7 +65,7 @@ const ActionsModal: React.FC = () => {
     <div className="p-6">
       <div className="flex items-center space-x-2 mb-6">
         <Zap size={20} className="text-steam-green" />
-        <h3 className="text-lg font-semibold text-white">Bot Actions</h3>
+        <h3 className="text-lg font-semibold text-white">Account Actions</h3>
       </div>
 
       <div className="space-y-6">

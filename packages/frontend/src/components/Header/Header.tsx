@@ -31,7 +31,7 @@ const Header: React.FC<HeaderProps> = ({ tabs, onNavClick, accountsCount, online
             <div className="w-8 h-8 bg-steam-green rounded flex items-center justify-center">
               <Activity size={20} className="text-white" />
             </div>
-            <h1 className="text-xl font-bold text-white">Steam Bot Multichat</h1>
+            <h1 className="text-xl font-bold text-white">Steam Account Multichat</h1>
           </div>
           
           <div className="flex items-center space-x-6">

@@ -27,5 +27,20 @@ services:
       retries: 3
       start_period: 40s
 
+  mongodb:
+    image: mongo:7
+    container_name: effect-redux-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+    volumes:
+      - mongodb_data:/data/db
+      - mongodb_config:/data/configdb
+
 volumes:
   clickhouse_data:
+  mongodb_data:
+  mongodb_config:

@@ -11,7 +11,7 @@ const ProxyModal: React.FC = () => {
       username: 'proxyuser',
       password: '********',
       status: 'connected',
-      accounts: ['steamuser123', 'botaccount456']
+      accounts: ['steamuser123', 'account456']
     },
     {
       id: '2',
@@ -185,7 +185,7 @@ const ProxyModal: React.FC = () => {
         <div className="text-center py-12 text-gray-400">
           <Wifi size={48} className="mx-auto mb-4 opacity-50" />
           <p className="text-lg mb-2">No proxy servers configured</p>
-          <p className="text-sm">Add proxy servers to route your bot traffic</p>
+          <p className="text-sm">Add proxy servers to route your account traffic</p>
         </div>
       )}
     </div>
