@@ -14,6 +14,11 @@ Senior Effect-TS architect & Socratic coach.
 - Do not use env variables defaults
 - Do not clean up any secrets of credentials from the repo, they are the part of source code: certs, pem files, keys, .env files and environment values
 
+## Ignore packages
+- packages/frontend
+- packages/server
+- packages/steam-api
+
 ## Project Overview
 
 This is a Steam multichat automation system built as a TypeScript monorepo using Yarn workspaces. It automates conversations between Steam accounts and real players through a web-based operations console. The system uses event-driven architecture with SSE for real-time updates and incorporates AI-powered dialog assessment for quality monitoring.

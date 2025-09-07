@@ -1,9 +1,7 @@
 import { MongoClient, Db, Collection } from 'mongodb'
 import { MongoEventStore } from './MongoEventStore'
 import { MongoConfig, getDefaultMongoConfig } from './config'
-import type { Account } from '@packages/isomorphic/src/slices/accounts'
-import type { Dialog } from '@packages/isomorphic/src/slices/dialogs'
-import type { System } from '@packages/isomorphic/src/slices/system'
+import type { Account, Dialog, System } from '@packages/isomorphic'
 
 export class MongoDatabase {
     public readonly events: MongoEventStore

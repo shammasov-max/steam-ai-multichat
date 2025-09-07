@@ -27,7 +27,9 @@
       "Bash(cat:*)",
       "Bash(npm test)",
       "Bash(yarn workspace @packages/google-sheets-db typecheck:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(for pkg in packages/*)",
+      "Bash(done)"
     ],
     "deny": [],
     "ask": []
