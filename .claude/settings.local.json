@@ -29,7 +29,11 @@
       "Bash(yarn workspace @packages/google-sheets-db typecheck:*)",
       "Bash(git checkout:*)",
       "Bash(for pkg in packages/*)",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(yarn workspace @packages/db:*)",
+      "Bash(yarn install)",
+      "Bash(docker-compose up:*)",
+      "Bash(docker-compose:*)"
     ],
     "deny": [],
     "ask": []

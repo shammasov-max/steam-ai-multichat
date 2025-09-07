@@ -135,7 +135,20 @@ export const DialogSchema = S.Struct({
     operatorAlert: S.optional(OperatorAlertSchema),
     lastMessageAt: S.optional(S.Number.annotations({ title: "Last Message At", description: "Timestamp of last message" })),
     totalMessages: S.Number.annotations({ title: "Total Messages", description: "Total message count" })
-}).annotations({ title: "Dialog", description: "AI-powered dialog conversation entity" })
+}).annotations({ 
+    title: "Dialog", 
+    description: "AI-powered dialog conversation entity",
+    indexes: [
+        { fields: { dialogId: 1 }, options: { unique: true } },
+        { fields: { accountId: 1 } },
+        { fields: { playerSteamId64: 1 } },
+        { fields: { status: 1 } },
+        { fields: { language: 1 } },
+        { fields: { continuationScore: -1 } },
+        { fields: { 'operatorAlert.required': 1 } },
+        { fields: { lastMessageAt: -1 } }
+    ]
+})
 
 // Derive types from schemas
 export type DialogMsg = S.Schema.Type<typeof DialogMsgSchema>
@@ -222,6 +235,7 @@ function trimMessages(messages: DialogMsg[]): DialogMsg[] {
 export const dialogSlice = createEntitySlice({
     name: 'dialog',
     initialEntities: [],
+    entitySchema: DialogSchema as any,
     entityReducers: {
         // Event: dialogs/messageReceived
         'messageReceived': (
@@ -355,8 +369,6 @@ export const dialogSlice = createEntitySlice({
             addEntity(state, newDialog, 'dialog')
         }
     }
-    
-    // entitySchema: DialogSchema // Schema compatibility will be addressed in future refactor
 })
 
 // ============= Exports =============

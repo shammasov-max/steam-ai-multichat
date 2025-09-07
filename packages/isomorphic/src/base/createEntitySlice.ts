@@ -170,6 +170,9 @@ export function createEntitySlice<
   selectEntity: (state: EntityState<TEntity>, id: string) => TEntity | undefined;
   selectAllEntities: (state: EntityState<TEntity>) => TEntity[];
   selectEntityIds: (state: EntityState<TEntity>) => string[];
+  schema: Schema.Schema<TEntity> | undefined;
+  name: TName;
+  pluralizeFn?: (singular: string) => string;
 } {
   const {
     name: entityName,
@@ -241,11 +244,14 @@ export function createEntitySlice<
     reducers: allReducers as ValidateSliceCaseReducers<EntityState<TEntity>, SliceReducersFromEntityReducers<TName, TEntity, TReducers>>
   });
   
-  // Add selector functions
+  // Add selector functions and expose schema
   const enhancedSlice = Object.assign(slice, {
     selectEntity: (state: EntityState<TEntity>, id: string) => state.entities[id],
     selectAllEntities: (state: EntityState<TEntity>) => state.ids.map(id => state.entities[id]),
-    selectEntityIds: (state: EntityState<TEntity>) => state.ids
+    selectEntityIds: (state: EntityState<TEntity>) => state.ids,
+    schema: entitySchema,
+    name: entityName,
+    pluralizeFn
   });
   
   return enhancedSlice as any;

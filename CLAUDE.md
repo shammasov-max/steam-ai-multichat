@@ -1,4 +1,4 @@
-a# CLAUDE.md
+# CLAUDE.md
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Role: 
@@ -21,23 +21,25 @@ Senior Effect-TS architect & Socratic coach.
 
 ## Project Overview
 
-This is a Steam multichat automation system built as a TypeScript monorepo using Yarn workspaces. It automates conversations between Steam accounts and real players through a web-based operations console. The system uses event-driven architecture with SSE for real-time updates and incorporates AI-powered dialog assessment for quality monitoring.
+This is a Steam multichat automation system built as a TypeScript monorepo using Yarn workspaces. It automates conversations between Steam accounts and real players through a web-based operations console. The system uses Redux-based event-driven architecture with SSE for real-time updates and incorporates AI-powered dialog assessment for quality monitoring.
 
 ## Architecture
 
 ### Workspace Structure
 - `packages/frontend/` - React SPA frontend (not yet implemented)
 - `packages/server/` - Node.js backend with Effect-TS
-- `packages/isomorphic/` - Shared event/action definitions and types
+- `packages/isomorphic/` - Shared Redux slices, schemas, and types (TypeScript source imports)
 - `packages/steam-api/` - Steam API integration utilities
 - `packages/dialogs/` - Dialog management and AI assessment functionality
+- `packages/db/` - MongoDB persistence layer with event store and entity repositories
 
 ### Core Design Principles
-- **Event-driven**: `action === event` - Reduxjs/toolkit slices are aggregators and slice case actions are events
-- **CQRS-lite**: SSE for events subscribtion, HTTP POST for commands
-- **Isomorphic state**: Same Redux store shape on frontend/backend
-- **Effect-TS**: Functional programming with Effect framework
+- **Event-driven**: Redux actions ARE events - slice reducers handle domain events
+- **Entity-centric**: `createEntitySlice` utility for normalized state management
+- **Schema-first**: Effect Schema for validation, annotations for documentation & indexes
+- **TypeScript sources**: Direct TS imports between packages (no build step in dev)
 - **TypeID**: Entity IDs with slice prefixes (`account_*`, `dialog_*`, `system_*`)
+- **Repository pattern**: MongoDB collections map 1:1 with Redux slices
 
 ### Data Flow
 1. Commands sent to `POST /api/command`
@@ -95,60 +97,74 @@ yarn test:isomorphic
 
 ## Key Architecture Details
 
-### Recent Architectural Changes
-- **Bot → Account**: All "Bot" entities renamed to "Account" for clarity
-- **Chat → Dialog**: "Chat" entities renamed to "Dialog" to reflect AI-enhanced conversations
-- **Removed Slices**: Task and Proxy slices removed to simplify architecture
-- **Decentralized Events**: Removed centralized event builders; events now defined per slice
-- **Enhanced Schemas**: All schemas include detailed annotations for better documentation
-- **AI Integration**: Dialog entities now include comprehensive AI assessment capabilities
+### Current Architecture Patterns
 
-### Event System (Isomorphic Package)
-- All events are Redux actions with `{ type, payload, meta }` shape
-- Event payload types defined directly in each slice module
-- Uses Effect Schema for validation at boundaries
-- Slice-specific actions exported from each slice (`accountActions`, `dialogActions`, etc.)
-- Simplified meta structure for flexibility
-- No centralized event builders - each slice manages its own events
+#### Redux Slice Pattern (`createEntitySlice`)
+The custom `createEntitySlice` utility creates normalized Redux slices with:
+- Automatic entity ID management (`{entityName}Id`)
+- Entity-level reducers that operate on single entities
+- Built-in selectors (`selectEntity`, `selectAllEntities`, `selectEntityIds`)
+- Schema validation support
+- Automatic pluralization for slice names
+- Support for extra reducers (entity creation/deletion)
 
-#### Example Event Pattern
+#### Schema Architecture
+All entities use Effect Schema with comprehensive annotations:
 ```typescript
-// In accounts.ts slice
-export type AccountConnectedPayload = {
-    accountId: string
-    ts?: number
-}
-
-// Reducer handles the event
-entityReducers: {
-    connected: (account, payload) => {
-        account.status = 'connected'
-        if (payload.ts) account.lastSeen = payload.ts
-    }
-}
+const AccountSchema = S.Struct({
+    accountId: AccountId.annotations({ title: "Account ID" }),
+    steamId64: S.String.annotations({ title: "Steam ID 64" }),
+    // ...
+}).annotations({ 
+    title: "Account",
+    indexes: [
+        { fields: { accountId: 1 }, options: { unique: true } },
+        { fields: { status: 1 } }
+    ]
+})
 ```
+
+#### Database Layer (`packages/db`)
+MongoDB integration with automatic repository generation:
+- `MongoDatabase` class accepts slice definitions
+- Auto-creates repositories with CRUD operations
+- Repositories use slice's ID field convention
+- Event store for event sourcing patterns
+- Indexes created from schema annotations
+
+#### Event Patterns
+Events are Redux actions with structured payloads:
+- Entity events: Include `{entityName}Id` in payload
+- Entity reducers: Modify single entity state
+- Extra reducers: Handle entity creation/deletion
+- No separate event builders - actions ARE events
 
 ### Entity Slices
 Located in `packages/isomorphic/src/slices/`:
-- **Account**: Steam account status, proxy URL, auth state, maFile integration
-- **Dialog**: AI-powered conversation management with assessment scoring and operator alerts
-- **System**: Round-robin assignment, rate limits
 
-#### Dialog Entity (Enhanced with AI)
-The Dialog entity represents AI-driven conversations with comprehensive assessment:
-- **Continuation Score**: 0-1 value indicating conversation health
-- **Trend Analysis**: Rising/stable/declining conversation trajectory
-- **Scoring Factors**:
-  - User engagement (0-1)
-  - Topic relevance (0-1)
-  - Emotional tone (0-1)
-  - Response quality (0-1)
-  - Goal proximity (0-1)
-- **Issue Detection**: Identifies problems like explicit rejection, topic drift, aggressive responses
-- **Operator Alerts**: Automatic alerting based on assessment thresholds
-- **Multi-language Support**: zh, ja, ko, en, es
-- **Goal Tracking**: Progress towards defined conversation objectives
-- **Token Usage**: OpenAI API token consumption tracking
+#### Account Slice (`accounts.ts`)
+- Manages Steam account entities
+- Schema: `AccountSchema` with branded `AccountId`
+- Entity reducers: `connected`, `disconnected`, `authenticationFailed`
+- Related schemas: `MaFileSchema`, `SessionSchema`
+
+#### Dialog Slice (`dialogs.ts`)
+- AI-driven conversation management
+- Schema: `DialogSchema` with branded `DialogId`
+- Entity reducers: `messageReceived`, `messageSent`, `assessed`, `statusUpdated`, `operatorAlerted`, `progressUpdated`
+- Extra reducer: `created` (creates new dialog entity)
+- Message trimming: Auto-limits to 50 messages per dialog
+- Assessment features:
+  - Continuation score (0-1)
+  - Trend tracking (rising/stable/declining)
+  - Scoring factors (engagement, relevance, tone, quality, goal proximity)
+  - Issue detection with severity levels
+  - Operator alerts with urgency levels
+
+#### System Slice (`system.ts`)
+- System-wide configuration and metrics
+- Round-robin account assignment
+- Rate limiting configuration
 
 ### Steam Integration
 - Uses unofficial Steam npm packages (`steam-user`, `steamcommunity`, etc.)
@@ -172,12 +188,21 @@ The Dialog entity represents AI-driven conversations with comprehensive assessme
 
 ## Development Notes
 
-- Always validate events with Effect Schema at system boundaries
-- Use TypeID for all entity IDs with appropriate prefixes
-- UTC epoch milliseconds for all timestamps
-- Keep SSE batches short (50-100ms intervals) to avoid UI lag
-- Maintain round-robin account assignment for dialog distribution
-- Dialog AI assessment monitors conversation quality and triggers operator alerts when needed
+### Best Practices
+- **Schema validation**: Always validate at system boundaries using Effect Schema
+- **TypeID usage**: All entity IDs use TypeID with slice prefix (`account_`, `dialog_`, `system_`)
+- **Timestamps**: UTC epoch milliseconds for all timestamps
+- **Direct TS imports**: Use `workspace:*` dependencies and import `.ts` files directly
+- **Entity reducers**: Operate on single entities, not the entire collection
+- **Repository pattern**: DB repositories mirror Redux slice structure
+
+### Technical Guidelines
+- **No build required**: Development uses `tsx` for TypeScript source execution
+- **Schema annotations**: Include indexes, titles, and descriptions in schemas
+- **Event shape**: Redux actions with `{ type, payload, meta }` structure
+- **ID conventions**: Entity ID field is `{entityName}Id` (e.g., `accountId`, `dialogId`)
+- **Message limits**: Dialog messages auto-trim to last 50 messages
+- **SSE batching**: Keep event batches short (50-100ms) to prevent UI lag
 
 ## Code Style Guidelines
 
@@ -208,6 +233,31 @@ yarn format:check
 - `eslint.config.js` - ESLint rules and TypeScript integration
 - `prettier.config.cjs` - Code formatting rules
 - `tsconfig.base.json` - TypeScript strict mode configuration
+
+## Database Usage
+
+### MongoDB Structure
+```typescript
+// Initialize database with slices
+const db = createDb(connectionString)
+await db.init()
+
+// Access repositories
+await db.repos.account.save(account)
+await db.repos.dialog.findById(dialogId)
+await db.repos.system.findAll()
+
+// Event store operations
+await db.eventStore.append(event)
+await db.eventStore.getEventsByAggregate('account')
+```
+
+### Repository Operations
+Each slice gets an auto-generated repository with:
+- `findById(id)`: Get entity by ID
+- `findAll()`: Get all entities
+- `save(entity)`: Upsert entity
+- `delete(id)`: Remove entity
 
 ## Command System
 

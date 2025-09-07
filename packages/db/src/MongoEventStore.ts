@@ -1,35 +1,20 @@
-import { MongoClient, Db, Collection, Filter, Sort } from 'mongodb'
+import { Db, Collection, Filter, Sort } from 'mongodb'
 import { EventRecord, EventFilter } from './types'
-import { MongoConfig } from './config'
 
 export class MongoEventStore {
-    private client: MongoClient | null = null
-    private db: Db | null = null
     private collection: Collection<EventRecord> | null = null
     
-    constructor(private config: MongoConfig) {}
+    constructor() {}
 
-    async init(): Promise<void> {
+    async init(db: Db): Promise<void> {
         try {
-            // Create MongoDB client with configuration
-            this.client = new MongoClient(this.config.connectionString, {
-                maxPoolSize: this.config.maxPoolSize,
-                minPoolSize: this.config.minPoolSize,
-                retryWrites: this.config.retryWrites,
-                writeConcern: this.config.writeConcern
-            })
-            
-            // Connect to MongoDB
-            await this.client.connect()
-            
-            // Get database and collection references
-            this.db = this.client.db(this.config.database)
-            this.collection = this.db.collection<EventRecord>(this.config.eventsCollection)
+            // Use hardcoded 'events' collection name
+            this.collection = db.collection<EventRecord>('events')
             
             // Create indexes for efficient querying
             await this.createIndexes()
             
-            console.log(`EventStore connected to MongoDB: ${this.config.database}/${this.config.eventsCollection}`)
+            console.log('EventStore initialized with events collection')
         } catch (error) {
             console.error('Failed to initialize EventStore:', error)
             throw error
@@ -142,11 +127,11 @@ export class MongoEventStore {
     }
     
     async getEventsByAggregate(aggregate: string, limit?: number): Promise<EventRecord[]> {
-        return this.getEvents({ aggregate, limit })
+        return this.getEvents({ aggregate, ...(limit !== undefined && { limit }) })
     }
     
     async getEventsSince(timestamp: number, limit?: number): Promise<EventRecord[]> {
-        return this.getEvents({ fromTimestamp: timestamp, limit })
+        return this.getEvents({ fromTimestamp: timestamp, ...(limit !== undefined && { limit }) })
     }
     
     async getEventsByAggregateId(aggregateType: string, aggregateId: string, fromTimestamp?: number): Promise<EventRecord[]> {
@@ -247,12 +232,8 @@ export class MongoEventStore {
     }
 
     async close(): Promise<void> {
-        if (this.client) {
-            await this.client.close()
-            this.client = null
-            this.db = null
-            this.collection = null
-            console.log('EventStore connection closed')
-        }
+        // Connection is managed by MongoDatabase
+        this.collection = null
+        console.log('EventStore closed')
     }
 }

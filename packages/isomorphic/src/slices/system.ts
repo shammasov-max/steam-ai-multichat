@@ -68,7 +68,13 @@ export const SystemSchema = S.Struct({
     systemId: SystemId.annotations({ title: "System ID", description: "Singleton identifier (always 'system')" }),
     roundRobin: RoundRobinSchema,
     rateLimits: S.Record({ key: S.String, value: RateLimitEntrySchema }).annotations({ title: "Rate Limits", description: "Account ID to rate limit mapping" })
-}).annotations({ title: "System", description: "Global system state entity" })
+}).annotations({ 
+    title: "System", 
+    description: "Global system state entity",
+    indexes: [
+        { fields: { systemId: 1 }, options: { unique: true } }
+    ]
+})
 
 // Derive types from schemas
 export type RoundRobinState = S.Schema.Type<typeof RoundRobinSchema>
@@ -79,6 +85,7 @@ export type System = S.Schema.Type<typeof SystemSchema>
 
 export const systemSlice = createEntitySlice({
     name: 'system',
+    entitySchema: SystemSchema as any,
     
     // Initialize with singleton entity
     initialEntities: [
@@ -202,8 +209,6 @@ export const systemSlice = createEntitySlice({
             }
         }
     }
-    
-    // entitySchema: SystemSchema // Schema compatibility will be addressed in future refactor
 })
 
 // ============= Exports =============

@@ -72,7 +72,17 @@ export const AccountSchema = S.Struct({
     proxyUrl: S.String.annotations({ title: "Proxy URL", description: "Proxy server URL" }),
     status: AccountStatus.annotations({ title: "Status", description: "Current account connection status" }),
     lastSeen: S.optional(S.Number.annotations({ title: "Last Seen", description: "Timestamp of last activity" }))
-}).annotations({ title: "Account", description: "Steam account entity" })
+}).annotations({ 
+    title: "Account", 
+    description: "Steam account entity",
+    indexes: [
+        { fields: { accountId: 1 }, options: { unique: true } },
+        { fields: { steamId64: 1 } },
+        { fields: { status: 1 } },
+        { fields: { proxyUrl: 1 } },
+        { fields: { lastSeen: -1 } }
+    ]
+})
 
 // Derive type from schema
 export type Account = S.Schema.Type<typeof AccountSchema>
@@ -84,6 +94,7 @@ export type MaFile = S.Schema.Type<typeof MaFileSchema>
 export const accountSlice = createEntitySlice({
     name: 'account',
     initialEntities: [] as Draft<Account>[],
+    entitySchema: AccountSchema as any,
     entityReducers: {
         // Event: accounts/connected
         connected: (account: Draft<Account>, payload: EntityActionPayload<'account', { ts?: number }>) => {
@@ -102,8 +113,6 @@ export const accountSlice = createEntitySlice({
             // Note: reason is available in payload but not stored in entity per spec
         }
     }
-    
-    // entitySchema: AccountSchema // Schema compatibility will be addressed in future refactor
 })
 
 // ============= Exports =============
