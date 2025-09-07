@@ -1,6 +1,6 @@
 import { MongoClient, Db, Collection, Filter, Sort } from 'mongodb'
-import { EventRecord, EventFilter } from './types.js'
-import { MongoConfig } from './config.js'
+import { EventRecord, EventFilter } from './types'
+import { MongoConfig } from './config'
 
 export class MongoEventStore {
     private client: MongoClient | null = null

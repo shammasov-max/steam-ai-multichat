@@ -16,7 +16,7 @@ export interface Repository<T> {
    * @param data - The entity data to create
    * @returns The created entity with metadata
    */
-  readonly create: (data: T) => Effect.Effect<WithMeta<T>, SheetError>
+  readonly create: (data: T) => Effect.Effect<WithMeta<T>, SheetError, any>
   
   /**
    * Creates multiple entities in a batch.
@@ -24,7 +24,7 @@ export interface Repository<T> {
    * @param data - Array of entities to create
    * @returns Array of created entities with metadata
    */
-  readonly createMany: (data: T[]) => Effect.Effect<WithMeta<T>[], SheetError>
+  readonly createMany: (data: T[]) => Effect.Effect<WithMeta<T>[], SheetError, any>
   
   /**
    * Finds a single entity matching the query.
@@ -32,7 +32,7 @@ export interface Repository<T> {
    * @param query - Query conditions
    * @returns Option containing the matched entity or None
    */
-  readonly findOne: (query: Query<T>) => Effect.Effect<Option.Option<WithMeta<T>>, SheetError>
+  readonly findOne: (query: Query<T>) => Effect.Effect<Option.Option<WithMeta<T>>, SheetError, any>
   
   /**
    * Finds all entities matching the query.
@@ -40,7 +40,7 @@ export interface Repository<T> {
    * @param query - Optional query conditions
    * @returns Array of matching entities
    */
-  readonly findMany: (query?: Query<T>) => Effect.Effect<WithMeta<T>[], SheetError>
+  readonly findMany: (query?: Query<T>) => Effect.Effect<WithMeta<T>[], SheetError, any>
   
   /**
    * Updates entities matching the query.
@@ -49,7 +49,7 @@ export interface Repository<T> {
    * @param data - Partial data to update
    * @returns Number of entities updated
    */
-  readonly update: (query: Query<T>, data: Partial<T>) => Effect.Effect<number, SheetError>
+  readonly update: (query: Query<T>, data: Partial<T>) => Effect.Effect<number, SheetError, any>
   
   /**
    * Soft-deletes entities matching the query.
@@ -57,25 +57,25 @@ export interface Repository<T> {
    * @param query - Query to find entities to delete
    * @returns Number of entities deleted
    */
-  readonly delete: (query: Query<T>) => Effect.Effect<number, SheetError>
+  readonly delete: (query: Query<T>) => Effect.Effect<number, SheetError, any>
   
   /**
    * Permanently removes soft-deleted entities from the sheet.
    * This operation cannot be undone.
    * @returns Number of entities purged
    */
-  readonly purgeDeleted: () => Effect.Effect<number, SheetError>
+  readonly purgeDeleted: () => Effect.Effect<number, SheetError, any>
   
   /**
    * Counts entities matching the query.
    * @param query - Optional query conditions
    * @returns Count of matching entities
    */
-  readonly count: (query?: Query<T>) => Effect.Effect<number, SheetError>
+  readonly count: (query?: Query<T>) => Effect.Effect<number, SheetError, any>
   
   /**
    * Synchronizes the cache with the Google Sheet.
    * Useful for multi-client scenarios where the sheet may be modified externally.
    */
-  readonly sync: () => Effect.Effect<void, SheetError>
+  readonly sync: () => Effect.Effect<void, SheetError, any>
 }

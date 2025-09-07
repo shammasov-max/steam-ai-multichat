@@ -27,10 +27,10 @@ const TestSchema = S.Struct({
 })
 
 const sheetsConfig = {
-  spreadsheetId: '1nJm6q238nL6xVUIsrYWcSZ7EtFizV3GBO_xy1kXlR28',
+  spreadsheetId: process.env.GOOGLE_SHEETS_SPREADSHEET_ID,
   credentials: {
-    client_email: 'steam-ai-multichat@steam-ai-multichats.iam.gserviceaccount.com',
-    private_key: privateKey
+    client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+    private_key: process.env.GOOGLE_SERVICE_PRIVATE_KEY || privateKey
   }
 }
 

@@ -60,7 +60,6 @@ export { SheetError } from './errors/SheetError.js'
 
 // Type exports
 export type { 
-  Brand, 
   RowId, 
   SheetId 
 } from './types/brand.js'

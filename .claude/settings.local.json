@@ -16,7 +16,18 @@
       "Bash(yarn workspace @packages/google-sheets-db add:*)",
       "Bash(openssl:*)",
       "Bash(yarn tsx:*)",
-      "Bash(npm ls:*)"
+      "Bash(npm ls:*)",
+      "Bash(find:*)",
+      "Bash(npx tsc:*)",
+      "Bash(claude --version)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "Bash(where claude)",
+      "Bash(yarn add:*)",
+      "Bash(cat:*)",
+      "Bash(npm test)",
+      "Bash(yarn workspace @packages/google-sheets-db typecheck:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": []

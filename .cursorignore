@@ -1,3 +1,5 @@
 # Exclude the root-level js folder from Cursor AI context
 /js/
 
+
+

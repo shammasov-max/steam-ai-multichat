@@ -1,7 +1,7 @@
 import * as S from '@effect/schema/Schema'
 import * as Effect from 'effect/Effect'
 import * as ReadonlyArray from 'effect/Array'
-import type { GoogleSpreadsheet, GoogleSpreadsheetWorksheet } from 'google-spreadsheet'
+import type { GoogleSpreadsheet } from 'google-spreadsheet'
 import { SheetError } from '../errors/SheetError.js'
 
 /**
@@ -106,7 +106,7 @@ export const validateAndConfigureSheet = <S extends S.Schema.Any>(
         console.log(`Extra fields: ${extraFields.join(', ')}`)
 
         // Backup existing data if requested
-        if (backupBeforeChanges && currentHeaders.length > 0) {
+        if (backupBeforeChanges && currentHeaders.length > 0 && sheet) {
           const rows = yield* Effect.tryPromise(() => sheet.getRows())
           console.log(`Backing up ${rows.length} rows before header changes`)
           
@@ -120,12 +120,14 @@ export const validateAndConfigureSheet = <S extends S.Schema.Any>(
           })
 
           // Clear sheet
-          if (rows.length > 0) {
+          if (rows.length > 0 && sheet) {
             yield* Effect.tryPromise(() => sheet.clear())
           }
 
           // Set new headers
-          yield* Effect.tryPromise(() => sheet.setHeaderRow(allRequiredFields))
+          if (sheet) {
+            yield* Effect.tryPromise(() => sheet.setHeaderRow(allRequiredFields))
+          }
 
           // Restore data with field mapping
           if (backupData.length > 0) {
@@ -164,11 +166,15 @@ export const validateAndConfigureSheet = <S extends S.Schema.Any>(
               return restored
             })
 
-            yield* Effect.tryPromise(() => sheet.addRows(restoredRows))
+            if (sheet) {
+              yield* Effect.tryPromise(() => sheet.addRows(restoredRows))
+            }
           }
         } else {
           // Simple header update without data preservation
-          yield* Effect.tryPromise(() => sheet.setHeaderRow(allRequiredFields))
+          if (sheet) {
+            yield* Effect.tryPromise(() => sheet.setHeaderRow(allRequiredFields))
+          }
         }
       }
     }

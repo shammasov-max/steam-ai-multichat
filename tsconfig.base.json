@@ -4,7 +4,7 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "es2022",
     "moduleResolution": "bundler",
-    
+    "downlevelIteration": true,
     // Strict mode settings
     "strict": true,
     "noImplicitAny": true,

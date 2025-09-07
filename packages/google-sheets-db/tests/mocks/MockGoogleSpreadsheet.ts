@@ -1,9 +1,9 @@
-import type { GoogleSpreadsheet, GoogleSpreadsheetRow, GoogleSpreadsheetWorksheet } from 'google-spreadsheet'
+// Mock implementations for testing
 
 /**
  * Mock implementation of Google Spreadsheet Row for testing
  */
-export class MockGoogleSpreadsheetRow implements Partial<GoogleSpreadsheetRow> {
+export class MockGoogleSpreadsheetRow {
   private data: Record<string, any> = {}
   public rowNumber: number
 
@@ -38,7 +38,7 @@ export class MockGoogleSpreadsheetRow implements Partial<GoogleSpreadsheetRow> {
 /**
  * Mock implementation of Google Spreadsheet Worksheet for testing
  */
-export class MockGoogleSpreadsheetWorksheet implements Partial<GoogleSpreadsheetWorksheet> {
+export class MockGoogleSpreadsheetWorksheet {
   public headerValues: string[] = []
   private rows: MockGoogleSpreadsheetRow[] = []
   private nextRowNumber = 1
@@ -81,10 +81,12 @@ export class MockGoogleSpreadsheetWorksheet implements Partial<GoogleSpreadsheet
 /**
  * Mock implementation of Google Spreadsheet for testing
  */
-export class MockGoogleSpreadsheet implements Partial<GoogleSpreadsheet> {
+export class MockGoogleSpreadsheet {
   public sheetsByTitle: Record<string, MockGoogleSpreadsheetWorksheet> = {}
+  public sheetsById: Record<number, MockGoogleSpreadsheetWorksheet> = {}
+  public title: string = 'Mock Spreadsheet'
+  public sheetCount: number = 0
   private authenticated = false
-  private infoLoaded = false
 
   constructor(public spreadsheetId: string) {}
 
@@ -100,7 +102,6 @@ export class MockGoogleSpreadsheet implements Partial<GoogleSpreadsheet> {
     if (!this.authenticated) {
       throw new Error('Not authenticated')
     }
-    this.infoLoaded = true
     return Promise.resolve()
   }
 
@@ -113,6 +114,8 @@ export class MockGoogleSpreadsheet implements Partial<GoogleSpreadsheet> {
       sheet.headerValues = [...headerValues]
     }
     this.sheetsByTitle[title] = sheet
+    this.sheetsById[this.sheetCount] = sheet
+    this.sheetCount++
     return Promise.resolve(sheet)
   }
 

@@ -1,6 +1,4 @@
-import { Effect, Layer, Context, pipe, Option } from 'effect'
-import * as S from 'effect/Schema'
-import { Collection } from 'mongodb'
+import { Effect, Context, Option } from 'effect'
 import {
     DialogSchema,
     DialogMsgSchema,
@@ -8,28 +6,18 @@ import {
     type DialogMsg,
     type DialogStatus,
     type Language,
-    type UserInfo,
     type ScoringFactors,
     type Issue,
-    type OperatorAlert,
-    type DialogMsgFrom,
-    type Urgency
-} from '@packages/isomorphic/src/slices/dialogs.js'
-import {
-    Database,
-    EntityNotFoundError,
-    RepositoryError,
-    validateEntity,
-    saveEvent,
-    createEvent,
-    type BaseRepository
-} from './base/BaseRepository.js'
-import { MongoDatabase } from '../MongoDatabase.js'
-import type { EventRecord } from '../types.js'
+    type OperatorAlert
+} from '@packages/isomorphic/src/slices/dialogs'
+import { Database, EntityNotFoundError, validateEntity, RepositoryError } from './base/BaseRepository'
+import { MongoRepositoryBase } from './base/MongoRepositoryFactory'
+import { dialogEventFactory } from './base/EventFactory'
+import type { MongoDatabase } from '../MongoDatabase'
 
 // ============= DialogRepository Interface =============
 
-export interface DialogRepository extends BaseRepository<Dialog, string> {
+export interface DialogRepository extends MongoRepositoryBase<Dialog, 'dialog'> {
     // Find operations
     readonly findByAccountId: (accountId: string) => Effect.Effect<readonly Dialog[]>
     readonly findByPlayerSteamId: (playerSteamId64: string) => Effect.Effect<readonly Dialog[]>
@@ -88,204 +76,26 @@ export class DialogRepository extends Context.Tag("DialogRepository")<
 
 // ============= MongoDB Implementation =============
 
-class MongoDialogRepositoryImpl implements DialogRepository {
-    private collection: Collection<Dialog>
-    
-    constructor(private readonly db: MongoDatabase) {
-        if (!db.dialogs) {
-            throw new Error('Dialogs collection not initialized')
-        }
-        this.collection = db.dialogs
+class MongoDialogRepositoryImpl extends MongoRepositoryBase<Dialog, 'dialog'> implements DialogRepository {
+    constructor(db: MongoDatabase) {
+        super(db, {
+            collectionName: 'dialogs',
+            entityType: 'dialog',
+            idField: 'dialogId',
+            schema: DialogSchema,
+            eventFactory: dialogEventFactory
+        })
     }
     
-    // ============= Base Repository Methods =============
-    
-    findById = (id: string): Effect.Effect<Option.Option<Dialog>> =>
-        Effect.gen(function* () {
-            try {
-                const dialog = yield* Effect.tryPromise({
-                    try: () => this.collection.findOne({ dialogId: id }),
-                    catch: error => new RepositoryError({
-                        message: `Failed to find dialog by ID: ${id}`,
-                        cause: error
-                    })
-                })
-                
-                if (!dialog) return Option.none()
-                
-                const validated = yield* validateEntity(DialogSchema)(dialog)
-                return Option.some(validated)
-            } catch (error) {
-                return Option.none()
-            }
-        })
-    
-    findAll = (options?: { limit?: number; offset?: number }): Effect.Effect<readonly Dialog[]> =>
-        Effect.gen(function* () {
-            const limit = options?.limit || 1000
-            const skip = options?.offset || 0
-            
-            const dialogs = yield* Effect.tryPromise({
-                try: () => this.collection
-                    .find({})
-                    .skip(skip)
-                    .limit(limit)
-                    .toArray(),
-                catch: error => new RepositoryError({
-                    message: 'Failed to find all dialogs',
-                    cause: error
-                })
-            })
-            
-            return dialogs
-        })
-    
-    findMany = (ids: readonly string[]): Effect.Effect<readonly Dialog[]> =>
-        Effect.gen(function* () {
-            const dialogs = yield* Effect.tryPromise({
-                try: () => this.collection
-                    .find({ dialogId: { $in: ids as string[] } })
-                    .toArray(),
-                catch: error => new RepositoryError({
-                    message: 'Failed to find multiple dialogs',
-                    cause: error
-                })
-            })
-            
-            return dialogs
-        })
-    
-    save = (dialog: Dialog): Effect.Effect<Dialog> =>
-        Effect.gen(function* () {
-            // Validate dialog
-            const validated = yield* validateEntity(DialogSchema)(dialog)
-            
-            // Save to MongoDB
-            yield* Effect.tryPromise({
-                try: () => this.collection.replaceOne(
-                    { dialogId: validated.dialogId },
-                    validated,
-                    { upsert: true }
-                ),
-                catch: error => new RepositoryError({
-                    message: `Failed to save dialog: ${validated.dialogId}`,
-                    cause: error
-                })
-            })
-            
-            // Emit event
-            const event = createEvent(
-                'dialogs/saved',
-                'dialog',
-                validated.dialogId,
-                validated
-            )
-            
-            yield* saveEvent(this.db, event)
-            return validated
-        })
-    
-    saveMany = (dialogs: readonly Dialog[]): Effect.Effect<readonly Dialog[]> =>
-        Effect.all(dialogs.map(dialog => this.save(dialog)))
-    
-    update = (id: string, updates: Partial<Dialog>): Effect.Effect<Dialog> =>
-        Effect.gen(function* () {
-            const result = yield* Effect.tryPromise({
-                try: () => this.collection.findOneAndUpdate(
-                    { dialogId: id },
-                    { $set: updates },
-                    { returnDocument: 'after' }
-                ),
-                catch: error => new RepositoryError({
-                    message: `Failed to update dialog: ${id}`,
-                    cause: error
-                })
-            })
-            
-            if (!result) {
-                yield* Effect.fail(new EntityNotFoundError({
-                    entityType: 'dialog',
-                    id
-                }))
-            }
-            
-            return result as Dialog
-        })
-    
-    delete = (id: string): Effect.Effect<void> =>
-        Effect.gen(function* () {
-            yield* Effect.tryPromise({
-                try: () => this.collection.deleteOne({ dialogId: id }),
-                catch: error => new RepositoryError({
-                    message: `Failed to delete dialog: ${id}`,
-                    cause: error
-                })
-            })
-            
-            // Emit deletion event
-            const event = createEvent(
-                'dialogs/deleted',
-                'dialog',
-                id,
-                { dialogId: id }
-            )
-            
-            yield* saveEvent(this.db, event)
-        })
-    
-    deleteMany = (ids: readonly string[]): Effect.Effect<void> =>
-        Effect.all(ids.map(id => this.delete(id)), { discard: true })
-    
-    exists = (id: string): Effect.Effect<boolean> =>
-        Effect.gen(function* () {
-            const count = yield* Effect.tryPromise({
-                try: () => this.collection.countDocuments({ dialogId: id }),
-                catch: error => new RepositoryError({
-                    message: `Failed to check dialog existence: ${id}`,
-                    cause: error
-                })
-            })
-            
-            return count > 0
-        })
-    
-    count = (): Effect.Effect<number> =>
-        Effect.tryPromise({
-            try: () => this.collection.countDocuments({}),
-            catch: error => new RepositoryError({
-                message: 'Failed to count dialogs',
-                cause: error
-            })
-        })
-    
-    // ============= Dialog-Specific Methods =============
-    
+    // Find operations
     findByAccountId = (accountId: string): Effect.Effect<readonly Dialog[]> =>
-        Effect.tryPromise({
-            try: () => this.collection.find({ accountId }).toArray(),
-            catch: error => new RepositoryError({
-                message: `Failed to find dialogs by account: ${accountId}`,
-                cause: error
-            })
-        })
+        this.findByField('accountId', accountId)
     
     findByPlayerSteamId = (playerSteamId64: string): Effect.Effect<readonly Dialog[]> =>
-        Effect.tryPromise({
-            try: () => this.collection.find({ playerSteamId64 }).toArray(),
-            catch: error => new RepositoryError({
-                message: `Failed to find dialogs by player: ${playerSteamId64}`,
-                cause: error
-            })
-        })
+        this.findByField('playerSteamId64', playerSteamId64)
     
     findByStatus = (status: DialogStatus): Effect.Effect<readonly Dialog[]> =>
-        Effect.tryPromise({
-            try: () => this.collection.find({ status }).toArray(),
-            catch: error => new RepositoryError({
-                message: `Failed to find dialogs by status: ${status}`,
-                cause: error
-            })
-        })
+        this.findByField('status', status)
     
     findActive = (): Effect.Effect<readonly Dialog[]> =>
         this.findByStatus('active')
@@ -294,13 +104,7 @@ class MongoDialogRepositoryImpl implements DialogRepository {
         this.findByStatus('escalated')
     
     findByLanguage = (language: Language): Effect.Effect<readonly Dialog[]> =>
-        Effect.tryPromise({
-            try: () => this.collection.find({ language }).toArray(),
-            catch: error => new RepositoryError({
-                message: `Failed to find dialogs by language: ${language}`,
-                cause: error
-            })
-        })
+        this.findByField('language', language)
     
     findNeedingAttention = (): Effect.Effect<readonly Dialog[]> =>
         Effect.tryPromise({
@@ -329,37 +133,24 @@ class MongoDialogRepositoryImpl implements DialogRepository {
             })
         })
     
+    // Message operations
     addMessage = (
         dialogId: string,
         message: Omit<DialogMsg, 'id'> & { id?: string }
     ): Effect.Effect<Dialog> =>
         Effect.gen(function* () {
             const messageId = message.id || `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-            const newMessage: DialogMsg = {
-                ...message,
-                id: messageId
-            }
+            const newMessage: DialogMsg = { ...message, id: messageId }
             
-            // Validate message
             yield* validateEntity(DialogMsgSchema)(newMessage)
             
-            // Update dialog with new message and trim to last 50
             const dialog = yield* Effect.tryPromise({
                 try: () => this.collection.findOneAndUpdate(
                     { dialogId },
                     {
-                        $push: {
-                            messages: {
-                                $each: [newMessage],
-                                $slice: -50
-                            }
-                        },
-                        $set: {
-                            lastMessageAt: message.ts,
-                        },
-                        $inc: {
-                            totalMessages: 1
-                        }
+                        $push: { messages: { $each: [newMessage], $slice: -50 } },
+                        $set: { lastMessageAt: message.ts },
+                        $inc: { totalMessages: 1 }
                     },
                     { returnDocument: 'after' }
                 ),
@@ -370,20 +161,19 @@ class MongoDialogRepositoryImpl implements DialogRepository {
             })
             
             if (!dialog) {
-                yield* Effect.fail(new EntityNotFoundError({
+                return yield* Effect.fail(new EntityNotFoundError({
                     entityType: 'dialog',
                     id: dialogId
                 }))
             }
             
-            // Emit message event
             const eventType = message.from === 'account' 
                 ? 'dialogs/messageSent'
                 : 'dialogs/messageReceived'
             
-            const event = createEvent(
+            yield* dialogEventFactory.createAndSave(
+                this.db,
                 eventType,
-                'dialog',
                 dialogId,
                 {
                     dialogId,
@@ -396,7 +186,6 @@ class MongoDialogRepositoryImpl implements DialogRepository {
                 'event'
             )
             
-            yield* saveEvent(this.db, event)
             return dialog as Dialog
         })
     
@@ -414,7 +203,7 @@ class MongoDialogRepositoryImpl implements DialogRepository {
             })
             
             if (!dialog) {
-                yield* Effect.fail(new EntityNotFoundError({
+                return yield* Effect.fail(new EntityNotFoundError({
                     entityType: 'dialog',
                     id: dialogId
                 }))
@@ -438,7 +227,7 @@ class MongoDialogRepositoryImpl implements DialogRepository {
             })
             
             if (!dialog) {
-                yield* Effect.fail(new EntityNotFoundError({
+                return yield* Effect.fail(new EntityNotFoundError({
                     entityType: 'dialog',
                     id: dialogId
                 }))
@@ -453,24 +242,19 @@ class MongoDialogRepositoryImpl implements DialogRepository {
             return messages.length > 0 ? Option.some(messages[0]) : Option.none()
         })
     
+    // Status operations
     updateStatus = (dialogId: string, status: DialogStatus, reason?: string): Effect.Effect<Dialog> =>
         Effect.gen(function* () {
             const dialog = yield* this.update(dialogId, { status })
             
-            // Emit status event
-            const event = createEvent(
+            yield* dialogEventFactory.createAndSave(
+                this.db,
                 'dialogs/statusUpdated',
-                'dialog',
                 dialogId,
-                {
-                    dialogId,
-                    status,
-                    ...(reason && { reason })
-                },
+                { dialogId, status, ...(reason && { reason }) },
                 'event'
             )
             
-            yield* saveEvent(this.db, event)
             return dialog
         })
     
@@ -486,6 +270,7 @@ class MongoDialogRepositoryImpl implements DialogRepository {
     escalateDialog = (dialogId: string, reason: string): Effect.Effect<Dialog> =>
         this.updateStatus(dialogId, 'escalated', reason)
     
+    // AI Assessment operations
     updateAssessment = (
         dialogId: string,
         assessment: {
@@ -496,28 +281,21 @@ class MongoDialogRepositoryImpl implements DialogRepository {
         }
     ): Effect.Effect<Dialog> =>
         Effect.gen(function* () {
-            const updates: Partial<Dialog> = {
+            const dialog = yield* this.update(dialogId, {
                 continuationScore: assessment.continuationScore,
                 trend: assessment.trend,
                 scoringFactors: assessment.factors,
                 ...(assessment.issuesDetected && { issuesDetected: assessment.issuesDetected })
-            }
+            })
             
-            const dialog = yield* this.update(dialogId, updates)
-            
-            // Emit assessment event
-            const event = createEvent(
+            yield* dialogEventFactory.createAndSave(
+                this.db,
                 'dialogs/assessed',
-                'dialog',
                 dialogId,
-                {
-                    dialogId,
-                    ...assessment
-                },
+                { dialogId, ...assessment },
                 'event'
             )
             
-            yield* saveEvent(this.db, event)
             return dialog
         })
     
@@ -528,20 +306,14 @@ class MongoDialogRepositoryImpl implements DialogRepository {
                 tokensUsed
             })
             
-            // Emit progress event
-            const event = createEvent(
+            yield* dialogEventFactory.createAndSave(
+                this.db,
                 'dialogs/progressUpdated',
-                'dialog',
                 dialogId,
-                {
-                    dialogId,
-                    goalProgress: progress,
-                    tokensUsed
-                },
+                { dialogId, goalProgress: progress, tokensUsed },
                 'event'
             )
             
-            yield* saveEvent(this.db, event)
             return dialog
         })
     
@@ -549,57 +321,34 @@ class MongoDialogRepositoryImpl implements DialogRepository {
         Effect.gen(function* () {
             const dialog = yield* this.update(dialogId, { operatorAlert: alert })
             
-            // Emit alert event
-            const event = createEvent(
+            yield* dialogEventFactory.createAndSave(
+                this.db,
                 'dialogs/operatorAlerted',
-                'dialog',
                 dialogId,
-                {
-                    dialogId,
-                    ...alert
-                },
+                { dialogId, ...alert },
                 'event'
             )
             
-            yield* saveEvent(this.db, event)
             return dialog
         })
     
     clearOperatorAlert = (dialogId: string): Effect.Effect<Dialog> =>
         this.update(dialogId, { operatorAlert: undefined })
     
-    // ============= Analytics Methods =============
-    
+    // Analytics
     getAverageScore = (): Effect.Effect<number> =>
         Effect.gen(function* () {
-            const pipeline = [
+            const results = yield* this.aggregate<{ _id: null; avgScore: number }>([
                 { $group: { _id: null, avgScore: { $avg: '$continuationScore' } } }
-            ]
-            
-            const results = yield* Effect.tryPromise({
-                try: () => this.collection.aggregate(pipeline).toArray(),
-                catch: error => new RepositoryError({
-                    message: 'Failed to get average score',
-                    cause: error
-                })
-            })
-            
+            ])
             return results.length > 0 ? results[0].avgScore : 0
         })
     
     getStatusCounts = (): Effect.Effect<Record<DialogStatus, number>> =>
         Effect.gen(function* () {
-            const pipeline = [
+            const results = yield* this.aggregate<{ _id: string; count: number }>([
                 { $group: { _id: '$status', count: { $sum: 1 } } }
-            ]
-            
-            const results = yield* Effect.tryPromise({
-                try: () => this.collection.aggregate(pipeline).toArray(),
-                catch: error => new RepositoryError({
-                    message: 'Failed to get status counts',
-                    cause: error
-                })
-            })
+            ])
             
             const counts: Record<string, number> = {
                 created: 0,
@@ -618,20 +367,11 @@ class MongoDialogRepositoryImpl implements DialogRepository {
     
     getLanguageCounts = (): Effect.Effect<Record<Language, number>> =>
         Effect.gen(function* () {
-            const pipeline = [
+            const results = yield* this.aggregate<{ _id: string; count: number }>([
                 { $group: { _id: '$language', count: { $sum: 1 } } }
-            ]
-            
-            const results = yield* Effect.tryPromise({
-                try: () => this.collection.aggregate(pipeline).toArray(),
-                catch: error => new RepositoryError({
-                    message: 'Failed to get language counts',
-                    cause: error
-                })
-            })
+            ])
             
             const counts: Record<string, number> = {}
-            
             for (const result of results) {
                 counts[result._id] = result.count
             }
@@ -641,18 +381,9 @@ class MongoDialogRepositoryImpl implements DialogRepository {
     
     getTotalTokensUsed = (): Effect.Effect<number> =>
         Effect.gen(function* () {
-            const pipeline = [
+            const results = yield* this.aggregate<{ _id: null; totalTokens: number }>([
                 { $group: { _id: null, totalTokens: { $sum: '$tokensUsed' } } }
-            ]
-            
-            const results = yield* Effect.tryPromise({
-                try: () => this.collection.aggregate(pipeline).toArray(),
-                catch: error => new RepositoryError({
-                    message: 'Failed to get total tokens used',
-                    cause: error
-                })
-            })
-            
+            ])
             return results.length > 0 ? results[0].totalTokens : 0
         })
     
@@ -681,12 +412,11 @@ class MongoDialogRepositoryImpl implements DialogRepository {
         })
 }
 
+import { createRepositoryLayer } from './base/LayerUtils'
+
 // ============= Layer =============
 
-export const MongoDialogRepositoryLive = Layer.effect(
+export const MongoDialogRepositoryLive = createRepositoryLayer(
     DialogRepository,
-    Effect.gen(function* () {
-        const db = yield* Database
-        return new MongoDialogRepositoryImpl(db)
-    })
+    db => new MongoDialogRepositoryImpl(db)
 )

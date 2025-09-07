@@ -1,0 +1,15 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Debug Current Example File" type="NodeJSConfigurationType" factoryName="Node.js">
+    <method v="2" />
+    <node-interpreter>node</node-interpreter>
+    <node-options>-r dotenv/config --enable-source-maps</node-options>
+    <working-dir>$PROJECT_DIR$</working-dir>
+    <envs>
+      <env name="NODE_OPTIONS" value="--experimental-specifier-resolution=node --enable-source-maps" />
+      <env name="DOTENV_CONFIG_PATH" value="$PROJECT_DIR$/.env" />
+    </envs>
+    <script-name>$PROJECT_DIR$/node_modules/tsx/dist/cli.mjs</script-name>
+    <script-parameters>"$FilePath$"</script-parameters>
+    <application-parameters></application-parameters>
+  </configuration>
+</component>

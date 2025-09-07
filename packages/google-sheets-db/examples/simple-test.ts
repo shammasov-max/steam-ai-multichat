@@ -7,22 +7,18 @@
 
 import * as S from '@effect/schema/Schema'
 import * as Effect from 'effect/Effect'
-import * as fs from 'node:fs'
 import { createRepository, SheetsLayer } from '../src/index.js'
 
 // Try to read real credentials
-let privateKey: string
+let privateKey: string | undefined
 let hasRealCredentials = false
 
-try {
-  // Try to read from the credential file mentioned in the original tests
-  privateKey = fs.readFileSync('../../../../google-service_rsa_private.pem', 'utf-8')
+if (process.env.GOOGLE_SERVICE_PRIVATE_KEY) {
+  privateKey = process.env.GOOGLE_SERVICE_PRIVATE_KEY
   hasRealCredentials = true
   console.log('✓ Found real Google service account credentials')
-} catch {
-  privateKey = '-----BEGIN PRIVATE KEY-----\nMOCK_PRIVATE_KEY_FOR_TESTING\n-----END PRIVATE KEY-----\n'
-  console.log('⚠️  Using mock credentials - no real sheets will be created')
 }
+
 
 // Test schema
 const TestUserSchema = S.Struct({
@@ -33,9 +29,9 @@ const TestUserSchema = S.Struct({
 })
 
 const sheetsConfig = {
-  spreadsheetId: '1nJm6q238nL6xVUIsrYWcSZ7EtFizV3GBO_xy1kXlR28',
+  spreadsheetId: process.env.GOOGLE_SHEETS_SPREADSHEET_ID,
   credentials: {
-    client_email: 'steam-ai-multichat@steam-ai-multichats.iam.gserviceaccount.com',
+    client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
     private_key: privateKey
   }
 }

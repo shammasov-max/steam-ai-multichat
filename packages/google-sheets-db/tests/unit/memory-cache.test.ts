@@ -9,12 +9,13 @@ import { MockGoogleSpreadsheet, MockGoogleSpreadsheetWorksheet } from '../mocks/
 import { makeRowId, type RowId } from '../../src/types/brand.js'
 import type { WithMeta } from '../../src/types/metadata.js'
 import { TestUserSchema, testUsersWithMeta } from '../fixtures/test-data.js'
-
 test('MemoryCache', async (t) => {
   const setup = () => {
-    const doc = new MockGoogleSpreadsheet('test-sheet-id')
+    const spreadsheetId = process.env.GOOGLE_SHEETS_SPREADSHEET_ID
+    const doc = new MockGoogleSpreadsheet(spreadsheetId)
     const sheet = new MockGoogleSpreadsheetWorksheet()
-    doc.sheetsByTitle['TestSheet'] = sheet
+    const sheetName = process.env.GOOGLE_SHEETS_TEST_SHEET_NAME
+    doc.sheetsByTitle[sheetName] = sheet
     
     // Add some initial rows to the sheet
     const rows = testUsersWithMeta.map((user, index) => ({
@@ -36,11 +37,9 @@ test('MemoryCache', async (t) => {
     
     return Effect.gen(function* () {
       const cacheRef = yield* Ref.make(initialCache)
-      const sheetRows = yield* Effect.tryPromise(() => sheet.getRows())
       const cache = new MemoryCache(
         cacheRef,
-        sheetRows,
-        'TestSheet',
+        sheetName,
         doc as any
       )
       return { cache, sheet, doc }

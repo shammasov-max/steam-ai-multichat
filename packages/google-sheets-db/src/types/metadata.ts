@@ -1,12 +1,12 @@
 import * as S from '@effect/schema/Schema'
-import type { RowId } from './brand.js'
+import { RowIdSchema } from './brand.js'
 
 /**
  * Schema for metadata that is automatically added to all entities.
  * Includes ID, timestamps, and soft-delete tracking.
  */
 export const Metadata = S.Struct({
-  _id: S.String.pipe(S.brand('RowId')),
+  _id: RowIdSchema,
   _deleted: S.optional(S.Boolean),
   _deletedAt: S.optional(S.String),
   _createdAt: S.String,

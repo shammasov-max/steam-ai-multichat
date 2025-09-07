@@ -1,4 +1,5 @@
 import { GoogleSpreadsheet } from 'google-spreadsheet'
+import { JWT } from 'google-auth-library'
 import * as Layer from 'effect/Layer'
 import * as Effect from 'effect/Effect'
 import { SheetsService } from '../services/SheetsService.js'
@@ -43,16 +44,17 @@ export const SheetsLayer = (config: SheetsConfig) =>
   Layer.effect(
     SheetsService,
     Effect.gen(function* () {
-      const doc = new GoogleSpreadsheet(config.spreadsheetId)
-      
-      // Authenticate with service account
-      yield* Effect.tryPromise({
-        try: () => doc.useServiceAccountAuth(config.credentials),
-        catch: () => new SheetError({ 
-          reason: 'AUTH', 
-          message: 'Authentication failed' 
-        })
+      // Create JWT auth client
+      const serviceAccountAuth = new JWT({
+        email: config.credentials.client_email,
+        key: config.credentials.private_key,
+        scopes: [
+          'https://www.googleapis.com/auth/spreadsheets',
+        ],
       })
+      
+      // Create document with auth
+      const doc = new GoogleSpreadsheet(config.spreadsheetId, serviceAccountAuth)
       
       // Load spreadsheet metadata
       yield* Effect.tryPromise({

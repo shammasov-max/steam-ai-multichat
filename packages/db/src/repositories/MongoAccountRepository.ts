@@ -1,29 +1,19 @@
-import { Effect, Layer, Context, pipe, Option } from 'effect'
-import * as S from 'effect/Schema'
-import { Collection, Filter } from 'mongodb'
+import { Effect, Context, Option } from 'effect'
 import { 
     AccountSchema, 
-    AccountStatus,
     MaFileSchema,
     type Account,
     type MaFile,
     type AccountStatus as AccountStatusType
-} from '@packages/isomorphic/src/slices/accounts.js'
-import { 
-    Database,
-    EntityNotFoundError,
-    RepositoryError,
-    validateEntity,
-    saveEvent,
-    createEvent,
-    type BaseRepository
-} from './base/BaseRepository.js'
-import { MongoDatabase } from '../MongoDatabase.js'
-import type { EventRecord } from '../types.js'
+} from '@packages/isomorphic/src/slices/accounts'
+import { Database, validateEntity } from './base/BaseRepository'
+import { MongoRepositoryBase, createMongoRepository } from './base/MongoRepositoryFactory'
+import { accountEventFactory } from './base/EventFactory'
+import type { MongoDatabase } from '../MongoDatabase'
 
 // ============= AccountRepository Interface =============
 
-export interface AccountRepository extends BaseRepository<Account, string> {
+export interface AccountRepository extends MongoRepositoryBase<Account, 'account'> {
     // Find operations
     readonly findBySteamId64: (steamId64: string) => Effect.Effect<Option.Option<Account>>
     readonly findByStatus: (status: AccountStatusType) => Effect.Effect<readonly Account[]>
@@ -60,209 +50,28 @@ export class AccountRepository extends Context.Tag("AccountRepository")<
 
 // ============= MongoDB Implementation =============
 
-class MongoAccountRepositoryImpl implements AccountRepository {
-    private collection: Collection<Account>
+class MongoAccountRepositoryImpl extends MongoRepositoryBase<Account, 'account'> implements AccountRepository {
     private maFiles: Map<string, MaFile> = new Map() // In production, store in secure collection
     
-    constructor(private readonly db: MongoDatabase) {
-        if (!db.accounts) {
-            throw new Error('Accounts collection not initialized')
-        }
-        this.collection = db.accounts
+    constructor(db: MongoDatabase) {
+        super(db, {
+            collectionName: 'accounts',
+            entityType: 'account',
+            idField: 'accountId',
+            schema: AccountSchema,
+            eventFactory: accountEventFactory
+        })
     }
     
-    // ============= Base Repository Methods =============
-    
-    findById = (id: string): Effect.Effect<Option.Option<Account>> =>
-        Effect.gen(function* () {
-            try {
-                const account = yield* Effect.tryPromise({
-                    try: () => this.collection.findOne({ accountId: id }),
-                    catch: error => new RepositoryError({
-                        message: `Failed to find account by ID: ${id}`,
-                        cause: error
-                    })
-                })
-                
-                if (!account) return Option.none()
-                
-                const validated = yield* validateEntity(AccountSchema)(account)
-                return Option.some(validated)
-            } catch (error) {
-                return Option.none()
-            }
-        })
-    
-    findAll = (options?: { limit?: number; offset?: number }): Effect.Effect<readonly Account[]> =>
-        Effect.gen(function* () {
-            const limit = options?.limit || 1000
-            const skip = options?.offset || 0
-            
-            const accounts = yield* Effect.tryPromise({
-                try: () => this.collection
-                    .find({})
-                    .skip(skip)
-                    .limit(limit)
-                    .toArray(),
-                catch: error => new RepositoryError({
-                    message: 'Failed to find all accounts',
-                    cause: error
-                })
-            })
-            
-            return accounts
-        })
-    
-    findMany = (ids: readonly string[]): Effect.Effect<readonly Account[]> =>
-        Effect.gen(function* () {
-            const accounts = yield* Effect.tryPromise({
-                try: () => this.collection
-                    .find({ accountId: { $in: ids as string[] } })
-                    .toArray(),
-                catch: error => new RepositoryError({
-                    message: 'Failed to find multiple accounts',
-                    cause: error
-                })
-            })
-            
-            return accounts
-        })
-    
-    save = (account: Account): Effect.Effect<Account> =>
-        Effect.gen(function* () {
-            // Validate account
-            const validated = yield* validateEntity(AccountSchema)(account)
-            
-            // Save to MongoDB
-            yield* Effect.tryPromise({
-                try: () => this.collection.replaceOne(
-                    { accountId: validated.accountId },
-                    validated,
-                    { upsert: true }
-                ),
-                catch: error => new RepositoryError({
-                    message: `Failed to save account: ${validated.accountId}`,
-                    cause: error
-                })
-            })
-            
-            // Emit event
-            const event = createEvent(
-                'accounts/saved',
-                'account',
-                validated.accountId,
-                validated
-            )
-            
-            yield* saveEvent(this.db, event)
-            return validated
-        })
-    
-    saveMany = (accounts: readonly Account[]): Effect.Effect<readonly Account[]> =>
-        Effect.all(accounts.map(account => this.save(account)))
-    
-    update = (id: string, updates: Partial<Account>): Effect.Effect<Account> =>
-        Effect.gen(function* () {
-            const result = yield* Effect.tryPromise({
-                try: () => this.collection.findOneAndUpdate(
-                    { accountId: id },
-                    { $set: updates },
-                    { returnDocument: 'after' }
-                ),
-                catch: error => new RepositoryError({
-                    message: `Failed to update account: ${id}`,
-                    cause: error
-                })
-            })
-            
-            if (!result) {
-                yield* Effect.fail(new EntityNotFoundError({
-                    entityType: 'account',
-                    id
-                }))
-            }
-            
-            return result as Account
-        })
-    
-    delete = (id: string): Effect.Effect<void> =>
-        Effect.gen(function* () {
-            yield* Effect.tryPromise({
-                try: () => this.collection.deleteOne({ accountId: id }),
-                catch: error => new RepositoryError({
-                    message: `Failed to delete account: ${id}`,
-                    cause: error
-                })
-            })
-            
-            // Emit deletion event
-            const event = createEvent(
-                'accounts/deleted',
-                'account',
-                id,
-                { accountId: id }
-            )
-            
-            yield* saveEvent(this.db, event)
-        })
-    
-    deleteMany = (ids: readonly string[]): Effect.Effect<void> =>
-        Effect.all(ids.map(id => this.delete(id)), { discard: true })
-    
-    exists = (id: string): Effect.Effect<boolean> =>
-        Effect.gen(function* () {
-            const count = yield* Effect.tryPromise({
-                try: () => this.collection.countDocuments({ accountId: id }),
-                catch: error => new RepositoryError({
-                    message: `Failed to check account existence: ${id}`,
-                    cause: error
-                })
-            })
-            
-            return count > 0
-        })
-    
-    count = (): Effect.Effect<number> =>
-        Effect.tryPromise({
-            try: () => this.collection.countDocuments({}),
-            catch: error => new RepositoryError({
-                message: 'Failed to count accounts',
-                cause: error
-            })
-        })
-    
-    // ============= Account-Specific Methods =============
-    
+    // Account-specific find operations
     findBySteamId64 = (steamId64: string): Effect.Effect<Option.Option<Account>> =>
-        Effect.gen(function* () {
-            const account = yield* Effect.tryPromise({
-                try: () => this.collection.findOne({ steamId64 }),
-                catch: error => new RepositoryError({
-                    message: `Failed to find account by Steam ID: ${steamId64}`,
-                    cause: error
-                })
-            })
-            
-            return account ? Option.some(account) : Option.none()
-        })
+        this.findOneByField('steamId64', steamId64)
     
     findByStatus = (status: AccountStatusType): Effect.Effect<readonly Account[]> =>
-        Effect.tryPromise({
-            try: () => this.collection.find({ status }).toArray(),
-            catch: error => new RepositoryError({
-                message: `Failed to find accounts by status: ${status}`,
-                cause: error
-            })
-        })
+        this.findByField('status', status)
     
     findByProxy = (proxyUrl: string): Effect.Effect<readonly Account[]> =>
-        Effect.tryPromise({
-            try: () => this.collection.find({ proxyUrl }).toArray(),
-            catch: error => new RepositoryError({
-                message: `Failed to find accounts by proxy: ${proxyUrl}`,
-                cause: error
-            })
-        })
+        this.findByField('proxyUrl', proxyUrl)
     
     findConnected = (): Effect.Effect<readonly Account[]> =>
         this.findByStatus('connected')
@@ -281,6 +90,7 @@ class MongoAccountRepositoryImpl implements AccountRepository {
             })
         })
     
+    // Update operations
     updateStatus = (
         accountId: string, 
         status: AccountStatusType, 
@@ -294,7 +104,6 @@ class MongoAccountRepositoryImpl implements AccountRepository {
             
             const account = yield* this.update(accountId, updates)
             
-            // Emit status change event
             const eventType = status === 'connected' 
                 ? 'accounts/connected'
                 : status === 'disconnected'
@@ -303,9 +112,9 @@ class MongoAccountRepositoryImpl implements AccountRepository {
                 ? 'accounts/authenticationFailed'
                 : 'accounts/statusUpdated'
             
-            const event = createEvent(
+            yield* accountEventFactory.createAndSave(
+                this.db,
                 eventType,
-                'account',
                 accountId,
                 {
                     accountId,
@@ -315,7 +124,6 @@ class MongoAccountRepositoryImpl implements AccountRepository {
                 'event'
             )
             
-            yield* saveEvent(this.db, event)
             return account
         })
     
@@ -328,18 +136,15 @@ class MongoAccountRepositoryImpl implements AccountRepository {
     setLabel = (accountId: string, label: string): Effect.Effect<Account> =>
         this.update(accountId, { label })
     
+    // MaFile operations
     saveMaFile = (accountId: string, maFile: MaFile): Effect.Effect<void> =>
         Effect.gen(function* () {
-            // Validate MaFile
             const validated = yield* validateEntity(MaFileSchema)(maFile)
-            
-            // Store in memory (in production, use secure storage)
             this.maFiles.set(accountId, validated)
             
-            // Emit event
-            const event = createEvent(
+            yield* accountEventFactory.createAndSave(
+                this.db,
                 'accounts/maFileStored',
-                'account',
                 accountId,
                 {
                     accountId,
@@ -347,8 +152,6 @@ class MongoAccountRepositoryImpl implements AccountRepository {
                 },
                 'event'
             )
-            
-            yield* saveEvent(this.db, event)
         })
     
     getMaFile = (accountId: string): Effect.Effect<Option.Option<MaFile>> =>
@@ -356,36 +159,23 @@ class MongoAccountRepositoryImpl implements AccountRepository {
             const maFile = this.maFiles.get(accountId)
             if (!maFile) return Option.none()
             
-            const validated = yield* pipe(
-                validateEntity(MaFileSchema)(maFile),
-                Effect.option
-            )
+            const validated = yield* Effect.option(validateEntity(MaFileSchema)(maFile))
             return validated
         })
     
+    // Bulk operations
     connectAccounts = (accountIds: readonly string[]): Effect.Effect<readonly Account[]> =>
-        Effect.all(
-            accountIds.map(id => this.updateStatus(id, 'connecting', Date.now()))
-        )
+        Effect.all(accountIds.map(id => this.updateStatus(id, 'connecting', Date.now())))
     
     disconnectAccounts = (accountIds: readonly string[]): Effect.Effect<readonly Account[]> =>
-        Effect.all(
-            accountIds.map(id => this.updateStatus(id, 'disconnected', Date.now()))
-        )
+        Effect.all(accountIds.map(id => this.updateStatus(id, 'disconnected', Date.now())))
     
+    // Statistics
     getStatusCounts = (): Effect.Effect<Record<AccountStatusType, number>> =>
         Effect.gen(function* () {
-            const pipeline = [
+            const results = yield* this.aggregate<{ _id: string; count: number }>([
                 { $group: { _id: '$status', count: { $sum: 1 } } }
-            ]
-            
-            const results = yield* Effect.tryPromise({
-                try: () => this.collection.aggregate(pipeline).toArray(),
-                catch: error => new RepositoryError({
-                    message: 'Failed to get status counts',
-                    cause: error
-                })
-            })
+            ])
             
             const counts: Record<string, number> = {
                 connecting: 0,
@@ -411,12 +201,13 @@ class MongoAccountRepositoryImpl implements AccountRepository {
         })
 }
 
+// Import RepositoryError from BaseRepository for local use
+import { RepositoryError } from './base/BaseRepository'
+import { createRepositoryLayer } from './base/LayerUtils'
+
 // ============= Layer =============
 
-export const MongoAccountRepositoryLive = Layer.effect(
+export const MongoAccountRepositoryLive = createRepositoryLayer(
     AccountRepository,
-    Effect.gen(function* () {
-        const db = yield* Database
-        return new MongoAccountRepositoryImpl(db)
-    })
+    db => new MongoAccountRepositoryImpl(db)
 )

@@ -17,7 +17,8 @@ import * as Effect from 'effect/Effect'
 import { 
   createRepository, 
   EnhancedSheetsLayer, 
-  validateAndConfigureSheet 
+  validateAndConfigureSheet,
+  SheetsService
 } from '../src/index.js'
 
 // Example schemas
@@ -41,13 +42,13 @@ const TaskSchema = S.Struct({
 // Configuration - Update these values for your setup
 const DEMO_CONFIG = {
   // Replace with your Google Spreadsheet ID (from the URL)
-  spreadsheetId: '1nJm6q238nL6xVUIsrYWcSZ7EtFizV3GBO_xy1kXlR28',
+  spreadsheetId: process.env.GOOGLE_SHEETS_SPREADSHEET_ID,
   
   // Replace with your service account credentials
   credentials: {
-    client_email: 'steam-ai-multichat@steam-ai-multichats.iam.gserviceaccount.com',
+    client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
     // In real use, load from secure file or environment variable
-    private_key: process.env.GOOGLE_PRIVATE_KEY || '-----BEGIN PRIVATE KEY-----\\nMOCK_KEY\\n-----END PRIVATE KEY-----\\n'
+    private_key: process.env.GOOGLE_SERVICE_PRIVATE_KEY
   }
 }
 
@@ -121,7 +122,7 @@ const enhancedDemo = Effect.gen(function* () {
 const manualValidationDemo = Effect.gen(function* () {
   console.log('\\n=== Demo 3: Manual Schema Validation ===')
   
-  const sheetsService = yield* Effect.service()
+  const sheetsService = yield* SheetsService
   const doc = sheetsService.doc
   
   console.log('Manually validating ProductCatalog schema...')

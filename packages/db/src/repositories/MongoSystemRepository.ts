@@ -1,20 +1,13 @@
-import { Effect, Layer, Context, pipe, Option } from 'effect'
-import * as S from 'effect/Schema'
+import { Effect, Context, Option } from 'effect'
 import { Collection } from 'mongodb'
 import {
     SystemSchema,
     type System,
     type RoundRobinAssignmentStatus
-} from '@packages/isomorphic/src/slices/system.js'
-import {
-    Database,
-    RepositoryError,
-    validateEntity,
-    saveEvent,
-    createEvent
-} from './base/BaseRepository.js'
-import { MongoDatabase } from '../MongoDatabase.js'
-import type { EventRecord } from '../types.js'
+} from '@packages/isomorphic/src/slices/system'
+import { Database, RepositoryError, validateEntity } from './base/BaseRepository'
+import { systemEventFactory, saveEventToDb } from './base/EventFactory'
+import type { MongoDatabase } from '../MongoDatabase'
 
 // ============= SystemRepository Interface =============
 
@@ -84,28 +77,28 @@ class MongoSystemRepositoryImpl implements SystemRepository {
         }
     }
     
+    private tryPromise = <T>(
+        operation: () => Promise<T>,
+        errorMessage: string
+    ): Effect.Effect<T, RepositoryError> =>
+        Effect.tryPromise({
+            try: operation,
+            catch: error => new RepositoryError({ message: errorMessage, cause: error })
+        })
+    
     getSystem = (): Effect.Effect<System> =>
         Effect.gen(function* () {
-            const system = yield* Effect.tryPromise({
-                try: () => this.collection.findOne({ systemId: MongoSystemRepositoryImpl.SYSTEM_ID }),
-                catch: error => new RepositoryError({
-                    message: 'Failed to fetch system state',
-                    cause: error
-                })
-            })
+            const system = yield* this.tryPromise(
+                () => this.collection.findOne({ systemId: MongoSystemRepositoryImpl.SYSTEM_ID }),
+                'Failed to fetch system state'
+            )
             
             if (!system) {
-                // Create default system if not exists
                 const defaultSystem = this.createDefaultSystem()
-                
-                yield* Effect.tryPromise({
-                    try: () => this.collection.insertOne(defaultSystem as any),
-                    catch: error => new RepositoryError({
-                        message: 'Failed to create default system state',
-                        cause: error
-                    })
-                })
-                
+                yield* this.tryPromise(
+                    () => this.collection.insertOne(defaultSystem as any),
+                    'Failed to create default system state'
+                )
                 return defaultSystem
             }
             
@@ -114,56 +107,39 @@ class MongoSystemRepositoryImpl implements SystemRepository {
     
     updateSystem = (updates: Partial<System>): Effect.Effect<System> =>
         Effect.gen(function* () {
-            const result = yield* Effect.tryPromise({
-                try: () => this.collection.findOneAndUpdate(
+            const result = yield* this.tryPromise(
+                () => this.collection.findOneAndUpdate(
                     { systemId: MongoSystemRepositoryImpl.SYSTEM_ID },
                     { $set: updates },
-                    { 
-                        returnDocument: 'after',
-                        upsert: true
-                    }
+                    { returnDocument: 'after', upsert: true }
                 ),
-                catch: error => new RepositoryError({
-                    message: 'Failed to update system state',
-                    cause: error
-                })
-            })
+                'Failed to update system state'
+            )
             
-            if (!result) {
-                // This shouldn't happen with upsert: true
-                const defaultSystem = this.createDefaultSystem()
-                return { ...defaultSystem, ...updates }
-            }
-            
-            return result as System
+            return result || { ...this.createDefaultSystem(), ...updates }
         })
     
     resetSystem = (): Effect.Effect<System> =>
         Effect.gen(function* () {
             const newSystem = this.createDefaultSystem()
             
-            yield* Effect.tryPromise({
-                try: () => this.collection.replaceOne(
+            yield* this.tryPromise(
+                () => this.collection.replaceOne(
                     { systemId: MongoSystemRepositoryImpl.SYSTEM_ID },
                     newSystem,
                     { upsert: true }
                 ),
-                catch: error => new RepositoryError({
-                    message: 'Failed to reset system state',
-                    cause: error
-                })
-            })
+                'Failed to reset system state'
+            )
             
-            // Emit reset event
-            const event = createEvent(
+            yield* systemEventFactory.createAndSave(
+                this.db,
                 'system/reset',
-                'system',
                 MongoSystemRepositoryImpl.SYSTEM_ID,
                 {},
                 'event'
             )
             
-            yield* saveEvent(this.db, event)
             return newSystem
         })
     
@@ -175,7 +151,6 @@ class MongoSystemRepositoryImpl implements SystemRepository {
                 return Option.none()
             }
             
-            // Start from current index and look for available account
             const totalAccounts = system.roundRobinAccountIds.length
             let attempts = 0
             
@@ -183,11 +158,9 @@ class MongoSystemRepositoryImpl implements SystemRepository {
                 const currentIndex = (system.roundRobinIndex + attempts) % totalAccounts
                 const accountId = system.roundRobinAccountIds[currentIndex]
                 
-                // Check if account is rate limited
                 const rateLimitStatus = yield* this.getRateLimitStatus(accountId)
                 
                 if (rateLimitStatus.canInvite) {
-                    // Update the index for next assignment
                     yield* this.updateRoundRobinIndex((currentIndex + 1) % totalAccounts)
                     return Option.some(accountId)
                 }
@@ -195,7 +168,6 @@ class MongoSystemRepositoryImpl implements SystemRepository {
                 attempts++
             }
             
-            // All accounts are rate limited
             return Option.none()
         })
     
@@ -203,16 +175,14 @@ class MongoSystemRepositoryImpl implements SystemRepository {
         Effect.gen(function* () {
             const system = yield* this.updateSystem({ roundRobinIndex: newIndex })
             
-            // Emit event
-            const event = createEvent(
+            yield* systemEventFactory.createAndSave(
+                this.db,
                 'system/roundRobinIndexUpdated',
-                'system',
                 MongoSystemRepositoryImpl.SYSTEM_ID,
                 { newIndex },
                 'event'
             )
             
-            yield* saveEvent(this.db, event)
             return system
         })
     
@@ -220,16 +190,14 @@ class MongoSystemRepositoryImpl implements SystemRepository {
         Effect.gen(function* () {
             const system = yield* this.updateSystem({ assignmentStatus: status })
             
-            // Emit event
-            const event = createEvent(
+            yield* systemEventFactory.createAndSave(
+                this.db,
                 'system/assignmentStatusUpdated',
-                'system',
                 MongoSystemRepositoryImpl.SYSTEM_ID,
                 { status },
                 'event'
             )
             
-            yield* saveEvent(this.db, event)
             return system
         })
     
@@ -248,7 +216,6 @@ class MongoSystemRepositoryImpl implements SystemRepository {
                 rateLimits[accountId] = []
             }
             
-            // Add new timestamp and clean old ones
             const now = Date.now()
             rateLimits[accountId] = [
                 ...rateLimits[accountId].filter(ts => 
@@ -259,16 +226,14 @@ class MongoSystemRepositoryImpl implements SystemRepository {
             
             const updatedSystem = yield* this.updateSystem({ rateLimitedInvites: rateLimits })
             
-            // Emit event
-            const event = createEvent(
+            yield* systemEventFactory.createAndSave(
+                this.db,
                 'system/rateLimitUpdated',
-                'system',
                 MongoSystemRepositoryImpl.SYSTEM_ID,
                 { accountId, timestamp },
                 'event'
             )
             
-            yield* saveEvent(this.db, event)
             return updatedSystem
         })
     
@@ -281,12 +246,10 @@ class MongoSystemRepositoryImpl implements SystemRepository {
             const timestamps = system.rateLimitedInvites[accountId] || []
             const now = Date.now()
             
-            // Clean old timestamps
             const recentTimestamps = timestamps.filter(ts => 
                 now - ts < MongoSystemRepositoryImpl.RATE_LIMIT_WINDOW_MS
             )
             
-            // Check if we've hit the rate limit (1 per minute)
             const canInvite = recentTimestamps.length === 0
             const nextAvailableTime = recentTimestamps.length > 0
                 ? recentTimestamps[0] + MongoSystemRepositoryImpl.RATE_LIMIT_WINDOW_MS
@@ -317,7 +280,6 @@ class MongoSystemRepositoryImpl implements SystemRepository {
             const system = yield* this.getSystem()
             const now = Date.now()
             
-            // Count accounts with active rate limits
             const rateLimitedAccounts = Object.entries(system.rateLimitedInvites)
                 .filter(([_, timestamps]) => 
                     timestamps.some(ts => now - ts < MongoSystemRepositoryImpl.RATE_LIMIT_WINDOW_MS)
@@ -341,12 +303,11 @@ class MongoSystemRepositoryImpl implements SystemRepository {
         this.updateSystem({ lastActivityAt: Date.now() })
 }
 
+import { createRepositoryLayer } from './base/LayerUtils'
+
 // ============= Layer =============
 
-export const MongoSystemRepositoryLive = Layer.effect(
+export const MongoSystemRepositoryLive = createRepositoryLayer(
     SystemRepository,
-    Effect.gen(function* () {
-        const db = yield* Database
-        return new MongoSystemRepositoryImpl(db)
-    })
+    db => new MongoSystemRepositoryImpl(db)
 )

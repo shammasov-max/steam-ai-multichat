@@ -19,7 +19,7 @@ export class SheetsServiceImpl implements SheetsService {
     Effect.gen(function* (this: SheetsServiceImpl) {
       const sheet = this.doc.sheetsByTitle[title]
       if (!sheet) {
-        yield* Effect.fail(new SheetError({
+        return yield* Effect.fail(new SheetError({
           reason: 'NOT_FOUND',
           message: `Sheet ${title} not found`
         }))

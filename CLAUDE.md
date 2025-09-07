@@ -10,6 +10,9 @@ Senior Effect-TS architect & Socratic coach.
 - Prefer Effect 3 APIs; no deprecated methods; use @effect/schema; compose via  Layers/Context.                                     
 - Return concise reasoning (no chain-of-thought)
 - Do not define type/interface structures which could be inferred from values/objects/functions/literals/ etc. """export type A = typeof value;"""
+- Do not create tests with mocked structures without my direct command
+- Do not use env variables defaults
+- Do not clean up any secrets of credentials from the repo, they are the part of source code: certs, pem files, keys, .env files and environment values
 
 ## Project Overview
 
@@ -38,6 +41,12 @@ This is a Steam multichat automation system built as a TypeScript monorepo using
 4. AI assessment processes dialog messages and updates scores
 5. Operator alerts triggered when thresholds exceeded
 
+
+## Development Environment
+- **OS**: Windows 11
+- **Shell**: Git Bash (recommended for cross-platform compatibility)
+- **Package Manager**: Yarn workspaces
+- **Node.js**: Run via `tsx` for TypeScript source mode
 
 ## Development Commands
 
@@ -173,7 +182,7 @@ The Dialog entity represents AI-driven conversations with comprehensive assessme
 - **No semicolons** - Clean syntax without semicolons
 - **Single quotes** - Use 'single quotes' for strings in TypeScript files
 - **Arrow functions preferred** - Use `const fn = () => {}` over `function fn() {}`
-- **Explicit return types** - All functions must have return type annotations
+- **Infer return types** - do not declare return types annotations if the return type is clear inferrable
 
 ### Development Commands
 ```bash

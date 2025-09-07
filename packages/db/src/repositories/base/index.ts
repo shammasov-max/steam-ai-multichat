@@ -1,23 +1,49 @@
+// Base interfaces and types
 export {
-    // Base interfaces
     type BaseRepository,
     type QueryOptions,
     type FilterCriteria,
-    
-    // Context tags
     Database,
-    
-    // Errors
     RepositoryError,
     EntityNotFoundError,
     ValidationError,
     ConcurrencyError,
-    
-    // Helper functions
     validateEntity,
     validateMany,
     saveEvent,
-    saveEvents,
     getEventsForAggregate,
-    createEvent
-} from './BaseRepository.js'
+    getLatestSnapshot,
+    saveSnapshot
+} from './BaseRepository'
+
+// MongoDB Repository Factory
+export {
+    type MongoRepositoryConfig,
+    type FindOperations,
+    MongoRepositoryBase,
+    createMongoRepository
+} from './MongoRepositoryFactory'
+
+// Event Factory
+export {
+    type EntityEventTypes,
+    type AllEventTypes,
+    type EventFactoryConfig,
+    TypedEventFactory,
+    saveEventToDb,
+    accountEventFactory,
+    dialogEventFactory,
+    systemEventFactory
+} from './EventFactory'
+
+// Layer utilities
+export {
+    type RepositoryConstructor,
+    type LayerFactory,
+    createRepositoryLayer,
+    combineRepositoryLayers,
+    createCompleteRepositoryLayer,
+    createScopedRepositoryLayer,
+    createCachedRepositoryLayer,
+    createRetryableRepositoryLayer
+} from './LayerUtils'

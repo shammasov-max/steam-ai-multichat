@@ -1,6 +1,6 @@
 import React from 'react'
 import { Grid, List } from 'lucide-react'
-import { Button } from '../ui/button'
+import { Button } from './button'
 import { cn } from '../../lib/utils'
 
 export type ViewType = 'list' | 'table'

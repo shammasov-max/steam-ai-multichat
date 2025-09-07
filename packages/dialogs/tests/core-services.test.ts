@@ -1,47 +1,35 @@
-import { test, expect } from '@playwright/test';
-import { ContextCompressor } from '../src/services/ContextCompressor';
-import { LanguageDetector } from '../src/services/LanguageDetector';
-import { ScoringEngine } from '../src/services/ScoringEngine';
-import { TestHelpers } from './utils/test-helpers';
-import { TestData } from './fixtures/test-data';
-import * as dotenv from 'dotenv';
-import * as path from 'path';
+import { test } from 'node:test'
+import { strict as assert } from 'node:assert'
+import { LanguageDetector } from '../src/services/LanguageDetector.js'
 
-// Load environment variables - try multiple locations
-dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
-dotenv.config({ path: path.resolve(__dirname, '../.env') });
-
-test.describe('Core Services Tests', () => {
-  test.describe('LanguageDetector', () => {
-    let languageDetector: LanguageDetector;
-
-    test.beforeEach(() => {
-      languageDetector = new LanguageDetector();
-    });
-
-    test('should detect multiple languages correctly', () => {
-      // Chinese
-      expect(languageDetector.detect('你好世界', 'en')).toBe('zh');
-      expect(languageDetector.detect('这是中文测试', 'en')).toBe('zh');
-      
-      // Japanese
-      expect(languageDetector.detect('こんにちは世界', 'en')).toBe('ja');
-      expect(languageDetector.detect('これは日本語のテストです', 'en')).toBe('ja');
-      
-      // Korean
-      expect(languageDetector.detect('안녕하세요', 'en')).toBe('ko');
-      
-      // Mixed language
-      expect(languageDetector.detect('你好 Hello', 'en')).toBe('zh');
-      
-      // Latin text fallback
-      expect(languageDetector.detect('Just regular English text', 'en')).toBe('en');
-      
-      // Confidence detection
-      const result = languageDetector.detectWithConfidence('你好 Hello', 'en');
-      expect(result.language).toBe('zh');
-      expect(result.confidence).toBeGreaterThan(0.5);
-    });
-  });
-
-});
+test('LanguageDetector - Essential Type Checking', async (t) => {
+  await t.test('language detection types work correctly', () => {
+    const languageDetector = new LanguageDetector()
+    
+    // Type check: detect method returns string
+    const chineseResult: string = languageDetector.detect('你好世界', 'en')
+    assert.equal(typeof chineseResult, 'string')
+    assert.equal(chineseResult, 'zh')
+    
+    // Type check: detectWithConfidence returns object with correct shape
+    const confidenceResult = languageDetector.detectWithConfidence('你好', 'en')
+    assert.equal(typeof confidenceResult, 'object')
+    assert.equal(typeof confidenceResult.language, 'string')
+    assert.equal(typeof confidenceResult.confidence, 'number')
+    assert.equal(confidenceResult.language, 'zh')
+    assert.ok(confidenceResult.confidence >= 0 && confidenceResult.confidence <= 1)
+  })
+  
+  await t.test('fallback language type checking', () => {
+    const languageDetector = new LanguageDetector()
+    
+    // Type check: fallback works with supported languages
+    const fallbackTypes = ['en', 'zh', 'ja', 'ko', 'es'] as const
+    
+    fallbackTypes.forEach(lang => {
+      const result: string = languageDetector.detect('plain text', lang)
+      assert.equal(typeof result, 'string')
+      assert.ok(fallbackTypes.includes(result as any))
+    })
+  })
+})

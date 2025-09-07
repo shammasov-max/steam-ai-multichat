@@ -1,16 +1,15 @@
-import type { GoogleSpreadsheet } from 'google-spreadsheet'
 import * as S from '@effect/schema/Schema'
 import * as Effect from 'effect/Effect'
 import * as Ref from 'effect/Ref'
 import * as HashMap from 'effect/HashMap'
-import * as Option from 'effect/Option'
 import * as ReadonlyArray from 'effect/Array'
+import * as Order from 'effect/Order'
 import { pipe } from 'effect/Function'
 import { makeRowId, type RowId } from '../types/brand.js'
 import { Metadata, type WithMeta } from '../types/metadata.js'
 import type { Query } from '../types/query.js'
-import { SheetError } from '../errors/SheetError.js'
 import { SheetsService } from '../services/SheetsService.js'
+import { SheetError } from '../errors/SheetError.js'
 import { MemoryCache } from '../cache/MemoryCache.js'
 import { matchQuery } from '../utils/query.js'
 import { validateAndConfigureSheet } from '../utils/schema-validator.js'
@@ -86,7 +85,7 @@ export const createRepository = <S extends S.Schema.Any>(
       )
     )
     
-    const cache = new MemoryCache<T>(cacheRef, rows, sheetTitle, doc)
+    const cache = new MemoryCache<T>(cacheRef, sheetTitle, doc)
     
     // Create repository implementation
     const repo: Repository<T> = {
@@ -99,9 +98,19 @@ export const createRepository = <S extends S.Schema.Any>(
             _updatedAt: new Date().toISOString(),
           }
           
-          yield* S.validate(withMetaSchema)(withMeta)
+          yield* S.validate(withMetaSchema)(withMeta).pipe(
+            Effect.mapError(error => new SheetError({ 
+              reason: 'VALIDATION', 
+              message: `Validation failed: ${error.message}` 
+            }))
+          )
           return yield* cache.set(withMeta._id, withMeta)
-        }),
+        }).pipe(
+          Effect.mapError(error => 
+            error instanceof SheetError ? error : 
+            new SheetError({ reason: 'NETWORK', message: `Create failed: ${error.message}` })
+          )
+        ),
 
       createMany: (data: T[]) =>
         Effect.gen(function* () {
@@ -113,10 +122,20 @@ export const createRepository = <S extends S.Schema.Any>(
           }))
           
           yield* Effect.all(
-            withMeta.map(item => S.validate(withMetaSchema)(item))
+            withMeta.map(item => S.validate(withMetaSchema)(item).pipe(
+              Effect.mapError(error => new SheetError({ 
+                reason: 'VALIDATION', 
+                message: `Validation failed: ${error.message}` 
+              }))
+            ))
           )
           return yield* cache.bulkSet(withMeta)
-        }),
+        }).pipe(
+          Effect.mapError(error => 
+            error instanceof SheetError ? error : 
+            new SheetError({ reason: 'NETWORK', message: `CreateMany failed: ${error.message}` })
+          )
+        ),
 
       findOne: (query: Query<T>) =>
         pipe(
@@ -132,12 +151,14 @@ export const createRepository = <S extends S.Schema.Any>(
           if (query.$orderBy) {
             const key = query.$orderBy as keyof WithMeta<T>
             const order = query.$order || 'asc'
-            results = ReadonlyArray.sort(results, (a, b) => {
+            const orderBy = Order.make<WithMeta<T>>((a, b) => {
               const aVal = a[key]
               const bVal = b[key]
               const cmp = aVal > bVal ? 1 : aVal < bVal ? -1 : 0
-              return order === 'asc' ? cmp : -cmp
+              const result = order === 'asc' ? cmp : -cmp
+              return result as -1 | 0 | 1
             })
+            results = ReadonlyArray.sort(results, orderBy)
           }
           
           // Apply pagination
@@ -163,13 +184,23 @@ export const createRepository = <S extends S.Schema.Any>(
               _updatedAt: new Date().toISOString(),
             }
             
-            yield* S.validate(withMetaSchema)(updated)
+            yield* S.validate(withMetaSchema)(updated).pipe(
+              Effect.mapError(error => new SheetError({ 
+                reason: 'VALIDATION', 
+                message: `Update validation failed: ${error.message}` 
+              }))
+            )
             yield* cache.set(item._id, updated)
             count++
           }
           
           return count
-        }),
+        }).pipe(
+          Effect.mapError(error => 
+            error instanceof SheetError ? error : 
+            new SheetError({ reason: 'NETWORK', message: `Update failed: ${error.message}` })
+          )
+        ),
 
       delete: (query: Query<T>) =>
         Effect.gen(function* () {
@@ -191,11 +222,27 @@ export const createRepository = <S extends S.Schema.Any>(
           }
           
           return count
-        }),
+        }).pipe(
+          Effect.mapError(error => 
+            error instanceof SheetError ? error : 
+            new SheetError({ reason: 'NETWORK', message: `Delete failed: ${error.message}` })
+          )
+        ),
 
       purgeDeleted: () =>
         Effect.gen(function* () {
-          const sheet = yield* Effect.try(() => doc.sheetsByTitle[sheetTitle])
+          const sheet = yield* Effect.try(() => {
+            const foundSheet = doc.sheetsByTitle[sheetTitle]
+            if (!foundSheet) {
+              throw new Error(`Sheet '${sheetTitle}' not found`)
+            }
+            return foundSheet
+          }).pipe(
+            Effect.mapError(error => new SheetError({ 
+              reason: 'NOT_FOUND', 
+              message: `Failed to access sheet: ${error.message}` 
+            }))
+          )
           const rows = yield* Effect.tryPromise(() => sheet.getRows())
           const deleted = yield* cache.query(item => item._deleted === true)
           
@@ -205,7 +252,12 @@ export const createRepository = <S extends S.Schema.Any>(
             .sort((a, b) => b.rowNumber - a.rowNumber)
           
           for (const row of toDelete) {
-            yield* Effect.tryPromise(() => row.delete())
+            yield* Effect.tryPromise(() => row.delete()).pipe(
+              Effect.mapError(error => new SheetError({ 
+                reason: 'DELETE_FAILED', 
+                message: `Failed to delete row: ${error.message}` 
+              }))
+            )
             yield* cache.remove(row.get('_id') as RowId)
           }
           
@@ -248,7 +300,12 @@ export const createRepository = <S extends S.Schema.Any>(
               freshData.map(item => [item._id as RowId, item])
             )
           )
-        })
+        }).pipe(
+          Effect.mapError(error => 
+            error instanceof SheetError ? error : 
+            new SheetError({ reason: 'NETWORK', message: `Sync failed: ${error.message}` })
+          )
+        )
     }
     
     return repo

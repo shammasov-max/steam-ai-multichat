@@ -15,9 +15,9 @@ export async function setupTestEnvironment(): Promise<void> {
 
     // Set up environment variables for tests
     process.env.NODE_ENV = 'test'
-    process.env.DATABASE_URL = process.env.DATABASE_URL || 'postgresql://test:test@localhost:54320/steambot_test'
-    process.env.API_URL = process.env.API_URL || 'http://localhost:3000'
-    process.env.BASE_URL = process.env.BASE_URL || 'http://localhost:3000'
+    process.env.DATABASE_URL = process.env.DATABASE_URL
+    process.env.API_URL = process.env.API_URL
+    process.env.BASE_URL = process.env.BASE_URL
     process.env.LOG_LEVEL = 'error' // Reduce log noise in tests
     process.env.DISABLE_RATE_LIMITING = 'true' // Speed up tests
 

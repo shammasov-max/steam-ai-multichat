@@ -1,7 +1,7 @@
 import { expect, APIRequestContext } from '@playwright/test'
 
 // Base URL for API tests
-export const API_BASE_URL = process.env.BASE_URL || 'http://localhost:3000'
+export const API_BASE_URL = process.env.BASE_URL
 
 /**
  * Helper function to make API requests with proper error handling

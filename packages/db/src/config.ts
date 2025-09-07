@@ -8,69 +8,69 @@ dotenv.config()
 // ============= Configuration Schema =============
 
 export const MongoConfigSchema = S.Struct({
-    connectionString: S.String.pipe(
+    connectionString: S.optional(S.String.pipe(
         S.nonEmptyString(),
         S.annotations({ 
             title: "MongoDB Connection String",
             description: "MongoDB connection URI including credentials"
         })
-    ),
-    database: S.String.pipe(
+    )),
+    database: S.optional(S.String.pipe(
         S.nonEmptyString(),
         S.annotations({ 
             title: "Database Name",
             description: "Name of the MongoDB database"
         })
-    ),
-    eventsCollection: S.String.pipe(
+    )),
+    eventsCollection: S.optional(S.String.pipe(
         S.nonEmptyString(),
         S.annotations({ 
             title: "Events Collection",
             description: "Name of the collection for storing events"
         })
-    ),
-    snapshotsCollection: S.String.pipe(
+    )),
+    snapshotsCollection: S.optional(S.String.pipe(
         S.nonEmptyString(),
         S.annotations({ 
             title: "Snapshots Collection",
             description: "Name of the collection for storing snapshots"
         })
-    ),
-    accountsCollection: S.String.pipe(
+    )),
+    accountsCollection: S.optional(S.String.pipe(
         S.nonEmptyString(),
         S.annotations({ 
             title: "Accounts Collection",
             description: "Name of the collection for storing account entities"
         })
-    ),
-    dialogsCollection: S.String.pipe(
+    )),
+    dialogsCollection: S.optional(S.String.pipe(
         S.nonEmptyString(),
         S.annotations({ 
             title: "Dialogs Collection",
             description: "Name of the collection for storing dialog entities"
         })
-    ),
-    systemCollection: S.String.pipe(
+    )),
+    systemCollection: S.optional(S.String.pipe(
         S.nonEmptyString(),
         S.annotations({ 
             title: "System Collection",
             description: "Name of the collection for storing system state"
         })
-    ),
-    maxPoolSize: S.Number.pipe(
+    )),
+    maxPoolSize: S.optional(S.Number.pipe(
         S.positive(),
         S.annotations({ 
             title: "Max Pool Size",
             description: "Maximum number of connections in the pool"
         })
-    ),
-    minPoolSize: S.Number.pipe(
+    )),
+    minPoolSize: S.optional(S.Number.pipe(
         S.positive(),
         S.annotations({ 
             title: "Min Pool Size",
             description: "Minimum number of connections in the pool"
         })
-    ),
+    )),
     retryWrites: S.Boolean.annotations({ 
         title: "Retry Writes",
         description: "Enable automatic retry of write operations"
@@ -92,45 +92,26 @@ export type MongoConfig = S.Schema.Type<typeof MongoConfigSchema>
 export const loadMongoConfig = (): Effect.Effect<MongoConfig, ConfigError.ConfigError> =>
     Effect.gen(function* () {
         const connectionString = yield* Config.string('MONGODB_URI').pipe(
-            Effect.orElse(() => Config.string('MONGODB_CONNECTION_STRING')),
-            Effect.orElse(() => Effect.succeed('mongodb://localhost:27017'))
+            Effect.orElse(() => Config.string('MONGODB_CONNECTION_STRING'))
         )
         
-        const database = yield* Config.string('MONGODB_DATABASE').pipe(
-            Effect.orElse(() => Effect.succeed('effect-redux'))
-        )
+        const database = yield* Config.string('MONGODB_DATABASE')
         
-        const eventsCollection = yield* Config.string('MONGODB_EVENTS_COLLECTION').pipe(
-            Effect.orElse(() => Effect.succeed('events'))
-        )
+        const eventsCollection = yield* Config.string('MONGODB_EVENTS_COLLECTION')
         
-        const snapshotsCollection = yield* Config.string('MONGODB_SNAPSHOTS_COLLECTION').pipe(
-            Effect.orElse(() => Effect.succeed('snapshots'))
-        )
+        const snapshotsCollection = yield* Config.string('MONGODB_SNAPSHOTS_COLLECTION')
         
-        const accountsCollection = yield* Config.string('MONGODB_ACCOUNTS_COLLECTION').pipe(
-            Effect.orElse(() => Effect.succeed('accounts'))
-        )
+        const accountsCollection = yield* Config.string('MONGODB_ACCOUNTS_COLLECTION')
         
-        const dialogsCollection = yield* Config.string('MONGODB_DIALOGS_COLLECTION').pipe(
-            Effect.orElse(() => Effect.succeed('dialogs'))
-        )
+        const dialogsCollection = yield* Config.string('MONGODB_DIALOGS_COLLECTION')
         
-        const systemCollection = yield* Config.string('MONGODB_SYSTEM_COLLECTION').pipe(
-            Effect.orElse(() => Effect.succeed('system'))
-        )
+        const systemCollection = yield* Config.string('MONGODB_SYSTEM_COLLECTION')
         
-        const maxPoolSize = yield* Config.number('MONGODB_MAX_POOL_SIZE').pipe(
-            Effect.orElse(() => Effect.succeed(10))
-        )
+        const maxPoolSize = yield* Config.number('MONGODB_MAX_POOL_SIZE')
         
-        const minPoolSize = yield* Config.number('MONGODB_MIN_POOL_SIZE').pipe(
-            Effect.orElse(() => Effect.succeed(2))
-        )
+        const minPoolSize = yield* Config.number('MONGODB_MIN_POOL_SIZE')
         
-        const retryWrites = yield* Config.boolean('MONGODB_RETRY_WRITES').pipe(
-            Effect.orElse(() => Effect.succeed(true))
-        )
+        const retryWrites = yield* Config.boolean('MONGODB_RETRY_WRITES')
         
         const config: MongoConfig = {
             connectionString,
@@ -155,22 +136,20 @@ export const loadMongoConfig = (): Effect.Effect<MongoConfig, ConfigError.Config
 
 // ============= Default Configuration =============
 
-export const defaultMongoConfig: MongoConfig = {
-    connectionString: process.env.MONGODB_URI || 
-                     process.env.MONGODB_CONNECTION_STRING || 
-                     'mongodb://localhost:27017',
-    database: process.env.MONGODB_DATABASE || 'effect-redux',
-    eventsCollection: process.env.MONGODB_EVENTS_COLLECTION || 'events',
-    snapshotsCollection: process.env.MONGODB_SNAPSHOTS_COLLECTION || 'snapshots',
-    accountsCollection: process.env.MONGODB_ACCOUNTS_COLLECTION || 'accounts',
-    dialogsCollection: process.env.MONGODB_DIALOGS_COLLECTION || 'dialogs',
-    systemCollection: process.env.MONGODB_SYSTEM_COLLECTION || 'system',
-    maxPoolSize: parseInt(process.env.MONGODB_MAX_POOL_SIZE || '10'),
-    minPoolSize: parseInt(process.env.MONGODB_MIN_POOL_SIZE || '2'),
+export const getDefaultMongoConfig = () => ({
+    connectionString: process.env.MONGODB_URI || process.env.MONGODB_CONNECTION_STRING,
+    database: process.env.MONGODB_DATABASE,
+    eventsCollection: process.env.MONGODB_EVENTS_COLLECTION,
+    snapshotsCollection: process.env.MONGODB_SNAPSHOTS_COLLECTION,
+    accountsCollection: process.env.MONGODB_ACCOUNTS_COLLECTION,
+    dialogsCollection: process.env.MONGODB_DIALOGS_COLLECTION,
+    systemCollection: process.env.MONGODB_SYSTEM_COLLECTION,
+    maxPoolSize: process.env.MONGODB_MAX_POOL_SIZE ? parseInt(process.env.MONGODB_MAX_POOL_SIZE) : undefined,
+    minPoolSize: process.env.MONGODB_MIN_POOL_SIZE ? parseInt(process.env.MONGODB_MIN_POOL_SIZE) : undefined,
     retryWrites: process.env.MONGODB_RETRY_WRITES !== 'false',
     writeConcern: {
         w: 'majority',
         j: true,
         wtimeout: 5000
     }
-}
+})

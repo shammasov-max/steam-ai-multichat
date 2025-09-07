@@ -7,6 +7,7 @@ import {
     type EntityState
 } from '../base/createEntitySlice'
 import { Draft } from '@reduxjs/toolkit'
+import { AccountId, SystemId } from '../types/branded'
 
 // ============= Event Payload Schemas =============
 
@@ -16,20 +17,20 @@ export const SnapshotPayloadSchema = S.Struct({
 export type SnapshotPayload = S.Schema.Type<typeof SnapshotPayloadSchema>
 
 export const FriendInviteSentPayloadSchema = S.Struct({
-    accountId: S.String,
+    accountId: AccountId,
     playerSteamId64: S.String,
     ts: S.optional(S.Number)
 })
 export type FriendInviteSentPayload = S.Schema.Type<typeof FriendInviteSentPayloadSchema>
 
 export const FriendInviteAcceptedPayloadSchema = S.Struct({
-    accountId: S.String,
+    accountId: AccountId,
     playerSteamId64: S.String
 })
 export type FriendInviteAcceptedPayload = S.Schema.Type<typeof FriendInviteAcceptedPayloadSchema>
 
 export const FriendInviteFailedPayloadSchema = S.Struct({
-    accountId: S.String,
+    accountId: AccountId,
     playerSteamId64: S.String,
     reason: S.String
 })
@@ -37,7 +38,7 @@ export type FriendInviteFailedPayload = S.Schema.Type<typeof FriendInviteFailedP
 
 export const MaFileAssignedPayloadSchema = S.Struct({
     maFileId: S.String,
-    accountId: S.String
+    accountId: AccountId
 })
 export type MaFileAssignedPayload = S.Schema.Type<typeof MaFileAssignedPayloadSchema>
 
@@ -56,7 +57,7 @@ export type ErrorLoggedPayload = S.Schema.Type<typeof ErrorLoggedPayloadSchema>
 
 export const RoundRobinSchema = S.Struct({
     pointer: S.Number.annotations({ title: "Pointer", description: "Current position in round-robin" }),
-    eligibleAccountIds: S.Array(S.String).annotations({ title: "Eligible Accounts", description: "Account IDs available for assignment" })
+    eligibleAccountIds: S.Array(AccountId).annotations({ title: "Eligible Accounts", description: "Account IDs available for assignment" })
 }).annotations({ title: "Round Robin State", description: "Account assignment round-robin state" })
 
 export const RateLimitEntrySchema = S.Struct({
@@ -64,7 +65,7 @@ export const RateLimitEntrySchema = S.Struct({
 }).annotations({ title: "Rate Limit Entry", description: "Friend invite rate limit tracking" })
 
 export const SystemSchema = S.Struct({
-    systemId: S.String.annotations({ title: "System ID", description: "Singleton identifier (always 'system')" }),
+    systemId: SystemId.annotations({ title: "System ID", description: "Singleton identifier (always 'system')" }),
     roundRobin: RoundRobinSchema,
     rateLimits: S.Record({ key: S.String, value: RateLimitEntrySchema }).annotations({ title: "Rate Limits", description: "Account ID to rate limit mapping" })
 }).annotations({ title: "System", description: "Global system state entity" })
@@ -82,7 +83,7 @@ export const systemSlice = createEntitySlice({
     // Initialize with singleton entity
     initialEntities: [
         {
-            systemId: 'system',
+            systemId: 'system' as SystemId,
             roundRobin: {
                 pointer: 0,
                 eligibleAccountIds: []
@@ -165,7 +166,7 @@ export const systemSlice = createEntitySlice({
             } else {
                 // Create singleton if it doesn't exist
                 const newSystem: System = {
-                    systemId: 'system',
+                    systemId: 'system' as SystemId,
                     roundRobin: snapshotSystem.roundRobin || { pointer: 0, eligibleAccountIds: [] },
                     rateLimits: snapshotSystem.rateLimits || {}
                 }
@@ -181,7 +182,7 @@ export const systemSlice = createEntitySlice({
         ) => {
             const system = state.entities['system']
             if (system) {
-                system.roundRobin.eligibleAccountIds = action.payload.eligibleAccountIds
+                system.roundRobin.eligibleAccountIds = action.payload.eligibleAccountIds as AccountId[]
                 // Reset pointer if it's out of bounds
                 if (system.roundRobin.pointer >= action.payload.eligibleAccountIds.length) {
                     system.roundRobin.pointer = 0

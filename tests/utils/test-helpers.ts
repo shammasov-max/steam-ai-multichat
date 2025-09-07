@@ -235,12 +235,12 @@ export function createMockStore(initialState: any = {}) {
  */
 export function getTestConfig() {
     return {
-        apiUrl: process.env.API_URL || 'http://localhost:3000',
-        baseUrl: process.env.BASE_URL || 'http://localhost:3000',
-        databaseUrl: process.env.DATABASE_URL || 'postgresql://test:test@localhost:54320/steambot_test',
-        nodeEnv: process.env.NODE_ENV || 'test',
+        apiUrl: process.env.API_URL,
+        baseUrl: process.env.BASE_URL,
+        databaseUrl: process.env.DATABASE_URL,
+        nodeEnv: process.env.NODE_ENV,
         isCI: process.env.CI === 'true',
-        testTimeout: parseInt(process.env.TEST_TIMEOUT || '30000'),
+        testTimeout: process.env.TEST_TIMEOUT ? parseInt(process.env.TEST_TIMEOUT) : undefined,
         debugMode: process.env.DEBUG === '*' || process.env.DEBUG?.includes('test')
     }
 }

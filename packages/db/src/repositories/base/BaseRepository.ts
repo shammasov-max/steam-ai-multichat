@@ -1,7 +1,7 @@
 import { Effect, Context, pipe, Option } from 'effect'
 import * as S from 'effect/Schema'
-import { MongoDatabase } from '../../MongoDatabase.js'
-import type { EventRecord } from '../../types.js'
+import { MongoDatabase } from '../../MongoDatabase'
+import type { EventRecord } from '../../types'
 
 // ============= Base Repository Interface =============
 
@@ -107,18 +107,6 @@ export const saveEvent = (
         })
     })
 
-export const saveEvents = (
-    db: MongoDatabase,
-    events: EventRecord[]
-): Effect.Effect<void> =>
-    Effect.tryPromise({
-        try: () => db.events.appendBatch(events),
-        catch: error => new RepositoryError({
-            message: `Failed to save ${events.length} events`,
-            cause: error
-        })
-    })
-
 export const getEventsForAggregate = (
     db: MongoDatabase,
     aggregate: string,
@@ -133,24 +121,33 @@ export const getEventsForAggregate = (
         })
     })
 
-// ============= Event Factory =============
+// ============= Snapshot Helpers =============
 
-export const createEvent = (
-    type: string,
+export interface Snapshot<T> {
+    readonly aggregateId: string
+    readonly aggregate: string
+    readonly data: T
+    readonly version: number
+    readonly timestamp: number
+}
+
+export const getLatestSnapshot = <T>(
+    db: MongoDatabase,
     aggregate: string,
-    aggregateId: string,
-    payload: any,
-    kind: string = 'entity'
-): EventRecord => ({
-    id: `evt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-    type,
-    payload,
-    meta: {
-        schemaVersion: '1.0.0',
-        id: aggregateId,
-        ts: Date.now(),
-        aggregate,
-        kind
-    },
-    timestamp: Date.now()
-})
+    aggregateId: string
+): Effect.Effect<Option.Option<Snapshot<T>>> =>
+    Effect.gen(function* () {
+        // This would typically query a snapshots collection
+        // For now, returning none as snapshots are not implemented
+        return Option.none()
+    })
+
+export const saveSnapshot = <T>(
+    db: MongoDatabase,
+    snapshot: Snapshot<T>
+): Effect.Effect<void> =>
+    Effect.gen(function* () {
+        // This would typically save to a snapshots collection
+        // For now, this is a no-op as snapshots are not implemented
+        return
+    })

@@ -11,7 +11,8 @@ export class SheetError extends S.TaggedError<SheetError>()('SheetError', {
     'NOT_FOUND',              // Sheet or row not found
     'VALIDATION',             // Schema validation failed
     'NETWORK',                // Network request failed
-    'SHEET_CREATION_FAILED'   // Sheet creation failed
+    'SHEET_CREATION_FAILED',  // Sheet creation failed
+    'DELETE_FAILED'           // Row deletion failed
   ),
   /** Human-readable error message */
   message: S.String,

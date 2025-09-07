@@ -1,13 +1,7 @@
-// ============= Core Database Exports (ClickHouse - Legacy) =============
-export { EventStore } from './EventStore.js'
-export { SnapshotStore } from './SnapshotStore.js'
-export { Database } from './Database.js'
-
 // ============= MongoDB Database Exports =============
-export { MongoEventStore } from './MongoEventStore.js'
-export { MongoSnapshotStore } from './MongoSnapshotStore.js'
-export { MongoDatabase } from './MongoDatabase.js'
-export { MongoConfig, defaultMongoConfig, loadMongoConfig } from './config.js'
+export { MongoEventStore } from './MongoEventStore'
+export { MongoDatabase } from './MongoDatabase'
+export { MongoConfig, getDefaultMongoConfig, loadMongoConfig } from './config'
 
 // ============= Types =============
 export type {
@@ -16,7 +10,7 @@ export type {
     EventStoreConfig,
     EventFilter,
     SnapshotFilter,
-} from './types.js'
+} from './types'
 
 // ============= Repository Exports =============
 export {
@@ -29,7 +23,6 @@ export {
     EntityNotFoundError,
     ValidationError,
     ConcurrencyError,
-    AbstractRepository,
     
     // Account repository
     type AccountRepository,
@@ -48,4 +41,4 @@ export {
     
     // Composite layer
     RepositoriesLive
-} from './repositories/index.js'
+} from './repositories/index'

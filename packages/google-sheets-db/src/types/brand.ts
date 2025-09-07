@@ -1,20 +1,27 @@
-/**
- * Utility type for creating branded types.
- * Branded types add compile-time safety to prevent mixing different kinds of IDs.
- */
-export type Brand<T, B> = T & { readonly __brand: B }
+import * as S from '@effect/schema/Schema'
 
 /**
  * Branded type for Google Sheets row IDs.
  * These are UUIDs that uniquely identify each row in a sheet.
+ * Uses Effect's schema branding system for consistency.
  */
-export type RowId = Brand<string, 'RowId'>
+export type RowId = string & { readonly _brand: 'RowId' }
 
 /**
  * Branded type for Google Sheets sheet IDs.
  * These identify specific sheets within a Google Spreadsheet.
  */
-export type SheetId = Brand<string, 'SheetId'>
+export type SheetId = string & { readonly _brand: 'SheetId' }
+
+/**
+ * Schema for RowId with branding.
+ */
+export const RowIdSchema = S.String.pipe(S.brand('RowId'))
+
+/**
+ * Schema for SheetId with branding.
+ */
+export const SheetIdSchema = S.String.pipe(S.brand('SheetId'))
 
 /**
  * Creates a branded RowId from a string.

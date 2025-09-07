@@ -6,6 +6,7 @@ import * as ReadonlyArray from 'effect/Array'
 import { pipe } from 'effect/Function'
 import * as S from '@effect/schema/Schema'
 import type { RowId } from '../types/brand.js'
+import { makeRowId } from '../types/brand.js'
 import type { WithMeta } from '../types/metadata.js'
 
 /**
@@ -16,7 +17,6 @@ import type { WithMeta } from '../types/metadata.js'
 export class MemoryCache<T> {
   constructor(
     private cache: Ref.Ref<HashMap.HashMap<RowId, WithMeta<T>>>,
-    private sheet: GoogleSpreadsheetRow[],
     private sheetTitle: string,
     private doc: GoogleSpreadsheet
   ) {}
@@ -39,7 +39,7 @@ export class MemoryCache<T> {
    * Converts a Google Sheets row to an entity.
    * Deserializes JSON strings back to objects.
    */
-  fromRow = <S extends S.Schema.Any>(schema: S) => 
+  fromRow = <S extends S.Schema.Any>(_schema: S) => 
     (row: GoogleSpreadsheetRow): WithMeta<S.Schema.Type<S>> => {
       const data: Record<string, any> = {}
       const rawData = row.toObject()
@@ -89,9 +89,13 @@ export class MemoryCache<T> {
       yield* Ref.update(this.cache, HashMap.set(id, data))
       
       // Sync to sheet
-      const sheet = yield* Effect.try(() => 
-        this.doc.sheetsByTitle[this.sheetTitle]
-      )
+      const sheet = yield* Effect.try(() => {
+        const foundSheet = this.doc.sheetsByTitle[this.sheetTitle]
+        if (!foundSheet) {
+          throw new Error(`Sheet '${this.sheetTitle}' not found`)
+        }
+        return foundSheet
+      })
       
       const rows = yield* Effect.tryPromise(() => sheet.getRows())
       const row = rows.find(r => r.get('_id') === id)
@@ -124,15 +128,19 @@ export class MemoryCache<T> {
   readonly bulkSet = (items: WithMeta<T>[]) =>
     Effect.gen(function* (this: MemoryCache<T>) {
       // Update cache
-      const updates = items.map(item => [item._id, item] as const)
+      const updates = items.map(item => [makeRowId(item._id), item] as const)
       yield* Ref.update(this.cache, cache => 
         updates.reduce((acc, [id, data]) => HashMap.set(id, data)(acc), cache)
       )
       
       // Sync to sheet
-      const sheet = yield* Effect.try(() => 
-        this.doc.sheetsByTitle[this.sheetTitle]
-      )
+      const sheet = yield* Effect.try(() => {
+        const foundSheet = this.doc.sheetsByTitle[this.sheetTitle]
+        if (!foundSheet) {
+          throw new Error(`Sheet '${this.sheetTitle}' not found`)
+        }
+        return foundSheet
+      })
       
       if (items.length > 10) {
         // Batch update/create for performance
@@ -167,7 +175,7 @@ export class MemoryCache<T> {
         }
       } else {
         // Individual updates for small batches
-        yield* Effect.all(items.map(item => this.set(item._id, item)))
+        yield* Effect.all(items.map(item => this.set(makeRowId(item._id), item)))
       }
       
       return items

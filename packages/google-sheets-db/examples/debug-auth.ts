@@ -5,27 +5,64 @@
  */
 
 import { GoogleSpreadsheet } from 'google-spreadsheet'
-import * as fs from 'node:fs'
+import * as dotenv from 'dotenv'
+import * as path from 'path'
+import { fileURLToPath } from 'url'
+
+// Get __dirname equivalent for ES modules
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
+// Load environment variables from project root
+dotenv.config({ path: path.resolve(__dirname, '../../../.env') })
 
 async function testAuth() {
   console.log('🔍 Testing Google Sheets Authentication...')
   
+  // Define credentials at function scope
+  const credentials = {
+    client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+    private_key: process.env.GOOGLE_SERVICE_PRIVATE_KEY
+  }
+  
   try {
-    // Load credentials
-    const privateKey = fs.readFileSync('../../google-service_private_key.pem', 'utf-8')
-    console.log('✓ Loaded private key')
+    // Load credentials from environment variables only
+    console.log('🔑 Loading credentials from environment variables...')
+    let privateKey = process.env.GOOGLE_SERVICE_PRIVATE_KEY
+    
+    if (!privateKey) {
+      throw new Error('GOOGLE_SERVICE_PRIVATE_KEY environment variable is not set')
+    }
+    
+    // Fix private key format - ensure proper line breaks
+    // The key might have escaped newlines that need to be converted
+    privateKey = privateKey.replace(/\\n/g, '\n')
+    
+    // Remove any indentation from multiline env var
+    privateKey = privateKey.split('\n').map(line => line.trim()).join('\n')
+    
+    // Additional check: ensure the key has proper format
+    if (!privateKey.includes('-----BEGIN PRIVATE KEY-----') || !privateKey.includes('-----END PRIVATE KEY-----')) {
+      throw new Error('Private key does not have the expected format')
+    }
+    
+    // Debug: Check if the key has proper line breaks
+    const keyLines = privateKey.split('\n')
+    console.log('✓ Loaded private key from environment')
+    console.log('Key has', keyLines.length, 'lines')
     console.log('Key starts with:', privateKey.substring(0, 27))
     console.log('Key ends with:', privateKey.substring(privateKey.length - 27))
     
-    const credentials = {
-      client_email: 'steam-ai-multichat@steam-ai-multichats.iam.gserviceaccount.com',
-      private_key: privateKey
-    }
+    // Additional formatting: ensure consistent line endings and no extra whitespace
+    privateKey = privateKey.trim()
+    
+    // Update credentials with verified private key
+    credentials.private_key = privateKey
     
     console.log('Service account email:', credentials.client_email)
     
     // Test spreadsheet connection
-    const spreadsheetId = '1nJm6q238nL6xVUIsrYWcSZ7EtFizV3GBO_xy1kXlR28'
+    const spreadsheetId = process.env.GOOGLE_SHEETS_SPREADSHEET_ID
     console.log('Connecting to spreadsheet:', spreadsheetId)
     
     // For google-spreadsheet v4, pass auth during construction
@@ -50,7 +87,7 @@ async function testAuth() {
     
     if (doc.sheetCount > 0) {
       console.log('Available sheets:')
-      doc.sheetsById.forEach((sheet, id) => {
+      Object.entries(doc.sheetsById).forEach(([id, sheet]) => {
         console.log(`  - ${sheet.title} (ID: ${id})`)
       })
     }
@@ -91,16 +128,23 @@ async function testAuth() {
       
       if (error.message.includes('403')) {
         console.log('\\n💡 This looks like a permissions issue:')
-        console.log('- Make sure the spreadsheet is shared with: steam-ai-multichat@steam-ai-multichats.iam.gserviceaccount.com')
+        console.log(`- Make sure the spreadsheet is shared with: ${credentials.client_email}`)
         console.log('- Give the service account "Editor" permissions')
-      } else if (error.message.includes('401')) {
+      } else if (error.message.includes('401') || error.message.includes('invalid_grant')) {
         console.log('\\n💡 This looks like an authentication issue:')
         console.log('- Check that the service account credentials are valid')
         console.log('- Verify the Google Sheets API is enabled in your project')
+        console.log('- Make sure the service account email matches the private key')
+        console.log(`- Current service account: ${credentials.client_email}`)
       } else if (error.message.includes('404')) {
         console.log('\\n💡 This looks like the spreadsheet is not found:')
         console.log('- Check the spreadsheet ID is correct')
         console.log('- Make sure the spreadsheet exists and is accessible')
+      } else if (error.message.includes('Invalid JWT')) {
+        console.log('\\n💡 JWT signature validation failed:')
+        console.log('- The private key might not match the service account')
+        console.log('- Check that the private key belongs to:', credentials.client_email)
+        console.log('- Ensure the key file hasn\'t been corrupted')
       }
     }
     

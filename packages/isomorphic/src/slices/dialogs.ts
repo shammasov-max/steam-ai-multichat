@@ -7,15 +7,13 @@ import {
     type EntityState
 } from '../base/createEntitySlice'
 import { Draft } from '@reduxjs/toolkit'
+import { AccountId, DialogId } from '../types/branded'
 
 // ============= Constants =============
 
 const MAX_MESSAGES = 50 // Limit messages per dialog to control snapshot size
 
 // ============= Core Schemas =============
-
-export const DialogId = S.String.pipe(S.minLength(1), S.brand("DialogId"));
-export type DialogId = S.Schema.Type<typeof DialogId>;
 
 export const DialogMsgFromSchema = S.Union(
     S.Literal('account'),
@@ -119,8 +117,8 @@ export const OperatorAlertSchema = S.Struct({
 }).annotations({ title: "Operator Alert" })
 
 export const DialogSchema = S.Struct({
-    dialogId: S.String.annotations({ title: "Dialog ID", description: "Unique dialog identifier" }),
-    accountId: S.String.annotations({ title: "Account ID", description: "Associated account identifier" }),
+    dialogId: DialogId.annotations({ title: "Dialog ID", description: "Unique dialog identifier" }),
+    accountId: AccountId.annotations({ title: "Account ID", description: "Associated account identifier" }),
     playerSteamId64: S.String.annotations({ title: "Player Steam ID", description: "Player's Steam 64-bit ID" }),
     status: DialogStatusSchema.annotations({ title: "Status", description: "Current dialog status" }),
     language: LanguageSchema.annotations({ title: "Language", description: "Dialog language" }),
@@ -150,8 +148,8 @@ export type Dialog = S.Schema.Type<typeof DialogSchema>
 // ============= Event Payload Schemas =============
 
 export const DialogCreatedPayloadSchema = S.Struct({
-    dialogId: S.String,
-    accountId: S.String,
+    dialogId: DialogId,
+    accountId: AccountId,
     playerSteamId64: S.String,
     language: LanguageSchema,
     goal: S.String,
@@ -161,7 +159,7 @@ export const DialogCreatedPayloadSchema = S.Struct({
 export type DialogCreatedPayload = S.Schema.Type<typeof DialogCreatedPayloadSchema>
 
 export const MessageReceivedPayloadSchema = S.Struct({
-    dialogId: S.String,
+    dialogId: DialogId,
     from: DialogMsgFromSchema,
     text: S.String,
     messageId: S.optional(S.String),
@@ -170,7 +168,7 @@ export const MessageReceivedPayloadSchema = S.Struct({
 export type MessageReceivedPayload = S.Schema.Type<typeof MessageReceivedPayloadSchema>
 
 export const MessageSentPayloadSchema = S.Struct({
-    dialogId: S.String,
+    dialogId: DialogId,
     text: S.String,
     sequenceNumber: S.optional(S.Number),
     messageId: S.optional(S.String),
@@ -179,7 +177,7 @@ export const MessageSentPayloadSchema = S.Struct({
 export type MessageSentPayload = S.Schema.Type<typeof MessageSentPayloadSchema>
 
 export const DialogAssessedPayloadSchema = S.Struct({
-    dialogId: S.String,
+    dialogId: DialogId,
     continuationScore: S.Number,
     trend: TrendSchema,
     factors: ScoringFactorsSchema,
@@ -188,14 +186,14 @@ export const DialogAssessedPayloadSchema = S.Struct({
 export type DialogAssessedPayload = S.Schema.Type<typeof DialogAssessedPayloadSchema>
 
 export const DialogStatusUpdatedPayloadSchema = S.Struct({
-    dialogId: S.String,
+    dialogId: DialogId,
     status: DialogStatusSchema,
     reason: S.optional(S.String)
 })
 export type DialogStatusUpdatedPayload = S.Schema.Type<typeof DialogStatusUpdatedPayloadSchema>
 
 export const OperatorAlertPayloadSchema = S.Struct({
-    dialogId: S.String,
+    dialogId: DialogId,
     required: S.Boolean,
     urgency: UrgencySchema,
     reason: S.String
@@ -203,7 +201,7 @@ export const OperatorAlertPayloadSchema = S.Struct({
 export type OperatorAlertPayload = S.Schema.Type<typeof OperatorAlertPayloadSchema>
 
 export const DialogProgressUpdatedPayloadSchema = S.Struct({
-    dialogId: S.String,
+    dialogId: DialogId,
     goalProgress: S.Number,
     tokensUsed: S.Number
 })

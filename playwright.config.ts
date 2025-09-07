@@ -17,7 +17,7 @@ export default defineConfig({
   
   // Parallel execution
   fullyParallel: false, // Steam tests need sequential execution due to rate limits
-  workers: process.env.CI ? 1 : 2,
+  workers: process.env.CI ? 1 : undefined,
   
   // Timeouts
   timeout: 60_000, // Increased for Steam operations
@@ -33,11 +33,11 @@ export default defineConfig({
   outputDir: 'test-results',
   
   // Retry configuration
-  retries: process.env.CI ? 2 : 0,
+  retries: process.env.CI ? 2 : undefined,
   
   // Environment variables
   use: {
-    baseURL: process.env.BASE_URL || 'http://localhost:3000',
+    baseURL: process.env.BASE_URL,
     // Don't use browsers for API/integration tests
     headless: true,
   },

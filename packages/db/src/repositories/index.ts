@@ -14,61 +14,65 @@ export {
     ValidationError,
     ConcurrencyError,
     
-    // Abstract implementation
-    AbstractRepository,
-    
     // Helper functions
     validateEntity,
     validateMany,
     getEventsForAggregate,
     saveEvent,
     getLatestSnapshot,
-    saveSnapshot
-} from './base/index.js'
-
-// ============= Legacy Repository Exports (uses snapshots) =============
-export {
-    type AccountRepository as LegacyAccountRepository,
-    AccountRepository as LegacyAccountRepositoryTag,
-    AccountRepositoryLive as LegacyAccountRepositoryLive
-} from './AccountRepository.js'
-
-export {
-    type DialogRepository as LegacyDialogRepository,
-    DialogRepository as LegacyDialogRepositoryTag,
-    DialogRepositoryLive as LegacyDialogRepositoryLive
-} from './DialogRepository.js'
-
-export {
-    type SystemRepository as LegacySystemRepository,
-    SystemRepository as LegacySystemRepositoryTag,
-    SystemRepositoryLive as LegacySystemRepositoryLive
-} from './SystemRepository.js'
+    saveSnapshot,
+    
+    // MongoDB Factory exports
+    type MongoRepositoryConfig,
+    type FindOperations,
+    MongoRepositoryBase,
+    createMongoRepository,
+    
+    // Event Factory exports
+    type EntityEventTypes,
+    type AllEventTypes,
+    type EventFactoryConfig,
+    TypedEventFactory,
+    saveEventToDb,
+    accountEventFactory,
+    dialogEventFactory,
+    systemEventFactory,
+    
+    // Layer utilities
+    type RepositoryConstructor,
+    type LayerFactory,
+    createRepositoryLayer,
+    combineRepositoryLayers,
+    createCompleteRepositoryLayer,
+    createScopedRepositoryLayer,
+    createCachedRepositoryLayer,
+    createRetryableRepositoryLayer
+} from './base/index'
 
 // ============= MongoDB Repository Exports (uses collections) =============
 export {
     type AccountRepository,
     AccountRepository as AccountRepositoryTag,
     MongoAccountRepositoryLive as AccountRepositoryLive
-} from './MongoAccountRepository.js'
+} from './MongoAccountRepository'
 
 export {
     type DialogRepository,
     DialogRepository as DialogRepositoryTag,
     MongoDialogRepositoryLive as DialogRepositoryLive
-} from './MongoDialogRepository.js'
+} from './MongoDialogRepository'
 
 export {
     type SystemRepository,
     SystemRepository as SystemRepositoryTag,
     MongoSystemRepositoryLive as SystemRepositoryLive
-} from './MongoSystemRepository.js'
+} from './MongoSystemRepository'
 
 // ============= Composite Layers =============
 import { Layer } from 'effect'
-import { MongoAccountRepositoryLive } from './MongoAccountRepository.js'
-import { MongoDialogRepositoryLive } from './MongoDialogRepository.js'
-import { MongoSystemRepositoryLive } from './MongoSystemRepository.js'
+import { MongoAccountRepositoryLive } from './MongoAccountRepository'
+import { MongoDialogRepositoryLive } from './MongoDialogRepository'
+import { MongoSystemRepositoryLive } from './MongoSystemRepository'
 
 /**
  * Composite layer that provides all MongoDB repositories

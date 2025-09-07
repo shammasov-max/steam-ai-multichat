@@ -1,14 +1,13 @@
 import { MongoClient, Db, Collection } from 'mongodb'
-import { MongoEventStore } from './MongoEventStore.js'
-import { MongoSnapshotStore } from './MongoSnapshotStore.js'
-import { MongoConfig, defaultMongoConfig } from './config.js'
-import type { Account } from '@packages/isomorphic/src/slices/accounts.js'
-import type { Dialog } from '@packages/isomorphic/src/slices/dialogs.js'
-import type { System } from '@packages/isomorphic/src/slices/system.js'
+import { MongoEventStore } from './MongoEventStore'
+import { MongoConfig, getDefaultMongoConfig } from './config'
+import type { Account } from '@packages/isomorphic/src/slices/accounts'
+import type { Dialog } from '@packages/isomorphic/src/slices/dialogs'
+import type { System } from '@packages/isomorphic/src/slices/system'
 
 export class MongoDatabase {
     public readonly events: MongoEventStore
-    public readonly snapshots: MongoSnapshotStore
+    // public readonly snapshots: MongoSnapshotStore // TODO: Implement MongoSnapshotStore
     
     private client: MongoClient | null = null
     private db: Db | null = null
@@ -22,12 +21,12 @@ export class MongoDatabase {
 
     constructor(config?: Partial<MongoConfig>) {
         this.config = {
-            ...defaultMongoConfig,
+            ...getDefaultMongoConfig(),
             ...config
         }
         
         this.events = new MongoEventStore(this.config)
-        this.snapshots = new MongoSnapshotStore(this.config)
+        // this.snapshots = new MongoSnapshotStore(this.config) // TODO: Implement
     }
 
     async init(): Promise<void> {
@@ -54,11 +53,10 @@ export class MongoDatabase {
             // Create indexes for entity collections
             await this.createEntityIndexes()
             
-            // Initialize event and snapshot stores
-            await Promise.all([
-                this.events.init(),
-                this.snapshots.init(),
-            ])
+            // Initialize event store
+            await this.events.init()
+            // TODO: Initialize snapshots when MongoSnapshotStore is implemented
+            // await this.snapshots.init()
             
             console.log(`MongoDatabase connected to: ${this.config.database}`)
         } catch (error) {
@@ -92,10 +90,9 @@ export class MongoDatabase {
     }
 
     async close(): Promise<void> {
-        await Promise.all([
-            this.events.close(),
-            this.snapshots.close(),
-        ])
+        await this.events.close()
+        // TODO: Close snapshots when implemented
+        // await this.snapshots.close()
         
         if (this.client) {
             await this.client.close()
@@ -109,21 +106,24 @@ export class MongoDatabase {
     }
 
     async clearAll(): Promise<void> {
-        await Promise.all([
-            this.events.clearEvents(),
-            this.snapshots.clearSnapshots(),
-        ])
+        await this.events.clearEvents()
+        // TODO: Clear snapshots when implemented
+        // await this.snapshots.clearSnapshots()
     }
     
     // Helper method to save a snapshot of current state
     async saveStateSnapshot(state: Record<string, any>, id: string = 'system'): Promise<void> {
-        await this.snapshots.saveSnapshot(state, id)
+        // TODO: Implement when MongoSnapshotStore is available
+        // await this.snapshots.saveSnapshot(state, id)
+        throw new Error('MongoSnapshotStore not implemented')
     }
     
     // Helper method to get the latest state snapshot
     async getLatestState(id: string = 'system'): Promise<Record<string, any> | null> {
-        const snapshot = await this.snapshots.getLatestSnapshot(id)
-        return snapshot?.state || null
+        // TODO: Implement when MongoSnapshotStore is available
+        // const snapshot = await this.snapshots.getLatestSnapshot(id)
+        // return snapshot?.state || null
+        return null
     }
     
     // Helper method to rebuild state from events after a snapshot
@@ -167,7 +167,9 @@ export class MongoDatabase {
     // Helper method to get state at a specific point in time
     async getStateAt(timestamp: number, id: string = 'system'): Promise<Record<string, any> | null> {
         // First, try to get a snapshot before the timestamp
-        const snapshot = await this.snapshots.getSnapshotAt(id, timestamp)
+        // TODO: Implement when MongoSnapshotStore is available
+        // const snapshot = await this.snapshots.getSnapshotAt(id, timestamp)
+        const snapshot = null
         
         if (!snapshot) {
             // If no snapshot, rebuild from events up to timestamp

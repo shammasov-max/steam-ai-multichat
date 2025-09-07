@@ -1,6 +1,7 @@
 import * as S from 'effect/Schema'
 import { Draft } from '@reduxjs/toolkit'
 import { createEntitySlice, type EntityActionPayload } from '../base/createEntitySlice'
+import { AccountId } from '../types/branded'
 
 
 // ============= Event Payload Schemas =============
@@ -19,19 +20,19 @@ export const AccountStatus = S.Union(
 export type AccountStatus = S.Schema.Type<typeof AccountStatus>;
 
 export const AccountConnectedPayloadSchema = S.Struct({
-    accountId: S.String,
+    accountId: AccountId,
     ts: S.optional(S.Number)
 })
 export type AccountConnectedPayload = S.Schema.Type<typeof AccountConnectedPayloadSchema>
 
 export const AccountDisconnectedPayloadSchema = S.Struct({
-    accountId: S.String,
+    accountId: AccountId,
     ts: S.optional(S.Number)
 })
 export type AccountDisconnectedPayload = S.Schema.Type<typeof AccountDisconnectedPayloadSchema>
 
 export const AccountAuthenticationFailedPayloadSchema = S.Struct({
-    accountId: S.String,
+    accountId: AccountId,
     reason: S.String
 })
 export type AccountAuthenticationFailedPayload = S.Schema.Type<typeof AccountAuthenticationFailedPayloadSchema>
@@ -65,7 +66,7 @@ export const MaFileSchema = S.Struct({
 
 
 export const AccountSchema = S.Struct({
-    accountId: S.String.annotations({ title: "Account ID", description: "Steam 64-bit ID"}),
+    accountId: AccountId.annotations({ title: "Account ID", description: "Unique account identifier"}),
     steamId64: S.String.annotations({ title: "Steam ID 64", description: "Steam 64-bit identifier" }),
     label: S.optional(S.String.annotations({ title: "Label", description: "Human-readable account label" })),
     proxyUrl: S.String.annotations({ title: "Proxy URL", description: "Proxy server URL" }),
