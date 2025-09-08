@@ -1,25 +1,34 @@
-import { MongoClient, Db, Collection } from 'mongodb'
+import { MongoClient, Db, Collection, Document } from 'mongodb'
 import { MongoEventStore } from './MongoEventStore'
 import * as S from 'effect/Schema'
+import { SimpleLogger } from '@packages/isomorphic'
 
 // Repository interface matching slice structure
-interface Repository<T> {
-    collection: Collection<any>
+export interface Repository<T> {
+    collection: Collection<T & Document>
     findById: (id: string) => Promise<T | null>
     findAll: () => Promise<T[]>
     save: (entity: T) => Promise<void>
     delete: (id: string) => Promise<void>
 }
 
-// Extract entity type from slice
-type EntityFromSlice<S> = S extends { schema: S.Schema<infer T> } ? T : never
-
-// Generate repository map type from slices tuple
-type RepositoriesFromSlices<S extends ReadonlyArray<any>> = {
-    [K in keyof S as S[K] extends { name: infer N } ? N extends string ? N : never : never]: Repository<EntityFromSlice<S[K]>>
+// Slice configuration type
+export interface SliceConfig<TName extends string = string, TEntity = unknown> {
+    name: TName
+    schema: S.Schema<TEntity, unknown, never>
+    pluralizeFn?: (name: string) => string
+    initialEntities?: TEntity[]
 }
 
-export class MongoDatabase<TSlices extends ReadonlyArray<{ name: string; schema: S.Schema<any>; pluralizeFn?: (name: string) => string }>> {
+// Extract entity type from slice config
+type EntityFromSlice<S> = S extends SliceConfig<string, infer E> ? E : never
+
+// Generate repository map type from slices tuple
+type RepositoriesFromSlices<T extends readonly SliceConfig[]> = {
+    [K in T[number] as K['name']]: Repository<EntityFromSlice<K>>
+}
+
+export class MongoDatabase<TSlices extends readonly SliceConfig[]> {
     public readonly eventStore: MongoEventStore
     public readonly repos: RepositoriesFromSlices<TSlices> = {} as RepositoriesFromSlices<TSlices>
     
@@ -27,6 +36,7 @@ export class MongoDatabase<TSlices extends ReadonlyArray<{ name: string; schema:
     private db: Db | null = null
     private connectionString: string
     private slices: TSlices
+    private logger = new SimpleLogger('MongoDatabase')
 
     constructor(connectionString: string, slices: TSlices) {
         this.connectionString = connectionString
@@ -35,14 +45,15 @@ export class MongoDatabase<TSlices extends ReadonlyArray<{ name: string; schema:
         
         // Initialize repository stubs (will be connected in init())
         for (const slice of slices) {
-            const repository: Repository<any> = {
-                collection: null as any,
+            type EntityType = EntityFromSlice<typeof slice>
+            const repository: Repository<EntityType> = {
+                collection: null as unknown as Collection<EntityType & Document>,
                 findById: async () => { throw new Error('Database not initialized. Call init() first.') },
                 findAll: async () => { throw new Error('Database not initialized. Call init() first.') },
                 save: async () => { throw new Error('Database not initialized. Call init() first.') },
                 delete: async () => { throw new Error('Database not initialized. Call init() first.') }
             }
-            ;(this.repos as any)[slice.name] = repository
+            ;(this.repos as Record<string, Repository<unknown>>)[slice.name] = repository
         }
     }
 
@@ -66,9 +77,9 @@ export class MongoDatabase<TSlices extends ReadonlyArray<{ name: string; schema:
             // Initialize event store with db reference
             await this.eventStore.init(this.db)
             
-            console.log(`MongoDatabase connected to: ${dbName}`)
+            this.logger.info('MongoDB connected successfully', { database: dbName })
         } catch (error) {
-            console.error('Failed to initialize MongoDatabase:', error)
+            this.logger.error('MongoDB initialization failed', error as Error, { database: this.extractDatabaseName(this.connectionString) })
             throw error
         }
     }
@@ -94,42 +105,63 @@ export class MongoDatabase<TSlices extends ReadonlyArray<{ name: string; schema:
             await this.createIndexesFromSchema(collection, slice.schema)
             
             // Create repository
-            const repository: Repository<any> = {
-                collection,
+            type EntityType = EntityFromSlice<typeof slice>
+            const repository: Repository<EntityType> = {
+                collection: collection as Collection<EntityType & Document>,
                 findById: async (id: string) => {
                     const idField = `${slice.name}Id`
-                    return await collection.findOne({ [idField]: id } as any)
+                    const result = await collection.findOne({ [idField]: id }, { projection: { _id: 0 } })
+                    return result as EntityType | null
                 },
                 findAll: async () => {
-                    return await collection.find({}).toArray()
+                    const results = await collection.find({}, { projection: { _id: 0 } }).toArray()
+                    return results as EntityType[]
                 },
-                save: async (entity: any) => {
+                save: async (entity: EntityType) => {
                     const idField = `${slice.name}Id`
-                    const id = entity[idField]
+                    const id = (entity as Record<string, unknown>)[idField]
                     await collection.replaceOne(
-                        { [idField]: id } as any,
-                        entity,
+                        { [idField]: id },
+                        entity as Document,
                         { upsert: true }
                     )
                 },
                 delete: async (id: string) => {
                     const idField = `${slice.name}Id`
-                    await collection.deleteOne({ [idField]: id } as any)
+                    await collection.deleteOne({ [idField]: id })
                 }
             }
             
             // Add repository to repos object
-            ;(this.repos as any)[slice.name] = repository
+            ;(this.repos as Record<string, Repository<unknown>>)[slice.name] = repository
+            
+            // Save initial entities if slice has them
+            const initialEntities = slice.initialEntities
+            if (initialEntities && Array.isArray(initialEntities)) {
+                for (const entity of initialEntities) {
+                    await repository.save(entity)
+                }
+            }
         }
     }
     
-    private async createIndexesFromSchema(collection: Collection, schema: S.Schema<any>): Promise<void> {
-        // Extract index metadata from schema annotations
-        const annotations = (schema as any).annotations || {}
-        const indexes = annotations.indexes || []
+    private async createIndexesFromSchema(collection: Collection, schema: S.Schema<unknown, unknown, never>): Promise<void> {
+        // Extract index metadata from schema AST annotations
+        if (!schema) {
+            return
+        }
         
-        for (const index of indexes) {
-            await collection.createIndex(index.fields, index.options || {})
+        try {
+            // Access annotations through the AST
+            const ast = (schema as S.Schema<unknown, unknown, never> & { ast?: { annotations?: Record<string, unknown> } }).ast
+            const annotations = ast?.annotations || {}
+            const indexes = (annotations as { indexes?: Array<{ fields: Record<string, unknown>, options?: Record<string, unknown> }> }).indexes || []
+            
+            for (const index of indexes) {
+                await collection.createIndex(index.fields, index.options || {})
+            }
+        } catch (error) {
+            this.logger.warn('Failed to create indexes from schema', error as Error)
         }
     }
 
@@ -140,7 +172,7 @@ export class MongoDatabase<TSlices extends ReadonlyArray<{ name: string; schema:
             await this.client.close()
             this.client = null
             this.db = null
-            console.log('MongoDatabase connection closed')
+            this.logger.info('MongoDB connection closed')
         }
     }
 
@@ -149,9 +181,20 @@ export class MongoDatabase<TSlices extends ReadonlyArray<{ name: string; schema:
         
         // Clear all entity collections
         for (const key in this.repos) {
-            const repo = (this.repos as any)[key]
+            const repo = (this.repos as Record<string, Repository<unknown>>)[key]
             if (repo && repo.collection) {
                 await repo.collection.deleteMany({})
+            }
+        }
+        
+        // Re-initialize initial entities after clearing
+        for (const slice of this.slices) {
+            const initialEntities = slice.initialEntities
+            if (initialEntities && Array.isArray(initialEntities)) {
+                const repo = (this.repos as Record<string, Repository<unknown>>)[slice.name]
+                for (const entity of initialEntities) {
+                    await repo.save(entity)
+                }
             }
         }
     }

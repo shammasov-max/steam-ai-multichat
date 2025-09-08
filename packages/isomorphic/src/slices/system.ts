@@ -85,7 +85,7 @@ export type System = S.Schema.Type<typeof SystemSchema>
 
 export const systemSlice = createEntitySlice({
     name: 'system',
-    entitySchema: SystemSchema as any,
+    entitySchema: SystemSchema as S.Schema<System, unknown, never>,
     
     // Initialize with singleton entity
     initialEntities: [
@@ -133,7 +133,7 @@ export const systemSlice = createEntitySlice({
         // Event: error.logged - no-op
         'error.logged': (
             _system,
-            _payload: EntityActionPayload<'system', { message: string; context?: any }>
+            _payload: EntityActionPayload<'system', { message: string; context?: unknown }>
         ) => {
             // No-op - errors can be tracked in a separate slice or log stream
         }

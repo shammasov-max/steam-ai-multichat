@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { describe, test, expect } from 'vitest'
 
 // Mock SteamAgent for fast unit testing without real Steam connections
 class MockSteamAgent {
@@ -72,7 +72,7 @@ class MockSteamAgent {
   }
 }
 
-test.describe('Mock Steam Agent Unit Tests', () => {
+describe('Mock Steam Agent Unit Tests', () => {
   test('login and state management', async () => {
     const agent = new MockSteamAgent({
       maFile: '{"shared_secret":"mock_secret"}',

@@ -16,8 +16,6 @@ Senior Effect-TS architect & Socratic coach.
 
 ## Ignore packages
 - packages/frontend
-- packages/server
-- packages/steam-api
 
 ## Project Overview
 
@@ -67,11 +65,6 @@ yarn build
 
 # Type check all packages  
 yarn typecheck
-
-# Build individual packages (optional)
-yarn build:isomorphic
-yarn build:server
-yarn build:frontend
 ```
 
 ### Development
@@ -85,14 +78,18 @@ yarn start
 
 ### Testing
 ```bash
-# Run TypeScript unit tests (uses tsx)
+# Run all tests (Vitest)
 yarn test
 
-# Run Playwright UI tests
-yarn test:ui
+# Watch mode for tests
+yarn test:w
 
-# Run isomorphic unit tests only
-yarn test:isomorphic
+# Run tests for specific packages
+yarn test:db       # Database package tests
+yarn test:dialogs  # Dialogs package tests
+yarn test:iso      # Isomorphic package tests
+yarn test:steam    # Steam-api package tests
+yarn test:server   # Server package tests
 ```
 
 ## Key Architecture Details
@@ -266,6 +263,107 @@ Each slice gets an auto-generated repository with:
 - `RemoveAccount`: Remove an account from the system
 - `ToggleAgent`: Enable/disable AI agent for a dialog
 - `SendMessage`: Send message in a dialog
+
+## Test Fixtures
+
+### Location
+Test fixtures are located in `/fixtures/` directory at the root:
+- `fixtures/all.txt` - Steam account credentials
+- `fixtures/mafile/*.maFile` - Steam Guard mobile authenticator files
+
+### Path Resolution in Tests
+Tests use relative paths from test file location:
+```typescript
+import { fileURLToPath } from 'url'
+import { dirname, join } from 'path'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+const fixturesPath = join(__dirname, '../../../fixtures/all.txt')
+```
+
+## Logging
+
+### Structured Logging
+The project uses structured JSON logging instead of console.log statements:
+
+```typescript
+import { SimpleLogger } from '@packages/isomorphic'
+
+// Service-specific logger instances
+private logger = new SimpleLogger('ServiceName')
+
+// Usage patterns with type-safe metadata (generics added in refactoring)
+this.logger.info('Operation completed', { entityId: 'account_123', duration: 450 })
+this.logger.error('Operation failed', error, { context: 'additional data' })
+this.logger.warn('Warning condition detected', undefined, { threshold: 0.3 })
+```
+
+### Logger Features
+- **Type-safe metadata**: Generic types for metadata objects (no more `any` types)
+- **JSON output format**: Searchable and parseable logs
+- **Service identification**: Each logger instance tagged with service name
+- **Structured metadata**: Context data as key-value pairs
+- **Error handling**: Automatic error message and stack trace capture
+- **Performance tracking**: Built-in timing utilities via `logger.timer()`
+
+### Log Levels
+- `debug<TMetadata>()`: Development debugging information
+- `info<TMetadata>()`: General operational information  
+- `warn<TMetadata>()`: Warning conditions that don't stop operation
+- `error<TMetadata>()`: Error conditions requiring attention
+
+### Output Format
+```json
+{
+  "timestamp": "2025-09-08T17:27:10.254Z",
+  "level": "INFO", 
+  "service": "MongoDatabase",
+  "message": "MongoDB connected successfully",
+  "database": "effect_redux_db"
+}
+```
+
+## Refactoring Roadmap
+
+### Phase 1: Type Safety & Quick Wins (No Effect-TS)
+**Status: 50% Complete**
+
+#### ✅ Completed
+1. **Type Safety Improvements** - Eliminated 30+ `any` types:
+   - `EventRecord` and `StateSnapshot` now use generic type parameters
+   - Logger methods use generics for type-safe metadata
+   - Redux integration uses proper action types (`UnknownAction`, `PayloadAction`)
+   - 3 intentional `any` types documented with `@intentional-any` comments
+
+2. **Structured Logging** - Implemented across all packages:
+   - SimpleLogger with JSON output and generic metadata support
+   - Replaced 24+ console.log statements
+   - Added service identification and error handling
+
+#### ⏳ Pending
+3. **Add memoization to entity selectors** (reselect library available)
+4. **Code organization improvements**:
+   - Split `ScoringEngine.ts` (538 lines)
+   - Split `DialogManager.ts` (403 lines)
+   - Extract type logic from `createEntitySlice.ts` (318 lines)
+
+### Phase 2: Core Architecture (With Effect-TS)
+**Status: Not Started**
+
+#### Planned Tasks
+1. **Convert DialogManager to Effect service** - Implement proper DI and service pattern
+2. **Implement MongoDatabase Effect layer** - Add resource management and connection pooling
+3. **Add query batching to repositories** - Implement DataLoader pattern
+4. **Create Effect-based error handling** - Replace try/catch with Effect patterns
+
+### Phase 3: Advanced Patterns (Effect-TS Integration)
+**Status: Not Started**
+
+#### Planned Tasks
+1. **Implement Effect-Redux integration** - Move from experimental to production
+2. **Add resource lifecycle management** - Proper cleanup for MongoDB/Steam connections
+3. **Create distributed Effect services** - Service discovery and circuit breakers
+4. **Implement Effect-based configuration** - Replace hard-coded values with Effect Config
 
 ## Legacy Code
 Skip folders and files which names starts with symbol "_".

@@ -1,5 +1,6 @@
-import { MongoDatabase } from './MongoDatabase'
-import { accountSlice, dialogSlice, systemSlice } from '@packages/isomorphic'
+import { MongoDatabase, type SliceConfig } from './MongoDatabase'
+import { accountSlice, dialogSlice, systemSlice, type Account, type Dialog, type System, getSystemId } from '@packages/isomorphic'
+import * as S from 'effect/Schema'
 
 // ============= Types =============
 export type {
@@ -9,6 +10,7 @@ export type {
     EventFilter,
     SnapshotFilter,
 } from './types'
+export type { Repository, SliceConfig } from './MongoDatabase'
 
 // ============= Main Export =============
 
@@ -35,12 +37,51 @@ export type {
  * await db.eventStore.append(event)
  * ```
  */
+// Type the slices properly with their extended properties
+type ExtendedSlice<TName extends string, TEntity> = {
+    schema: S.Schema<TEntity, unknown, never> | undefined
+    pluralizeFn?: (singular: string) => string
+    name: TName
+}
+
+const accountSliceTyped = accountSlice as unknown as ExtendedSlice<'account', Account>
+const dialogSliceTyped = dialogSlice as unknown as ExtendedSlice<'dialog', Dialog>
+const systemSliceTyped = systemSlice as unknown as ExtendedSlice<'system', System>
+
+// Define slice configurations with proper types
+const accountSliceConfig: SliceConfig<'account', Account> = {
+    name: 'account' as const,
+    schema: accountSliceTyped.schema as S.Schema<Account, unknown, never>,
+    ...(accountSliceTyped.pluralizeFn && { pluralizeFn: accountSliceTyped.pluralizeFn }),
+    initialEntities: []
+}
+
+const dialogSliceConfig: SliceConfig<'dialog', Dialog> = {
+    name: 'dialog' as const,
+    schema: dialogSliceTyped.schema as S.Schema<Dialog, unknown, never>,
+    ...(dialogSliceTyped.pluralizeFn && { pluralizeFn: dialogSliceTyped.pluralizeFn }),
+    initialEntities: []
+}
+
+const systemSliceConfig: SliceConfig<'system', System> = {
+    name: 'system' as const,
+    schema: systemSliceTyped.schema as S.Schema<System, unknown, never>,
+    ...(systemSliceTyped.pluralizeFn && { pluralizeFn: systemSliceTyped.pluralizeFn }),
+    initialEntities: [{
+        systemId: getSystemId(),
+        roundRobin: {
+            pointer: 0,
+            eligibleAccountIds: []
+        },
+        rateLimits: {}
+    }]
+}
+
 export function createDb(connectionString: string) {
-    // Cast slices to match expected type structure
     const slices = [
-        { name: 'account', schema: (accountSlice as any).schema, pluralizeFn: (accountSlice as any).pluralizeFn },
-        { name: 'dialog', schema: (dialogSlice as any).schema, pluralizeFn: (dialogSlice as any).pluralizeFn },
-        { name: 'system', schema: (systemSlice as any).schema, pluralizeFn: (systemSlice as any).pluralizeFn }
+        accountSliceConfig,
+        dialogSliceConfig,
+        systemSliceConfig
     ] as const
     
     return new MongoDatabase(connectionString, slices)

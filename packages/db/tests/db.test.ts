@@ -2,8 +2,7 @@ import { createDb } from '../src/index.js'
 import { createAccountId, createDialogId } from '../../isomorphic/src/index.js'
 import type { Account, Dialog } from '../../isomorphic/src/index.js'
 import { MongoClient } from 'mongodb'
-import { test, describe, before, after, beforeEach } from 'node:test'
-import assert from 'node:assert'
+import { test, describe, beforeAll, afterAll, beforeEach, expect } from 'vitest'
 
 // Test configuration
 const TEST_CONNECTION_STRING = 'mongodb://localhost:27017/test_db'
@@ -13,7 +12,7 @@ describe('MongoDB Database Package', () => {
     let db: ReturnType<typeof createDb>
     let mongoClient: MongoClient
 
-    before(async () => {
+    beforeAll(async () => {
         // Create database instance
         db = createDb(TEST_CONNECTION_STRING)
         
@@ -25,7 +24,7 @@ describe('MongoDB Database Package', () => {
         await mongoClient.connect()
     })
 
-    after(async () => {
+    afterAll(async () => {
         // Clean up
         await db.clearAll()
         await db.close()
@@ -39,15 +38,15 @@ describe('MongoDB Database Package', () => {
 
     describe('Database Initialization', () => {
         test('should connect to MongoDB successfully', () => {
-            assert.ok(db, 'Database should be defined')
-            assert.ok(db.eventStore, 'Event store should be defined')
-            assert.ok(db.repos, 'Repositories should be defined')
+            expect(db).toBeTruthy()
+            expect(db.eventStore).toBeTruthy()
+            expect(db.repos).toBeTruthy()
         })
 
         test('should create repositories for all slices', () => {
-            assert.ok(db.repos.account, 'Account repository should be defined')
-            assert.ok(db.repos.dialog, 'Dialog repository should be defined')
-            assert.ok(db.repos.system, 'System repository should be defined')
+            expect(db.repos.account).toBeTruthy()
+            expect(db.repos.dialog).toBeTruthy()
+            expect(db.repos.system).toBeTruthy()
         })
 
         test('should extract database name from connection string', async () => {
@@ -56,13 +55,13 @@ describe('MongoDB Database Package', () => {
             
             // Should have created collections
             const collectionNames = collections.map(c => c.name)
-            assert.ok(collectionNames.includes('events'), 'Events collection should exist')
+            expect(collectionNames).toContain('events')
         })
     })
 
     describe('Account Repository', () => {
         const testAccount: Account = {
-            accountId: createAccountId(),
+            accountId: createAccountId('12345678901234567'),
             steamId64: '12345678901234567',
             proxyUrl: 'http://proxy.example.com',
             status: 'disconnected',
@@ -73,20 +72,20 @@ describe('MongoDB Database Package', () => {
             await db.repos.account.save(testAccount)
             
             const retrieved = await db.repos.account.findById(testAccount.accountId)
-            assert.deepStrictEqual(retrieved, testAccount)
+            expect(retrieved).toEqual(testAccount)
         })
 
         test('should find all accounts', async () => {
-            const account1 = { ...testAccount, accountId: createAccountId() }
-            const account2 = { ...testAccount, accountId: createAccountId(), steamId64: '98765432109876543' }
+            const account1 = { ...testAccount, accountId: createAccountId('11111111111111111') }
+            const account2 = { ...testAccount, accountId: createAccountId('98765432109876543'), steamId64: '98765432109876543' }
             
             await db.repos.account.save(account1)
             await db.repos.account.save(account2)
             
             const all = await db.repos.account.findAll()
-            assert.strictEqual(all.length, 2, 'Should have 2 accounts')
-            assert.ok(all.some(acc => acc.accountId === account1.accountId), 'Should contain account1')
-            assert.ok(all.some(acc => acc.accountId === account2.accountId), 'Should contain account2')
+            expect(all).toHaveLength(2)
+            expect(all.some(acc => acc.accountId === account1.accountId)).toBe(true)
+            expect(all.some(acc => acc.accountId === account2.accountId)).toBe(true)
         })
 
         test('should update an account', async () => {
@@ -96,7 +95,7 @@ describe('MongoDB Database Package', () => {
             await db.repos.account.save(updated)
             
             const retrieved = await db.repos.account.findById(testAccount.accountId)
-            assert.strictEqual(retrieved?.status, 'connected')
+            expect(retrieved?.status).toBe('connected')
         })
 
         test('should delete an account', async () => {
@@ -104,15 +103,15 @@ describe('MongoDB Database Package', () => {
             await db.repos.account.delete(testAccount.accountId)
             
             const retrieved = await db.repos.account.findById(testAccount.accountId)
-            assert.strictEqual(retrieved, null)
+            expect(retrieved).toBeNull()
         })
     })
 
     describe('Dialog Repository', () => {
         const testDialog: Dialog = {
-            dialogId: createDialogId(),
-            accountId: createAccountId(),
-            playerSteamId64: '12345678901234567',
+            dialogId: createDialogId('account_12345678901234567', '98765432109876543'),
+            accountId: createAccountId('12345678901234567'),
+            playerSteamId64: '98765432109876543',
             status: 'active',
             language: 'en',
             goal: 'Test conversation',
@@ -130,7 +129,7 @@ describe('MongoDB Database Package', () => {
             await db.repos.dialog.save(testDialog)
             
             const retrieved = await db.repos.dialog.findById(testDialog.dialogId)
-            assert.deepStrictEqual(retrieved, testDialog)
+            expect(retrieved).toEqual(testDialog)
         })
 
         test('should handle dialog with messages', async () => {
@@ -156,8 +155,8 @@ describe('MongoDB Database Package', () => {
             await db.repos.dialog.save(dialogWithMessages)
             
             const retrieved = await db.repos.dialog.findById(testDialog.dialogId)
-            assert.strictEqual(retrieved?.messages.length, 2)
-            assert.strictEqual(retrieved?.totalMessages, 2)
+            expect(retrieved?.messages).toHaveLength(2)
+            expect(retrieved?.totalMessages).toBe(2)
         })
     })
 
@@ -166,10 +165,10 @@ describe('MongoDB Database Package', () => {
             const system = await db.repos.system.findById('system')
             
             // System should exist as it's initialized with singleton
-            assert.ok(system, 'System should be defined')
-            assert.strictEqual(system?.systemId, 'system')
-            assert.ok(system?.roundRobin, 'RoundRobin should be defined')
-            assert.ok(system?.rateLimits, 'RateLimits should be defined')
+            expect(system).toBeTruthy()
+            expect(system?.systemId).toBe('system')
+            expect(system?.roundRobin).toBeTruthy()
+            expect(system?.rateLimits).toBeTruthy()
         })
 
         test('should update system entity', async () => {
@@ -180,15 +179,15 @@ describe('MongoDB Database Package', () => {
                     ...system,
                     roundRobin: {
                         pointer: 5,
-                        eligibleAccountIds: [createAccountId(), createAccountId()]
+                        eligibleAccountIds: [createAccountId('11111111111111111'), createAccountId('22222222222222222')]
                     }
                 }
                 
                 await db.repos.system.save(updated)
                 
                 const retrieved = await db.repos.system.findById('system')
-                assert.strictEqual(retrieved?.roundRobin.pointer, 5)
-                assert.strictEqual(retrieved?.roundRobin.eligibleAccountIds.length, 2)
+                expect(retrieved?.roundRobin.pointer).toBe(5)
+                expect(retrieved?.roundRobin.eligibleAccountIds).toHaveLength(2)
             }
         })
     })
@@ -198,7 +197,7 @@ describe('MongoDB Database Package', () => {
             const event = {
                 id: 'evt1',
                 type: 'accounts/connected',
-                payload: { accountId: createAccountId() },
+                payload: { accountId: createAccountId('76561198000000001') },
                 meta: {
                     schemaVersion: '1.0',
                     id: 'test',
@@ -212,16 +211,16 @@ describe('MongoDB Database Package', () => {
             await db.eventStore.append(event)
             
             const events = await db.eventStore.getEvents()
-            assert.strictEqual(events.length, 1)
-            assert.strictEqual(events[0].type, 'accounts/connected')
-            assert.strictEqual(events[0].meta.aggregate, 'account')
+            expect(events).toHaveLength(1)
+            expect(events[0].type).toBe('accounts/connected')
+            expect(events[0].meta.aggregate).toBe('account')
         })
 
         test('should append batch of events', async () => {
             const events = Array.from({ length: 5 }, (_, i) => ({
                 id: `evt${i}`,
                 type: 'dialogs/messageReceived',
-                payload: { dialogId: createDialogId(), text: `Message ${i}` },
+                payload: { dialogId: createDialogId('account_123', '76561198000000001'), text: `Message ${i}` },
                 meta: {
                     schemaVersion: '1.0',
                     id: `msg${i}`,
@@ -235,7 +234,7 @@ describe('MongoDB Database Package', () => {
             await db.eventStore.appendBatch(events)
             
             const retrieved = await db.eventStore.getEvents()
-            assert.strictEqual(retrieved.length, 5)
+            expect(retrieved).toHaveLength(5)
         })
 
         test('should filter events by aggregate', async () => {
@@ -270,12 +269,12 @@ describe('MongoDB Database Package', () => {
             await db.eventStore.appendBatch([accountEvent, dialogEvent])
             
             const accountEvents = await db.eventStore.getEventsByAggregate('account')
-            assert.strictEqual(accountEvents.length, 1)
-            assert.strictEqual(accountEvents[0].type, 'accounts/connected')
+            expect(accountEvents).toHaveLength(1)
+            expect(accountEvents[0].type).toBe('accounts/connected')
             
             const dialogEvents = await db.eventStore.getEventsByAggregate('dialog')
-            assert.strictEqual(dialogEvents.length, 1)
-            assert.strictEqual(dialogEvents[0].type, 'dialogs/created')
+            expect(dialogEvents).toHaveLength(1)
+            expect(dialogEvents[0].type).toBe('dialogs/created')
         })
 
         test('should get events since timestamp', async () => {
@@ -311,8 +310,8 @@ describe('MongoDB Database Package', () => {
             await db.eventStore.appendBatch([oldEvent, newEvent])
             
             const recentEvents = await db.eventStore.getEventsSince(now - 5000)
-            assert.strictEqual(recentEvents.length, 1)
-            assert.strictEqual(recentEvents[0].type, 'test/new')
+            expect(recentEvents).toHaveLength(1)
+            expect(recentEvents[0].type).toBe('test/new')
         })
     })
 
@@ -323,21 +322,21 @@ describe('MongoDB Database Package', () => {
             // Check account indexes
             const accountIndexes = await testDb.collection('accounts').indexes()
             const accountIndexNames = accountIndexes.map(idx => Object.keys(idx.key || {})[0])
-            assert.ok(accountIndexNames.includes('accountId'), 'Should have accountId index')
-            assert.ok(accountIndexNames.includes('steamId64'), 'Should have steamId64 index')
-            assert.ok(accountIndexNames.includes('status'), 'Should have status index')
+            expect(accountIndexNames).toContain('accountId')
+            expect(accountIndexNames).toContain('steamId64')
+            expect(accountIndexNames).toContain('status')
             
             // Check dialog indexes  
             const dialogIndexes = await testDb.collection('dialogs').indexes()
             const dialogIndexNames = dialogIndexes.map(idx => Object.keys(idx.key || {})[0])
-            assert.ok(dialogIndexNames.includes('dialogId'), 'Should have dialogId index')
-            assert.ok(dialogIndexNames.includes('accountId'), 'Should have accountId index')
-            assert.ok(dialogIndexNames.includes('status'), 'Should have status index')
+            expect(dialogIndexNames).toContain('dialogId')
+            expect(dialogIndexNames).toContain('accountId')
+            expect(dialogIndexNames).toContain('status')
             
             // Check event indexes
             const eventIndexes = await testDb.collection('events').indexes()
             const eventIndexKeys = eventIndexes.map(idx => Object.keys(idx.key || {}).join(','))
-            assert.ok(eventIndexKeys.includes('meta.aggregate,meta.ts'), 'Should have compound event index')
+            expect(eventIndexKeys).toContain('meta.aggregate,meta.ts')
         })
     })
 
@@ -345,7 +344,7 @@ describe('MongoDB Database Package', () => {
         test('should clear all collections', async () => {
             // Add some data
             await db.repos.account.save({
-                accountId: createAccountId(),
+                accountId: createAccountId('12345678901234567'),
                 steamId64: '12345678901234567',
                 proxyUrl: 'http://proxy.example.com',
                 status: 'connected'
@@ -370,10 +369,10 @@ describe('MongoDB Database Package', () => {
             
             // Verify everything is cleared
             const accounts = await db.repos.account.findAll()
-            assert.strictEqual(accounts.length, 0)
+            expect(accounts).toHaveLength(0)
             
             const events = await db.eventStore.getEvents()
-            assert.strictEqual(events.length, 0)
+            expect(events).toHaveLength(0)
         })
     })
 })

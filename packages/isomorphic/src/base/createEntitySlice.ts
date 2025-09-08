@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction, Draft, Slice, ValidateSliceCaseReducers } from '@reduxjs/toolkit';
-import { Schema } from '@effect/schema';
+import * as S from 'effect/Schema';
+import { SimpleLogger } from '../utils/logger';
 
 // ============= Core Types =============
 
@@ -35,20 +36,28 @@ export type EntityReducer<TName extends string, TEntity, TPayload = void> = (
 
 /**
  * Map of entity reducers
+ * 
+ * @intentional-any The 'any' type for TPayload is required for TypeScript's type system to allow
+ * proper variance when mapping over different reducer types with different payloads.
+ * The actual payload types are properly constrained when the reducers are used.
  */
-export type EntityReducersMap<TName extends string, TEntity> = {
-  [K: string]: EntityReducer<TName, TEntity, any>;
-};
+export type EntityReducersMap<TName extends string, TEntity> = Record<string, EntityReducer<TName, TEntity, any>>;
 
 // ============= Type Helpers =============
 
 /**
  * Extract payload type from entity reducer
+ * 
+ * @intentional-any The 'any' for TEntity is safe because we're only extracting the payload type P.
+ * The entity type is irrelevant for this type extraction operation.
  */
-type ExtractPayload<T> = T extends EntityReducer<any, any, infer P> ? P : never;
+type ExtractPayload<T> = T extends EntityReducer<string, any, infer P> ? P : never;
 
 /**
  * Generate action creators with entity ID requirement
+ * 
+ * @intentional-any The 'any' in EntityReducersMap is required for the type constraint.
+ * TReducers is properly typed through the constraint, ensuring type safety.
  */
 type EntityActionCreators<TName extends string, TReducers extends EntityReducersMap<TName, any>> = {
   [K in keyof TReducers]: ExtractPayload<TReducers[K]> extends void
@@ -73,7 +82,7 @@ type SliceReducersFromEntityReducers<TName extends string, TEntity, TReducers ex
  */
 function getEntityId<TName extends string>(
   entityName: TName,
-  payload: EntityActionPayload<TName, any>
+  payload: EntityActionPayload<TName, unknown>
 ): string {
   const idKey = `${entityName}Id` as const;
   return payload[idKey];
@@ -118,7 +127,7 @@ export interface CreateEntitySliceConfig<TName extends string, TEntity, TReducer
   /**
    * Optional Schema for entity validation
    */
-  entitySchema?: Schema.Schema<TEntity>;
+  entitySchema?: S.Schema<TEntity, unknown, never>;
   
   /**
    * Custom pluralization function (optional)
@@ -128,6 +137,10 @@ export interface CreateEntitySliceConfig<TName extends string, TEntity, TReducer
   /**
    * Extra reducers for actions that create/delete entities or handle slice-level operations
    * These are passed directly to Redux Toolkit's createSlice
+   * 
+   * @intentional-any The 'any' payload type is required because extra reducers can handle
+   * arbitrary action types from other slices. Using 'unknown' would require type assertions
+   * in every extra reducer, making the API less ergonomic.
    */
   extraReducers?: Record<string, (state: Draft<EntityState<TEntity>>, action: PayloadAction<any>) => void>;
 }
@@ -170,8 +183,8 @@ export function createEntitySlice<
   selectEntity: (state: EntityState<TEntity>, id: string) => TEntity | undefined;
   selectAllEntities: (state: EntityState<TEntity>) => TEntity[];
   selectEntityIds: (state: EntityState<TEntity>) => string[];
-  schema: Schema.Schema<TEntity> | undefined;
-  name: TName;
+  schema: S.Schema<TEntity, unknown, never> | undefined;
+  name: string;
   pluralizeFn?: (singular: string) => string;
 } {
   const {
@@ -200,26 +213,26 @@ export function createEntitySlice<
   });
   
   // Transform entity reducers to slice reducers
-  const sliceReducers: SliceReducersFromEntityReducers<TName, TEntity, TReducers> = {} as any;
+  const sliceReducers: SliceReducersFromEntityReducers<TName, TEntity, TReducers> = {} as SliceReducersFromEntityReducers<TName, TEntity, TReducers>;
   
   Object.entries(entityReducers).forEach(([actionName, entityReducer]) => {
     sliceReducers[actionName as keyof TReducers] = (
       state: Draft<EntityState<TEntity>>,
-      action: PayloadAction<EntityActionPayload<TName, any>>
+      action: PayloadAction<EntityActionPayload<TName, ExtractPayload<TReducers[typeof actionName]>>>
     ) => {
-      const entityId = getEntityId(entityName, action.payload);
+      const entityId = getEntityId(entityName, action.payload as EntityActionPayload<TName, unknown>);
       const entity = state.entities[entityId];
       
       if (!entity) {
-        console.warn(`Entity with ${entityName}Id "${entityId}" not found`);
+        new SimpleLogger('EntitySlice').warn(`Entity not found`, undefined, { entityName, entityId });
         return;
       }
       
       // Validate with schema if provided
       if (entitySchema) {
-        const parseResult = Schema.decodeUnknownOption(entitySchema)(entity);
+        const parseResult = S.decodeUnknownOption(entitySchema as S.Schema<TEntity, unknown, never>)(entity);
         if (parseResult._tag === 'None') {
-          console.error(`Entity validation failed for ${entityName}Id "${entityId}"`);
+          new SimpleLogger('EntitySlice').error(`Entity validation failed`, undefined, { entityName, entityId });
           return;
         }
       }
@@ -235,7 +248,7 @@ export function createEntitySlice<
   });
   
   // Merge extraReducers with sliceReducers
-  const allReducers = { ...sliceReducers, ...extraReducers } as any;
+  const allReducers = { ...sliceReducers, ...extraReducers };
   
   // Create the slice
   const slice = createSlice({
@@ -250,11 +263,19 @@ export function createEntitySlice<
     selectAllEntities: (state: EntityState<TEntity>) => state.ids.map(id => state.entities[id]),
     selectEntityIds: (state: EntityState<TEntity>) => state.ids,
     schema: entitySchema,
-    name: entityName,
+    name: sliceName,
     pluralizeFn
   });
   
-  return enhancedSlice as any;
+  return enhancedSlice as Slice<EntityState<TEntity>, SliceReducersFromEntityReducers<TName, TEntity, TReducers>, string> & {
+    actions: EntityActionCreators<TName, TReducers>;
+    selectEntity: (state: EntityState<TEntity>, id: string) => TEntity | undefined;
+    selectAllEntities: (state: EntityState<TEntity>) => TEntity[];
+    selectEntityIds: (state: EntityState<TEntity>) => string[];
+    schema: S.Schema<TEntity, unknown, never> | undefined;
+    name: string;
+    pluralizeFn?: (singular: string) => string;
+  };
 }
 
 // ============= Additional Utilities =============
@@ -314,5 +335,5 @@ export function isEntityWithId<TName extends string, TEntity>(
   if (!value || typeof value !== 'object') return false;
   
   const idKey = `${entityName}Id`;
-  return idKey in value && typeof (value as any)[idKey] === 'string';
+  return idKey in value && typeof (value as Record<string, unknown>)[idKey] === 'string';
 }

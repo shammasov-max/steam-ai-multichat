@@ -6,4 +6,4 @@ export { ScoringEngine } from './services/ScoringEngine'
 
 export * from './types'
 
-export { dialogRepository } from '@packages/db'
+// export { dialogRepository } from '@packages/db' // Removed as it doesn't exist in @packages/db

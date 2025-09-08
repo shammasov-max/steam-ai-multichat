@@ -1,8 +1,10 @@
 import { Db, Collection, Filter, Sort } from 'mongodb'
 import { EventRecord, EventFilter } from './types'
+import { SimpleLogger } from '@packages/isomorphic'
 
 export class MongoEventStore {
     private collection: Collection<EventRecord> | null = null
+    private logger = new SimpleLogger('MongoEventStore')
     
     constructor() {}
 
@@ -14,9 +16,9 @@ export class MongoEventStore {
             // Create indexes for efficient querying
             await this.createIndexes()
             
-            console.log('EventStore initialized with events collection')
+            this.logger.info('EventStore initialized successfully', { collection: 'events' })
         } catch (error) {
-            console.error('Failed to initialize EventStore:', error)
+            this.logger.error('EventStore initialization failed', error as Error)
             throw error
         }
     }
@@ -48,9 +50,9 @@ export class MongoEventStore {
                 }
             }
             
-            await this.collection.insertOne(eventToSave as any)
+            await this.collection.insertOne(eventToSave)
         } catch (error) {
-            console.error('Failed to save event:', error)
+            this.logger.error('Failed to save event', error as Error, { eventType: event.type })
             throw error
         }
     }
@@ -72,9 +74,9 @@ export class MongoEventStore {
                 }
             }))
             
-            await this.collection.insertMany(eventsToSave as any)
+            await this.collection.insertMany(eventsToSave)
         } catch (error) {
-            console.error('Failed to save events:', error)
+            this.logger.error('Failed to save events batch', error as Error, { eventsCount: events.length })
             throw error
         }
     }
@@ -97,13 +99,14 @@ export class MongoEventStore {
             }
             
             if (filter?.fromTimestamp || filter?.toTimestamp) {
-                query['meta.ts'] = {}
+                const tsQuery: { $gte?: number; $lte?: number } = {}
                 if (filter.fromTimestamp) {
-                    (query['meta.ts'] as any).$gte = filter.fromTimestamp
+                    tsQuery.$gte = filter.fromTimestamp
                 }
                 if (filter.toTimestamp) {
-                    (query['meta.ts'] as any).$lte = filter.toTimestamp
+                    tsQuery.$lte = filter.toTimestamp
                 }
+                query['meta.ts'] = tsQuery
             }
             
             // Build sort and pagination options
@@ -121,7 +124,7 @@ export class MongoEventStore {
             
             return events as EventRecord[]
         } catch (error) {
-            console.error('Failed to get events:', error)
+            this.logger.error('Failed to get events', error as Error, { filter })
             throw error
         }
     }
@@ -156,7 +159,7 @@ export class MongoEventStore {
             
             return events as EventRecord[]
         } catch (error) {
-            console.error('Failed to get events by aggregate ID:', error)
+            this.logger.error('Failed to get events by aggregate ID', error as Error, { aggregateType, aggregateId })
             throw error
         }
     }
@@ -179,7 +182,7 @@ export class MongoEventStore {
             
             return event as EventRecord | null
         } catch (error) {
-            console.error('Failed to get latest event:', error)
+            this.logger.error('Failed to get latest event', error as Error, { aggregateType, aggregateId })
             throw error
         }
     }
@@ -201,18 +204,19 @@ export class MongoEventStore {
             }
             
             if (filter?.fromTimestamp || filter?.toTimestamp) {
-                query['meta.ts'] = {}
+                const tsQuery: { $gte?: number; $lte?: number } = {}
                 if (filter.fromTimestamp) {
-                    (query['meta.ts'] as any).$gte = filter.fromTimestamp
+                    tsQuery.$gte = filter.fromTimestamp
                 }
                 if (filter.toTimestamp) {
-                    (query['meta.ts'] as any).$lte = filter.toTimestamp
+                    tsQuery.$lte = filter.toTimestamp
                 }
+                query['meta.ts'] = tsQuery
             }
             
             return await this.collection.countDocuments(query)
         } catch (error) {
-            console.error('Failed to count events:', error)
+            this.logger.error('Failed to count events', error as Error, { filter })
             throw error
         }
     }
@@ -224,9 +228,9 @@ export class MongoEventStore {
         
         try {
             await this.collection.deleteMany({})
-            console.log('All events cleared')
+            this.logger.info('All events cleared successfully')
         } catch (error) {
-            console.error('Failed to clear events:', error)
+            this.logger.error('Failed to clear events', error as Error)
             throw error
         }
     }
@@ -234,6 +238,6 @@ export class MongoEventStore {
     async close(): Promise<void> {
         // Connection is managed by MongoDatabase
         this.collection = null
-        console.log('EventStore closed')
+        this.logger.info('EventStore closed')
     }
 }

@@ -2,12 +2,14 @@ import { EventEmitter } from 'events'
 import SteamUser from 'steam-user'
 import SteamTotp from 'steam-totp'
 import { SteamAgentConfig, Friend } from './types.js'
+import { SimpleLogger } from '@packages/isomorphic'
 
 export class SteamAgent extends EventEmitter {
     private client: SteamUser
     private config: SteamAgentConfig
     private isLoggedIn: boolean = false
     private chatHistories: Map<string, Array<{direction: string, message: string, timestamp: number, steamID: string}>> = new Map()
+    private logger = new SimpleLogger('SteamAgent')
 
     constructor(config: SteamAgentConfig) {
         super()
@@ -75,7 +77,7 @@ export class SteamAgent extends EventEmitter {
             try {
                 twoFactorCode = SteamTotp.generateAuthCode(maFileData.shared_secret)
             } catch (err) {
-                console.warn('Could not generate 2FA code upfront, will handle via steamGuard event:', err)
+                this.logger.warn('Could not generate 2FA code upfront, will handle via steamGuard event', err as Error)
             }
             
             const loginOptions: SteamUser.LogOnDetailsNamePass = {
@@ -91,7 +93,7 @@ export class SteamAgent extends EventEmitter {
             // Note: Proxy configuration needs to be set via SteamUser options
             if (this.config.proxy) {
                 // This should be configured in the SteamUser constructor instead
-                console.warn('Proxy configuration should be set via SteamUser constructor options')
+                this.logger.warn('Proxy configuration should be set via SteamUser constructor options', undefined, { proxy: this.config.proxy })
             }
 
             return new Promise((resolve, reject) => {
@@ -111,7 +113,7 @@ export class SteamAgent extends EventEmitter {
                         // Generate 2FA code with time offset for retries
                         let authCode: string
                         if (lastCodeWrong) {
-                            console.warn(`Steam Guard code rejected, attempt ${steamGuardAttempts}/${maxAttempts}, trying with time offset...`)
+                            this.logger.warn('Steam Guard code rejected, retrying with time offset', undefined, { attempt: steamGuardAttempts, maxAttempts, timeOffset: steamGuardAttempts === 2 ? 30 : -30 })
                             // Try with different time offsets to handle clock drift
                             const offset = steamGuardAttempts === 2 ? 30 : -30 // Try +30s and -30s offsets
                             authCode = SteamTotp.generateAuthCode(maFileData.shared_secret, offset)

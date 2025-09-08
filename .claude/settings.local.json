@@ -33,9 +33,30 @@
       "Bash(yarn workspace @packages/db:*)",
       "Bash(yarn install)",
       "Bash(docker-compose up:*)",
-      "Bash(docker-compose:*)"
+      "Bash(docker-compose:*)",
+      "Bash(timeout 60 yarn test)",
+      "Bash(yarn build)",
+      "Bash(yarn build:*)",
+      "Bash(npm run build)",
+      "Bash(npm run build:*)",
+      "Bash(node:*)",
+      "Bash(claude doctor)",
+      "Bash(\"C:\\Program Files\\nodejs\\claude.cmd\" doctor)",
+      "Bash(yarn lint)",
+      "Bash(for pkg in isomorphic steam-api server)",
+      "Bash(do echo \"=== packages/$pkg/package.json ===\")",
+      "Bash(grep:*)",
+      "Bash(mkdir:*)",
+      "Read(//c/Users/miram/**)"
     ],
     "deny": [],
     "ask": []
+  },
+  "chat": {
+    "alwaysAllowWriteOnly": true,
+    "allowedCommands": [
+      "yarn test",
+      "yarn typecheck"
+    ]
   }
 }

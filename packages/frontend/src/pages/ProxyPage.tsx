@@ -268,7 +268,7 @@ const ProxyPage: React.FC = () => {
   }, [])
 
   const onSortChanged = useCallback((params: SortChangedEvent) => {
-    console.log('Sort changed:', params.api.getSortModel())
+    console.log('Sort changed:', params.api.getColumnState())
   }, [])
 
   const onSelectionChanged = useCallback(() => {

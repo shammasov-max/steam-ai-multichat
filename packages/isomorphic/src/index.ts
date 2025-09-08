@@ -13,8 +13,18 @@ export {
     type CreateEntitySliceConfig,
 } from './base/createEntitySlice'
 
+// ============= Memoized Entity Slice =============
+export {
+    createEntitySliceWithMemoization,
+    type MemoizedEntitySlice
+} from './base/createEntitySliceWithMemoization'
+
 // ============= Entity Slices =============
 export * from './slices/index'
+
+// ============= Memoized Entity Slices =============
+export * from './slices/accounts-memoized'
+export * from './slices/dialogs-memoized'
 
 // ============= Store setup helpers =============
 export { sliceReducers, sliceActions, sliceSelectors, type RootState } from './slices/index'
@@ -39,3 +49,6 @@ export {
     type SystemId as SystemIdType,
     type SteamID64 as SteamID64Type
 } from './types/branded'
+
+// ============= Utils =============
+export { SimpleLogger, createLogger, type LogLevel, type LogEntry } from './utils/logger'

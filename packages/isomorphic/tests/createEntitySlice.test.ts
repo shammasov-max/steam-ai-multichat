@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from 'vitest';
 import { configureStore } from '@reduxjs/toolkit';
 
 import {
@@ -86,12 +86,12 @@ test('createEntitySlice: initializes state and selectors work', async () => {
 
 test('createEntitySlice: warns and does nothing when entity is not found', async () => {
   const productSlice = createEntitySlice({
-    name: 'product',
+    name: 'product' as const,
     entityReducers: {
-      updatePrice: (product, payload: { productId: string; price: number }) => {
+      updatePrice: (product: any, payload: { productId: string; price: number }) => {
         product.price = payload.price;
       },
-      adjustStock: (product, payload: { productId: string; delta: number }) => {
+      adjustStock: (product: any, payload: { productId: string; delta: number }) => {
         product.stock = Math.max(0, product.stock + payload.delta);
       },
     },
@@ -103,23 +103,28 @@ test('createEntitySlice: warns and does nothing when entity is not found', async
     },
   });
 
-  const originalWarn = console.warn;
-  let warnCalled = 0;
-  let lastWarnMsg = '';
-  console.warn = (msg?: unknown, ..._rest: unknown[]) => {
-    warnCalled += 1;
-    lastWarnMsg = String(msg);
+  const originalLog = console.log;
+  let logCalled = 0;
+  let lastLogMsg = '';
+  console.log = (msg?: unknown, ..._rest: unknown[]) => {
+    logCalled += 1;
+    lastLogMsg = String(msg);
   };
 
   try {
     store.dispatch(productSlice.actions.updatePrice({ productId: 'prod-123', price: 29.99 }));
   } finally {
-    console.warn = originalWarn;
+    console.log = originalLog;
   }
 
   const state = store.getState();
-  expect(warnCalled).toBe(1);
-  expect(lastWarnMsg).toContain('productId "prod-123"');
+  expect(logCalled).toBe(1);
+  
+  // Parse the JSON log to check the content
+  const logEntry = JSON.parse(lastLogMsg);
+  expect(logEntry.level).toBe('WARN');
+  expect(logEntry.message).toBe('Entity not found');
+  expect(logEntry.entityId).toBe('prod-123');
   expect(productSlice.selectEntity(state.products, 'prod-123')).toBeUndefined();
 });
 

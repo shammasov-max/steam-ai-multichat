@@ -1,5 +1,6 @@
 import OpenAI from 'openai'
 import { CompressedContext } from '../types'
+import { SimpleLogger } from '@packages/isomorphic'
 
 export type AIModel = 
   | 'gpt-3.5-turbo'
@@ -100,6 +101,7 @@ export interface AIResponse {
 export class AIService {
   private openai: OpenAI
   private config: Required<AIServiceConfig>
+  private logger = new SimpleLogger('AIService')
 
   constructor(config: AIServiceConfig) {
     this.openai = new OpenAI({ apiKey: config.apiKey })
@@ -149,7 +151,7 @@ export class AIService {
         strategy
       }
     } catch (error) {
-      console.error('OpenAI API error:', error)
+      this.logger.error('OpenAI API error', error as Error)
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
       throw new Error(`Failed to generate AI response: ${errorMessage}`)
     }
@@ -242,7 +244,7 @@ IMPORTANT:
       const response = await this.openai.models.list()
       return response && response.data && response.data.length > 0
     } catch (error) {
-      console.error('OpenAI connection test failed:', error)
+      this.logger.error('OpenAI connection test failed', error as Error)
       return false
     }
   }

@@ -152,7 +152,7 @@ const ConsoleTable: React.FC<ConsoleTableProps> = ({ entries }) => {
         defaultColDef={defaultColDef}
         onGridReady={onGridReady}
         animateRows={true}
-        rowSelection="none"
+        suppressRowClickSelection={true}
         suppressMovableColumns={false}
         enableCellTextSelection={true}
         pagination={true}

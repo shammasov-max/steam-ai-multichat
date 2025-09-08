@@ -1,7 +1,7 @@
-export interface EventRecord {
+export interface EventRecord<TPayload = unknown> {
     id: string
     type: string
-    payload: Record<string, any>
+    payload: TPayload extends Record<string, unknown> ? TPayload : Record<string, unknown>
     meta: {
         schemaVersion: string
         id: string
@@ -12,9 +12,9 @@ export interface EventRecord {
     timestamp: number
 }
 
-export interface StateSnapshot {
+export interface StateSnapshot<TState = unknown> {
     id: string
-    state: Record<string, any>
+    state: TState extends Record<string, unknown> ? TState : Record<string, unknown>
     timestamp: number
     version: number
 }

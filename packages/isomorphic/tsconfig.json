@@ -3,10 +3,12 @@
   "compilerOptions": {
     "composite": true,
     "declaration": true,
-    "rootDir": "./src",
+    "declarationMap": true,
+    "rootDir": "./",
     "outDir": "./dist",
-    "moduleResolution": "bundler"
+    "moduleResolution": "bundler",
+    "noEmit": false
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*", "examples/**/*", "tests/**/*"]
 }
 

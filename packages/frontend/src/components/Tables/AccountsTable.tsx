@@ -201,7 +201,6 @@ const AccountsTable: React.FC<AccountsTableProps> = ({
         rowHeight={50}
         suppressMenuHide={false}
         enableBrowserTooltips={true}
-        rowMultiSelectWithClick={true}
         getRowId={(params) => params.data.id}
       />
     </div>

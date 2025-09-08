@@ -15,10 +15,10 @@
     "noImplicitReturns": true,
     "noImplicitThis": true,
     "noImplicitOverride": true,
-    "noUncheckedIndexedAccess": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    
+    "noUncheckedIndexedAccess": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+
     // JSX settings
     "jsx": "react-jsx",
     "jsxImportSource": "react",

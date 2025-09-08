@@ -44,7 +44,7 @@ export class ContextCompressor {
       recentMessages,
       goal,
       init,
-      userInfo
+      ...(userInfo && { userInfo })
     }
   }
 

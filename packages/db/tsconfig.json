@@ -1,12 +1,14 @@
 {
     "extends": "../../tsconfig.base.json",
     "compilerOptions": {
+        "composite": true,
+        "declaration": true,
+        "declarationMap": true,
         "outDir": "./dist",
-        "rootDir": "./src"
+        "rootDir": "./",
+        "esModuleInterop": true
     },
-    "include": [
-        "src/**/*"
-    ],
+    "include": ["src/**/*", "examples/**/*", "tests/**/*"],
     "references": [
         {
             "path": "../isomorphic"
