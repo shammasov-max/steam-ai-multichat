@@ -24,7 +24,9 @@
   "license": "MIT",
   "dependencies": {
     "@packages/db": "workspace:*",
+    "@packages/isomorphic": "workspace:*",
     "dotenv": "^17.2.1",
+    "effect": "^3.17.6",
     "js-yaml": "^4.1.0",
     "openai": "^4.0.0",
     "uuid": "^9.0.0"

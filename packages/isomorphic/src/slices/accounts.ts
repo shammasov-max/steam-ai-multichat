@@ -94,7 +94,7 @@ export type MaFile = S.Schema.Type<typeof MaFileSchema>
 export const accountSlice = createEntitySlice({
     name: 'account',
     initialEntities: [] as Draft<Account>[],
-    entitySchema: AccountSchema as any,
+    entitySchema: AccountSchema as S.Schema<any, unknown, never>,
     entityReducers: {
         // Event: accounts/connected
         connected: (account: Draft<Account>, payload: EntityActionPayload<'account', { ts?: number }>) => {

@@ -1,6 +1,9 @@
-import { MongoDatabase, type SliceConfig } from './MongoDatabase'
+import { MongoDatabase } from './MongoDatabase'
 import { accountSlice, dialogSlice, systemSlice, type Account, type Dialog, type System, getSystemId } from '@packages/isomorphic'
 import * as S from 'effect/Schema'
+import { Duration } from 'effect'
+import { createCompleteMongoDB } from './MongoDatabaseEffect'
+import { SliceConfig } from './types'
 
 // ============= Types =============
 export type {
@@ -9,8 +12,23 @@ export type {
     EventStoreConfig,
     EventFilter,
     SnapshotFilter,
+    SliceConfig
 } from './types'
-export type { Repository, SliceConfig } from './MongoDatabase'
+export type { Repository } from './MongoDatabase'
+
+// ============= Effect Exports =============
+export {
+    MongoError,
+    MongoConnection,
+    EventStore,
+    EventStoreLive,
+    MongoDB,
+    MongoConnectionLive,
+    createMongoDBLayer,
+    createCompleteMongoDB,
+    runWithMongoDB,
+    type Repo
+} from './MongoDatabaseEffect'
 
 // ============= Main Export =============
 
@@ -37,45 +55,39 @@ export type { Repository, SliceConfig } from './MongoDatabase'
  * await db.eventStore.append(event)
  * ```
  */
-// Type the slices properly with their extended properties
-type ExtendedSlice<TName extends string, TEntity> = {
-    schema: S.Schema<TEntity, unknown, never> | undefined
-    pluralizeFn?: (singular: string) => string
-    name: TName
+// Helper function to safely extract schema
+function extractSchema<T>(schema: S.Schema<T, unknown, never> | undefined): S.Schema<T, unknown, never> {
+    if (!schema) {
+        throw new Error('Schema is required for database operations')
+    }
+    return schema
 }
 
-const accountSliceTyped = accountSlice as unknown as ExtendedSlice<'account', Account>
-const dialogSliceTyped = dialogSlice as unknown as ExtendedSlice<'dialog', Dialog>
-const systemSliceTyped = systemSlice as unknown as ExtendedSlice<'system', System>
-
-// Define slice configurations with proper types
-const accountSliceConfig: SliceConfig<'account', Account> = {
-    name: 'account' as const,
-    schema: accountSliceTyped.schema as S.Schema<Account, unknown, never>,
-    ...(accountSliceTyped.pluralizeFn && { pluralizeFn: accountSliceTyped.pluralizeFn }),
-    initialEntities: []
+// Helper to create slice config with proper typing
+function createSliceConfig<TName extends string, TEntity>(
+    name: TName,
+    slice: { schema: S.Schema<TEntity, unknown, never> | undefined; pluralizeFn?: (name: string) => string },
+    initialEntities: TEntity[] = []
+): SliceConfig<TName, TEntity> {
+    return {
+        name,
+        schema: extractSchema(slice.schema),
+        ...(slice.pluralizeFn && { pluralizeFn: slice.pluralizeFn }),
+        initialEntities
+    }
 }
 
-const dialogSliceConfig: SliceConfig<'dialog', Dialog> = {
-    name: 'dialog' as const,
-    schema: dialogSliceTyped.schema as S.Schema<Dialog, unknown, never>,
-    ...(dialogSliceTyped.pluralizeFn && { pluralizeFn: dialogSliceTyped.pluralizeFn }),
-    initialEntities: []
-}
-
-const systemSliceConfig: SliceConfig<'system', System> = {
-    name: 'system' as const,
-    schema: systemSliceTyped.schema as S.Schema<System, unknown, never>,
-    ...(systemSliceTyped.pluralizeFn && { pluralizeFn: systemSliceTyped.pluralizeFn }),
-    initialEntities: [{
-        systemId: getSystemId(),
-        roundRobin: {
-            pointer: 0,
-            eligibleAccountIds: []
-        },
-        rateLimits: {}
-    }]
-}
+// Define slice configurations using helper function
+const accountSliceConfig = createSliceConfig('account' as const, accountSlice as any)
+const dialogSliceConfig = createSliceConfig('dialog' as const, dialogSlice as any)  
+const systemSliceConfig = createSliceConfig('system' as const, systemSlice as any, [{
+    systemId: getSystemId(),
+    roundRobin: {
+        pointer: 0,
+        eligibleAccountIds: []
+    },
+    rateLimits: {}
+}])
 
 export function createDb(connectionString: string) {
     const slices = [
@@ -87,5 +99,22 @@ export function createDb(connectionString: string) {
     return new MongoDatabase(connectionString, slices)
 }
 
+// Effect-based database creator
+export function createDbEffect(connectionString: string) {
+    const slices = [
+        accountSliceConfig,
+        dialogSliceConfig,
+        systemSliceConfig
+    ] as const
+    
+    return {
+        slices,
+        layer: createCompleteMongoDB(slices)
+    }
+}
+
 // Re-export MongoDatabase type for advanced usage
 export type { MongoDatabase }
+
+// Re-export Effect Duration for convenience
+export { Duration } from 'effect'

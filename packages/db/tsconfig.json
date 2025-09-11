@@ -8,7 +8,7 @@
         "rootDir": "./",
         "esModuleInterop": true
     },
-    "include": ["src/**/*", "examples/**/*", "tests/**/*"],
+    "include": ["src/**/*", "tests/**/*"],
     "references": [
         {
             "path": "../isomorphic"

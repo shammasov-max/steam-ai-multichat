@@ -1,32 +1,3 @@
-// Main Client
-export { SteamClient } from './client/steam-client'
-export type { SteamClientConfig } from './client/steam-client'
-
-// Session Management
-export { SessionManager } from './session/session-manager'
-
-// Authentication
-export { MaFileHandler } from './auth/mafile-handler'
-
-// Rate Limiting
-export { RateLimiter } from './rate-limiter/rate-limiter'
-
-// Message Queue
-export { MessageQueue } from './queues/message-queue'
-export type { QueueConfig } from './queues/message-queue'
-
-// Types
-export type {
-    MaFile,
-    AccountConfig,
-    SteamSession,
-    SessionStatus,
-    MessageOptions,
-    FriendRequest,
-    RateLimitConfig,
-    SteamError
-} from './types'
-
 // Legacy exports for backward compatibility (will be removed)
 export { SteamAgent, createSteamAgent } from './SteamAgent'
 export type {
@@ -37,6 +8,28 @@ export type {
     SteamAgentEvents,
 } from './types'
 
+// Effect-based exports
+export {
+    SteamEffectError,
+    SteamAuthError,
+    SteamConfig,
+    SteamConnectionService,
+    SteamConnectionPool,
+    SteamConnectionLive,
+    SteamConnectionPoolLive,
+    SteamOperations,
+    SteamOperationsLive,
+    createSteamLayer,
+    runWithSteam,
+    runWithSteamPool,
+    type SteamConnection,
+    type SteamEvent
+} from './SteamAgentEffect'
+
+export {
+    SteamAgentEffectWrapper,
+    createSteamAgentEffect
+} from './SteamAgentEffectWrapper'
+
 // Re-export default
-import { SteamClient } from './client/steam-client'
-export default SteamClient
+export { SteamAgent as default } from './SteamAgent'

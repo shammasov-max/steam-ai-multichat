@@ -235,7 +235,7 @@ function trimMessages(messages: DialogMsg[]): DialogMsg[] {
 export const dialogSlice = createEntitySlice({
     name: 'dialog',
     initialEntities: [],
-    entitySchema: DialogSchema as any,
+    entitySchema: DialogSchema as S.Schema<any, unknown, never>,
     entityReducers: {
         // Event: dialogs/messageReceived
         'messageReceived': (

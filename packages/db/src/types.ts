@@ -1,3 +1,5 @@
+import * as S from 'effect/Schema'
+
 export interface EventRecord<TPayload = unknown> {
     id: string
     type: string
@@ -42,4 +44,12 @@ export interface SnapshotFilter {
     toTimestamp?: number
     limit?: number
     offset?: number
+}
+
+// Slice configuration type
+export interface SliceConfig<TName extends string = string, TEntity = unknown> {
+    name: TName
+    schema: S.Schema<TEntity, unknown, never> | S.Schema<any, unknown, never>
+    pluralizeFn?: (name: string) => string
+    initialEntities?: TEntity[]
 }

@@ -1,79 +1,26 @@
 import { createSlice, PayloadAction, Draft, Slice, ValidateSliceCaseReducers } from '@reduxjs/toolkit';
 import * as S from 'effect/Schema';
+import { createSelector } from 'reselect';
 import { SimpleLogger } from '../utils/logger';
+import {
+  EntityWithId,
+  EntityState,
+  EntityActionPayload,
+  EntityReducer,
+  EntityReducersMap,
+  ExtractPayload,
+  EntityActionCreators,
+  SliceReducersFromEntityReducers
+} from './entityTypes';
 
-// ============= Core Types =============
-
-/**
- * Entity with ID property following the pattern {TName}Id
- */
-export type EntityWithId<TName extends string, TEntity> = TEntity & {
-  readonly [K in `${TName}Id`]: string;
-};
-
-/**
- * Normalized entity state structure
- */
-export interface EntityState<TEntity> {
-  entities: Record<string, TEntity>;
-  ids: string[];
-}
-
-/**
- * Action payload that includes the entity ID
- */
-export type EntityActionPayload<TName extends string, TPayload = void> = TPayload extends void
-  ? { [K in `${TName}Id`]: string }
-  : TPayload & { [K in `${TName}Id`]: string };
-
-/**
- * Entity reducer function type
- */
-export type EntityReducer<TName extends string, TEntity, TPayload = void> = (
-  entity: Draft<TEntity>,
-  payload: EntityActionPayload<TName, TPayload>
-) => void | Draft<TEntity>;
-
-/**
- * Map of entity reducers
- * 
- * @intentional-any The 'any' type for TPayload is required for TypeScript's type system to allow
- * proper variance when mapping over different reducer types with different payloads.
- * The actual payload types are properly constrained when the reducers are used.
- */
-export type EntityReducersMap<TName extends string, TEntity> = Record<string, EntityReducer<TName, TEntity, any>>;
-
-// ============= Type Helpers =============
-
-/**
- * Extract payload type from entity reducer
- * 
- * @intentional-any The 'any' for TEntity is safe because we're only extracting the payload type P.
- * The entity type is irrelevant for this type extraction operation.
- */
-type ExtractPayload<T> = T extends EntityReducer<string, any, infer P> ? P : never;
-
-/**
- * Generate action creators with entity ID requirement
- * 
- * @intentional-any The 'any' in EntityReducersMap is required for the type constraint.
- * TReducers is properly typed through the constraint, ensuring type safety.
- */
-type EntityActionCreators<TName extends string, TReducers extends EntityReducersMap<TName, any>> = {
-  [K in keyof TReducers]: ExtractPayload<TReducers[K]> extends void
-    ? (payload: EntityActionPayload<TName, void>) => PayloadAction<EntityActionPayload<TName, void>>
-    : (payload: EntityActionPayload<TName, ExtractPayload<TReducers[K]>>) => PayloadAction<EntityActionPayload<TName, ExtractPayload<TReducers[K]>>>;
-};
-
-/**
- * Transform entity reducers to slice reducers
- */
-type SliceReducersFromEntityReducers<TName extends string, TEntity, TReducers extends EntityReducersMap<TName, TEntity>> = {
-  [K in keyof TReducers]: (
-    state: Draft<EntityState<TEntity>>,
-    action: PayloadAction<EntityActionPayload<TName, ExtractPayload<TReducers[K]>>>
-  ) => void;
-};
+// Re-export types for backwards compatibility
+export {
+  EntityWithId,
+  EntityState,
+  EntityActionPayload,
+  EntityReducer,
+  EntityReducersMap
+} from './entityTypes';
 
 // ============= Helper Functions =============
 
@@ -103,6 +50,57 @@ function pluralize(singular: string): string {
   return singular + 's';
 }
 
+/**
+ * Create memoized selectors for entity operations
+ */
+function createEntitySelectors<TEntity>(): EntitySelectors<TEntity> {
+  // Basic selectors (not memoized as they're simple property access)
+  const selectEntities = (state: EntityState<TEntity>) => state.entities;
+  const selectIds = (state: EntityState<TEntity>) => state.ids;
+  
+  // Memoized selector for single entity lookup
+  const selectEntity = createSelector(
+    [selectEntities, (_: EntityState<TEntity>, id: string) => id],
+    (entities, id) => entities[id]
+  );
+  
+  // Memoized selector for all entities as array
+  const selectAllEntities = createSelector(
+    [selectEntities, selectIds],
+    (entities, ids) => ids.map(id => entities[id]).filter(Boolean)
+  );
+  
+  // Simple selector for IDs (already optimal)
+  const selectEntityIds = (state: EntityState<TEntity>) => state.ids;
+  
+  // Memoized selector for multiple entities by IDs
+  const selectEntitiesByIds = createSelector(
+    [selectEntities, (_: EntityState<TEntity>, ids: string[]) => ids],
+    (entities, ids) => ids.map(id => entities[id]).filter(Boolean)
+  );
+  
+  // Memoized selector for entity count
+  const selectEntityCount = createSelector(
+    [selectIds],
+    ids => ids.length
+  );
+  
+  // Memoized selector for checking entity existence
+  const selectHasEntity = createSelector(
+    [selectEntities, (_: EntityState<TEntity>, id: string) => id],
+    (entities, id) => id in entities
+  );
+  
+  return {
+    selectEntity,
+    selectAllEntities,
+    selectEntityIds,
+    selectEntitiesByIds,
+    selectEntityCount,
+    selectHasEntity
+  };
+}
+
 // ============= Main Function =============
 
 /**
@@ -127,7 +125,7 @@ export interface CreateEntitySliceConfig<TName extends string, TEntity, TReducer
   /**
    * Optional Schema for entity validation
    */
-  entitySchema?: S.Schema<TEntity, unknown, never>;
+  entitySchema?: S.Schema<any, unknown, never>;
   
   /**
    * Custom pluralization function (optional)
@@ -143,6 +141,18 @@ export interface CreateEntitySliceConfig<TName extends string, TEntity, TReducer
    * in every extra reducer, making the API less ergonomic.
    */
   extraReducers?: Record<string, (state: Draft<EntityState<TEntity>>, action: PayloadAction<any>) => void>;
+}
+
+/**
+ * Memoized selectors for entity operations
+ */
+export interface EntitySelectors<TEntity> {
+  selectEntity: (state: EntityState<TEntity>, id: string) => TEntity | undefined;
+  selectAllEntities: (state: EntityState<TEntity>) => TEntity[];
+  selectEntityIds: (state: EntityState<TEntity>) => string[];
+  selectEntitiesByIds: (state: EntityState<TEntity>, ids: string[]) => TEntity[];
+  selectEntityCount: (state: EntityState<TEntity>) => number;
+  selectHasEntity: (state: EntityState<TEntity>, id: string) => boolean;
 }
 
 /**
@@ -178,11 +188,9 @@ export function createEntitySlice<
   TReducers extends EntityReducersMap<TName, TEntity>
 >(
   config: CreateEntitySliceConfig<TName, TEntity, TReducers>
-): Slice<EntityState<TEntity>, SliceReducersFromEntityReducers<TName, TEntity, TReducers>, string> & {
+): Slice<EntityState<TEntity>, SliceReducersFromEntityReducers<TName, TEntity, TReducers>, string> & 
+  EntitySelectors<TEntity> & {
   actions: EntityActionCreators<TName, TReducers>;
-  selectEntity: (state: EntityState<TEntity>, id: string) => TEntity | undefined;
-  selectAllEntities: (state: EntityState<TEntity>) => TEntity[];
-  selectEntityIds: (state: EntityState<TEntity>) => string[];
   schema: S.Schema<TEntity, unknown, never> | undefined;
   name: string;
   pluralizeFn?: (singular: string) => string;
@@ -257,21 +265,20 @@ export function createEntitySlice<
     reducers: allReducers as ValidateSliceCaseReducers<EntityState<TEntity>, SliceReducersFromEntityReducers<TName, TEntity, TReducers>>
   });
   
+  // Create memoized selectors
+  const selectors = createEntitySelectors<TEntity>();
+  
   // Add selector functions and expose schema
   const enhancedSlice = Object.assign(slice, {
-    selectEntity: (state: EntityState<TEntity>, id: string) => state.entities[id],
-    selectAllEntities: (state: EntityState<TEntity>) => state.ids.map(id => state.entities[id]),
-    selectEntityIds: (state: EntityState<TEntity>) => state.ids,
+    ...selectors,
     schema: entitySchema,
     name: sliceName,
     pluralizeFn
   });
   
-  return enhancedSlice as Slice<EntityState<TEntity>, SliceReducersFromEntityReducers<TName, TEntity, TReducers>, string> & {
+  return enhancedSlice as Slice<EntityState<TEntity>, SliceReducersFromEntityReducers<TName, TEntity, TReducers>, string> & 
+    EntitySelectors<TEntity> & {
     actions: EntityActionCreators<TName, TReducers>;
-    selectEntity: (state: EntityState<TEntity>, id: string) => TEntity | undefined;
-    selectAllEntities: (state: EntityState<TEntity>) => TEntity[];
-    selectEntityIds: (state: EntityState<TEntity>) => string[];
     schema: S.Schema<TEntity, unknown, never> | undefined;
     name: string;
     pluralizeFn?: (singular: string) => string;

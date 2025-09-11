@@ -46,7 +46,7 @@ describe('DB Package Quick Tests', () => {
         const retrieved = await db.repos.account.findById(testAccount.accountId)
         
         expect(retrieved).toBeTruthy()
-        expect(retrieved?.steamId64).toBe(testAccount.steamId64)
+        expect((retrieved as any)?.steamId64).toBe(testAccount.steamId64)
     })
 
     test('should save and retrieve dialog', async () => {
@@ -71,7 +71,7 @@ describe('DB Package Quick Tests', () => {
         const dialogRetrieved = await db.repos.dialog.findById(testDialog.dialogId)
         
         expect(dialogRetrieved).toBeTruthy()
-        expect(dialogRetrieved?.playerSteamId64).toBe(testDialog.playerSteamId64)
+        expect((dialogRetrieved as any)?.playerSteamId64).toBe(testDialog.playerSteamId64)
     })
 
     test('should handle event store operations', async () => {

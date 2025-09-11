@@ -47,7 +47,12 @@
       "Bash(do echo \"=== packages/$pkg/package.json ===\")",
       "Bash(grep:*)",
       "Bash(mkdir:*)",
-      "Read(//c/Users/miram/**)"
+      "Read(//c/Users/miram/**)",
+      "Bash(yarn workspace @packages/steam-api typecheck:*)",
+      "Bash(for:*)",
+      "Bash(yarn vitest:*)",
+      "Bash(tree:*)",
+      "Bash(mongosh:*)"
     ],
     "deny": [],
     "ask": []

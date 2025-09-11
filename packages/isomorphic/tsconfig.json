@@ -6,9 +6,8 @@
     "declarationMap": true,
     "rootDir": "./",
     "outDir": "./dist",
-    "moduleResolution": "bundler",
-    "noEmit": false
+    "moduleResolution": "bundler"
   },
-  "include": ["src/**/*", "examples/**/*", "tests/**/*"]
+  "include": ["src/**/*", "tests/**/*"]
 }
 

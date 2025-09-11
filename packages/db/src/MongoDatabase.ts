@@ -2,6 +2,7 @@ import { MongoClient, Db, Collection, Document } from 'mongodb'
 import { MongoEventStore } from './MongoEventStore'
 import * as S from 'effect/Schema'
 import { SimpleLogger } from '@packages/isomorphic'
+import { SliceConfig } from './types'
 
 // Repository interface matching slice structure
 export interface Repository<T> {
@@ -10,14 +11,6 @@ export interface Repository<T> {
     findAll: () => Promise<T[]>
     save: (entity: T) => Promise<void>
     delete: (id: string) => Promise<void>
-}
-
-// Slice configuration type
-export interface SliceConfig<TName extends string = string, TEntity = unknown> {
-    name: TName
-    schema: S.Schema<TEntity, unknown, never>
-    pluralizeFn?: (name: string) => string
-    initialEntities?: TEntity[]
 }
 
 // Extract entity type from slice config
@@ -158,7 +151,7 @@ export class MongoDatabase<TSlices extends readonly SliceConfig[]> {
             const indexes = (annotations as { indexes?: Array<{ fields: Record<string, unknown>, options?: Record<string, unknown> }> }).indexes || []
             
             for (const index of indexes) {
-                await collection.createIndex(index.fields, index.options || {})
+                await collection.createIndex(index.fields as Record<string, 1 | -1>, index.options || {})
             }
         } catch (error) {
             this.logger.warn('Failed to create indexes from schema', error as Error)

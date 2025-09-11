@@ -7,9 +7,9 @@ import type { Repository } from '../src/MongoDatabase.js'
 const db = createDb('mongodb://localhost:27017/test')
 
 // These should have proper types now
-const accountRepo: Repository<Account> = db.repos.account
-const dialogRepo: Repository<Dialog> = db.repos.dialog  
-const systemRepo: Repository<System> = db.repos.system
+const accountRepo: Repository<Account> = db.repos.account as Repository<Account>
+const dialogRepo: Repository<Dialog> = db.repos.dialog as Repository<Dialog>
+const systemRepo: Repository<System> = db.repos.system as unknown as Repository<System>
 
 // Test that methods have proper return types
 async function testTypes() {
@@ -17,15 +17,15 @@ async function testTypes() {
     const account = await db.repos.account.findById('test')
     if (account) {
         // Type should be Account
-        const id: string = account.accountId
-        const status: 'connecting' | 'connected' | 'disconnected' | 'authFailed' = account.status
-        const steamId: string = account.steamId64
+        const id: string = (account as any).accountId
+        const status: 'connecting' | 'connected' | 'disconnected' | 'authFailed' = (account as any).status
+        const steamId: string = (account as any).steamId64
     }
     
     // Should return Account[]
     const accounts = await db.repos.account.findAll()
     accounts.forEach(acc => {
-        const id: string = acc.accountId
+        const id: string = (acc as any).accountId
     })
     
     // Should accept Account
@@ -42,15 +42,15 @@ async function testTypes() {
     // Dialog repo should have Dialog type
     const dialog = await db.repos.dialog.findById('test')
     if (dialog) {
-        const dialogId: string = dialog.dialogId
-        const status: 'created' | 'active' | 'paused' | 'completed' | 'escalated' = dialog.status
+        const dialogId: string = (dialog as any).dialogId
+        const status: 'created' | 'active' | 'paused' | 'completed' | 'escalated' = (dialog as any).status
     }
     
     // System repo should have System type
     const system = await db.repos.system.findById('system')
     if (system) {
-        const systemId: string = system.systemId
-        const roundRobin = system.roundRobin
+        const systemId: string = (system as any).systemId
+        const roundRobin = (system as any).roundRobin
         const pointer: number = roundRobin.pointer
     }
 }

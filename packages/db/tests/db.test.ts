@@ -84,8 +84,8 @@ describe('MongoDB Database Package', () => {
             
             const all = await db.repos.account.findAll()
             expect(all).toHaveLength(2)
-            expect(all.some(acc => acc.accountId === account1.accountId)).toBe(true)
-            expect(all.some(acc => acc.accountId === account2.accountId)).toBe(true)
+            expect(all.some(acc => (acc as any).accountId === account1.accountId)).toBe(true)
+            expect(all.some(acc => (acc as any).accountId === account2.accountId)).toBe(true)
         })
 
         test('should update an account', async () => {
@@ -95,7 +95,7 @@ describe('MongoDB Database Package', () => {
             await db.repos.account.save(updated)
             
             const retrieved = await db.repos.account.findById(testAccount.accountId)
-            expect(retrieved?.status).toBe('connected')
+            expect((retrieved as any)?.status).toBe('connected')
         })
 
         test('should delete an account', async () => {
@@ -155,8 +155,8 @@ describe('MongoDB Database Package', () => {
             await db.repos.dialog.save(dialogWithMessages)
             
             const retrieved = await db.repos.dialog.findById(testDialog.dialogId)
-            expect(retrieved?.messages).toHaveLength(2)
-            expect(retrieved?.totalMessages).toBe(2)
+            expect((retrieved as any)?.messages).toHaveLength(2)
+            expect((retrieved as any)?.totalMessages).toBe(2)
         })
     })
 
@@ -166,9 +166,9 @@ describe('MongoDB Database Package', () => {
             
             // System should exist as it's initialized with singleton
             expect(system).toBeTruthy()
-            expect(system?.systemId).toBe('system')
-            expect(system?.roundRobin).toBeTruthy()
-            expect(system?.rateLimits).toBeTruthy()
+            expect((system as any)?.systemId).toBe('system')
+            expect((system as any)?.roundRobin).toBeTruthy()
+            expect((system as any)?.rateLimits).toBeTruthy()
         })
 
         test('should update system entity', async () => {
@@ -183,11 +183,11 @@ describe('MongoDB Database Package', () => {
                     }
                 }
                 
-                await db.repos.system.save(updated)
+                await db.repos.system.save(updated as any)
                 
                 const retrieved = await db.repos.system.findById('system')
-                expect(retrieved?.roundRobin.pointer).toBe(5)
-                expect(retrieved?.roundRobin.eligibleAccountIds).toHaveLength(2)
+                expect((retrieved as any)?.roundRobin.pointer).toBe(5)
+                expect((retrieved as any)?.roundRobin.eligibleAccountIds).toHaveLength(2)
             }
         })
     })

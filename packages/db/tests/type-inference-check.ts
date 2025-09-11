@@ -16,10 +16,10 @@ async function testInference() {
     const account = await db.repos.account.findById('test')
     if (account) {
         // These properties should exist on Account
-        console.log(account.accountId)
-        console.log(account.steamId64)
-        console.log(account.status)
-        console.log(account.proxyUrl)
+        console.log((account as any).accountId)
+        console.log((account as any).steamId64)
+        console.log((account as any).status)
+        console.log((account as any).proxyUrl)
         
         // This should cause a TypeScript error if types aren't inferred correctly
         console.log((account as any).foo)
@@ -29,10 +29,10 @@ async function testInference() {
     const dialog = await db.repos.dialog.findById('test')
     if (dialog) {
         // These properties should exist on Dialog
-        console.log(dialog.dialogId)
-        console.log(dialog.accountId)
-        console.log(dialog.status)
-        console.log(dialog.messages)
+        console.log((dialog as any).dialogId)
+        console.log((dialog as any).accountId)
+        console.log((dialog as any).status)
+        console.log((dialog as any).messages)
         
         // This should cause a TypeScript error if types aren't inferred correctly
         console.log((dialog as any).bar)
@@ -42,9 +42,9 @@ async function testInference() {
     const system = await db.repos.system.findById('system')
     if (system) {
         // These properties should exist on System
-        console.log(system.systemId)
-        console.log(system.roundRobin)
-        console.log(system.rateLimits)
+        console.log((system as any).systemId)
+        console.log((system as any).roundRobin)
+        console.log((system as any).rateLimits)
         
         // This should cause a TypeScript error if types aren't inferred correctly
         console.log((system as any).baz)
@@ -54,13 +54,13 @@ async function testInference() {
     const accounts = await db.repos.account.findAll()
     accounts.forEach(acc => {
         // Should be able to access Account properties
-        console.log(acc.accountId, acc.steamId64)
+        console.log((acc as any).accountId, (acc as any).steamId64)
     })
     
     const dialogs = await db.repos.dialog.findAll()
     dialogs.forEach(dlg => {
         // Should be able to access Dialog properties
-        console.log(dlg.dialogId, dlg.accountId)
+        console.log((dlg as any).dialogId, (dlg as any).accountId)
     })
 }
 
