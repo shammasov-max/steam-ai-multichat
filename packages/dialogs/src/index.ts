@@ -1,8 +1,8 @@
-export { DialogManager } from './DialogManager'
-export { DialogManagerService, createDialogManager, DialogManagerLive } from './DialogManagerEffect'
-export { AIService, type AIModel } from './services/AIService'
-export { ContextCompressor } from './services/ContextCompressor'
-export { LanguageDetector } from './services/LanguageDetector'
-export { ScoringEngine } from './services/ScoringEngine'
+// Effect-based exports only (legacy exports removed)
+export { DialogManagerService, DialogManagerLive } from './DialogManagerEffect'
+export { AIServiceLive } from './services/AIServiceEffect'
+export { ContextCompressorLive } from './services/ContextCompressorEffect'
+export { LanguageDetectorLive } from './services/LanguageDetectorEffect'
+export { ScoringEngineLive } from './services/ScoringEngineEffect'
 
 export * from './types'

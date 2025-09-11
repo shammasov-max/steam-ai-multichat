@@ -410,18 +410,4 @@ export const makeScoringEngineLayer = (config: ScoringConfig) => {
   )
 }
 
-// Backward compatibility wrapper
-export class ScoringEngine {
-  private readonly service: ScoringEngineOps
-  private previousScores: number[] = []
-
-  constructor(private config: ScoringConfig, previousScores: number[] = []) {
-    this.previousScores = previousScores
-    const history = { scores: previousScores }
-    this.service = makeScoringEngine(config, history)
-  }
-
-  async evaluateDialog(messages: Message[], goal: string, init: string): Promise<ScoringResult> {
-    return Effect.runPromise(this.service.evaluateDialog(messages, goal, init))
-  }
-}
+// Backward compatibility wrapper removed - use Effect-based API directly

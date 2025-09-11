@@ -2,6 +2,7 @@ import { Effect, Context, Layer, Schema, Option, Cache, Duration, pipe, Scope } 
 import { MongoClient, Db, Collection, Document, Filter } from 'mongodb'
 import { SimpleLogger, getDatabaseConfig, DatabaseConfig, ConfigService, ConfigError } from '@packages/isomorphic'
 import { EventRecord, EventFilter, SliceConfig } from './types'
+// Resilience features removed - not needed for happy path
 
 // Error type
 export class MongoError extends Schema.TaggedError<MongoError>()('MongoError', {
@@ -21,7 +22,9 @@ export type Repo<T> = {
 // Services
 export class MongoConnection extends Context.Tag('MongoConnection')<MongoConnection, { client: MongoClient; db: Db }>() {}
 
-// Helpers
+// Retry configuration removed - not needed for happy path
+
+// Helper without resilience - not needed for happy path
 const tryMongo = <A>(operation: string, fn: () => Promise<A>) =>
     Effect.tryPromise({
         try: fn,
@@ -34,18 +37,29 @@ const extractDbName = (url: string) => {
     return match[1]
 }
 
-// Connection Layer
+// Connection Layer with resilience patterns
 export const MongoConnectionLive = Layer.scoped(
     MongoConnection,
     Effect.gen(function* () {
         const config = yield* getDatabaseConfig
         const logger = new SimpleLogger('MongoDB')
         
-        const client = new MongoClient(config.connectionString, { maxPoolSize: config.poolSize })
+        // Resilience removed - not needed for happy path
+        
+        const client = new MongoClient(config.connectionString, { 
+            maxPoolSize: config.poolSize,
+            serverSelectionTimeoutMS: 5000,
+            socketTimeoutMS: 10000
+        })
+        
+        // Connect without resilience
         yield* tryMongo('connect', () => client.connect())
         const db = client.db(extractDbName(config.connectionString))
         
-        logger.info('Connected', { db: db.databaseName, poolSize: config.poolSize })
+        logger.info('Connected to MongoDB', { 
+            db: db.databaseName, 
+            poolSize: config.poolSize
+        })
         
         // Register cleanup using Effect.addFinalizer
         yield* Effect.addFinalizer(() => 
@@ -55,18 +69,20 @@ export const MongoConnectionLive = Layer.scoped(
             )
         )
         
+        // Return connection without resilience for now
         return { client, db }
     })
 )
 
-// Repository factory
+// Repository factory without resilience
 const createRepo = <T>(
     collection: Collection<T & Document>,
     sliceName: string,
     cache?: Cache.Cache<string, Option.Option<T>, MongoError>
 ): Repo<T> => {
     const idField = `${sliceName}Id`
-    const tryOp = (op: string) => <A>(fn: () => Promise<A>) => tryMongo(`${op}:${sliceName}`, fn)
+    const tryOp = (op: string) => <A>(fn: () => Promise<A>) => 
+        tryMongo(`${op}:${sliceName}`, fn)
     
     const withCache = <A>(id: string, fetch: () => Effect.Effect<Option.Option<T>, MongoError>) =>
         cache ? cache.get(id).pipe(

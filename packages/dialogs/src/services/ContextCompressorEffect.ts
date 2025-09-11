@@ -490,26 +490,4 @@ export const makeContextCompressorLayer = (config?: ContextConfig) => {
   )
 }
 
-// Backward compatibility wrapper
-export class ContextCompressor {
-  private readonly service: ContextCompressorOps
-  private config: ContextConfig
-
-  constructor(config?: ContextConfig) {
-    this.config = config || {
-      compressionAfterMessages: 10,
-      maxMessagesInContext: 20,
-      keepLastMessagesVerbatim: 5
-    }
-    this.service = makeContextCompressor(this.config)
-  }
-
-  async compress(
-    messages: Message[],
-    goal: string,
-    init: string,
-    userInfo?: UserInfo
-  ): Promise<CompressedContext> {
-    return Effect.runPromise(this.service.compress(messages, goal, init, userInfo))
-  }
-}
+// Backward compatibility wrapper removed - use Effect-based API directly

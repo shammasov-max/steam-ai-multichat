@@ -180,6 +180,9 @@ export const SteamConnectionLive = Layer.scoped(
     SteamConnectionService,
     Effect.gen(function* () {
         const config = yield* SteamConfig
+        
+        // Create resilience components - disabled for now
+        // Resilience removed - not needed for happy path
         const connection = yield* createSteamClient(config)
         
         // Register cleanup
