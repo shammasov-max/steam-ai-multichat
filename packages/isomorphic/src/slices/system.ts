@@ -1,10 +1,10 @@
 import * as S from 'effect/Schema'
 import { PayloadAction } from '@reduxjs/toolkit'
-import { 
-    createEntitySlice, 
+import {
+    createEntitySlice,
     type EntityActionPayload,
     addEntity,
-    type EntityState
+    type EntityState,
 } from '../base/createEntitySlice'
 import { Draft } from '@reduxjs/toolkit'
 import { AccountId, SystemId } from '../types/branded'
@@ -12,68 +12,83 @@ import { AccountId, SystemId } from '../types/branded'
 // ============= Event Payload Schemas =============
 
 export const SnapshotPayloadSchema = S.Struct({
-    state: S.Unknown
+    state: S.Unknown,
 })
 export type SnapshotPayload = S.Schema.Type<typeof SnapshotPayloadSchema>
 
 export const FriendInviteSentPayloadSchema = S.Struct({
     accountId: AccountId,
     playerSteamId64: S.String,
-    ts: S.optional(S.Number)
+    ts: S.optional(S.Number),
 })
 export type FriendInviteSentPayload = S.Schema.Type<typeof FriendInviteSentPayloadSchema>
 
 export const FriendInviteAcceptedPayloadSchema = S.Struct({
     accountId: AccountId,
-    playerSteamId64: S.String
+    playerSteamId64: S.String,
 })
 export type FriendInviteAcceptedPayload = S.Schema.Type<typeof FriendInviteAcceptedPayloadSchema>
 
 export const FriendInviteFailedPayloadSchema = S.Struct({
     accountId: AccountId,
     playerSteamId64: S.String,
-    reason: S.String
+    reason: S.String,
 })
 export type FriendInviteFailedPayload = S.Schema.Type<typeof FriendInviteFailedPayloadSchema>
 
 export const MaFileAssignedPayloadSchema = S.Struct({
     maFileId: S.String,
-    accountId: AccountId
+    accountId: AccountId,
 })
 export type MaFileAssignedPayload = S.Schema.Type<typeof MaFileAssignedPayloadSchema>
 
 export const MaFileReleasedPayloadSchema = S.Struct({
-    maFileId: S.String
+    maFileId: S.String,
 })
 export type MaFileReleasedPayload = S.Schema.Type<typeof MaFileReleasedPayloadSchema>
 
 export const ErrorLoggedPayloadSchema = S.Struct({
     message: S.String,
-    context: S.optional(S.Unknown)
+    context: S.optional(S.Unknown),
 })
 export type ErrorLoggedPayload = S.Schema.Type<typeof ErrorLoggedPayloadSchema>
 
 // ============= Entity Schemas =============
 
 export const RoundRobinSchema = S.Struct({
-    pointer: S.Number.annotations({ title: "Pointer", description: "Current position in round-robin" }),
-    eligibleAccountIds: S.Array(AccountId).annotations({ title: "Eligible Accounts", description: "Account IDs available for assignment" })
-}).annotations({ title: "Round Robin State", description: "Account assignment round-robin state" })
+    pointer: S.Number.annotations({
+        title: 'Pointer',
+        description: 'Current position in round-robin',
+    }),
+    eligibleAccountIds: S.Array(AccountId).annotations({
+        title: 'Eligible Accounts',
+        description: 'Account IDs available for assignment',
+    }),
+}).annotations({ title: 'Round Robin State', description: 'Account assignment round-robin state' })
 
 export const RateLimitEntrySchema = S.Struct({
-    lastInviteAt: S.optional(S.Number.annotations({ title: "Last Invite", description: "Timestamp of last friend invite" }))
-}).annotations({ title: "Rate Limit Entry", description: "Friend invite rate limit tracking" })
+    lastInviteAt: S.optional(
+        S.Number.annotations({
+            title: 'Last Invite',
+            description: 'Timestamp of last friend invite',
+        })
+    ),
+}).annotations({ title: 'Rate Limit Entry', description: 'Friend invite rate limit tracking' })
 
 export const SystemSchema = S.Struct({
-    systemId: SystemId.annotations({ title: "System ID", description: "Singleton identifier (always 'system')" }),
+    systemId: SystemId.annotations({
+        title: 'System ID',
+        description: "Singleton identifier (always 'system')",
+    }),
     roundRobin: RoundRobinSchema,
-    rateLimits: S.Record({ key: S.String, value: RateLimitEntrySchema }).annotations({ title: "Rate Limits", description: "Account ID to rate limit mapping" })
-}).annotations({ 
-    title: "System", 
-    description: "Global system state entity",
-    indexes: [
-        { fields: { systemId: 1 }, options: { unique: true } }
-    ]
+    rateLimits: S.Record({ key: S.String, value: RateLimitEntrySchema }).annotations({
+        title: 'Rate Limits',
+        description: 'Account ID to rate limit mapping',
+    }),
+}).annotations({
+    title: 'System',
+    description: 'Global system state entity',
+    indexes: [{ fields: { systemId: 1 }, options: { unique: true } }],
 })
 
 // Derive types from schemas
@@ -86,19 +101,19 @@ export type System = S.Schema.Type<typeof SystemSchema>
 export const systemSlice = createEntitySlice({
     name: 'system',
     entitySchema: SystemSchema as S.Schema<System, unknown, never>,
-    
+
     // Initialize with singleton entity
     initialEntities: [
         {
             systemId: 'system' as SystemId,
             roundRobin: {
                 pointer: 0,
-                eligibleAccountIds: []
+                eligibleAccountIds: [],
             },
-            rateLimits: {}
-        }
+            rateLimits: {},
+        },
     ],
-    
+
     entityReducers: {
         // Event: friendInvite.sent - update rate limit
         'friendInvite.sent': (
@@ -113,7 +128,7 @@ export const systemSlice = createEntitySlice({
                 rateLimitEntry.lastInviteAt = payload.ts
             }
         },
-        
+
         // Event: friendInvite.accepted - no-op (chat is started elsewhere)
         'friendInvite.accepted': (
             _system,
@@ -121,24 +136,27 @@ export const systemSlice = createEntitySlice({
         ) => {
             // No-op - chat creation is handled by chat slice
         },
-        
+
         // Event: friendInvite.failed - no-op
         'friendInvite.failed': (
             _system,
-            _payload: EntityActionPayload<'system', { accountId: string; playerSteamId64: string; reason?: string }>
+            _payload: EntityActionPayload<
+                'system',
+                { accountId: string; playerSteamId64: string; reason?: string }
+            >
         ) => {
             // No-op - failure tracking can be added post-MVP if needed
         },
-        
+
         // Event: error.logged - no-op
         'error.logged': (
             _system,
             _payload: EntityActionPayload<'system', { message: string; context?: unknown }>
         ) => {
             // No-op - errors can be tracked in a separate slice or log stream
-        }
+        },
     },
-  
+
     extraReducers: {
         // Event: system/snapshot - initialize or update singleton from snapshot
         snapshot: (
@@ -153,19 +171,21 @@ export const systemSlice = createEntitySlice({
             }>
         ) => {
             const snapshotSystem = action.payload.state.system
-            
+
             if (!snapshotSystem) {
                 return // No system data in snapshot
             }
-            
+
             // Check if singleton exists
             const existingSystem = state.entities['system']
-            
+
             if (existingSystem) {
                 // Update existing singleton
                 if (snapshotSystem.roundRobin) {
                     existingSystem.roundRobin.pointer = snapshotSystem.roundRobin.pointer
-                    existingSystem.roundRobin.eligibleAccountIds = [...snapshotSystem.roundRobin.eligibleAccountIds]
+                    existingSystem.roundRobin.eligibleAccountIds = [
+                        ...snapshotSystem.roundRobin.eligibleAccountIds,
+                    ]
                 }
                 if (snapshotSystem.rateLimits) {
                     existingSystem.rateLimits = snapshotSystem.rateLimits
@@ -175,13 +195,13 @@ export const systemSlice = createEntitySlice({
                 const newSystem: System = {
                     systemId: 'system' as SystemId,
                     roundRobin: snapshotSystem.roundRobin || { pointer: 0, eligibleAccountIds: [] },
-                    rateLimits: snapshotSystem.rateLimits || {}
+                    rateLimits: snapshotSystem.rateLimits || {},
                 }
-                
+
                 addEntity(state, newSystem, 'system')
             }
         },
-        
+
         // Helper event for updating round-robin eligible accounts (can be triggered by account events)
         updateEligibleAccounts: (
             state: Draft<EntityState<System>>,
@@ -189,26 +209,24 @@ export const systemSlice = createEntitySlice({
         ) => {
             const system = state.entities['system']
             if (system) {
-                system.roundRobin.eligibleAccountIds = action.payload.eligibleAccountIds as AccountId[]
+                system.roundRobin.eligibleAccountIds = action.payload
+                    .eligibleAccountIds as AccountId[]
                 // Reset pointer if it's out of bounds
                 if (system.roundRobin.pointer >= action.payload.eligibleAccountIds.length) {
                     system.roundRobin.pointer = 0
                 }
             }
         },
-        
+
         // Helper event for advancing round-robin pointer
-        advanceRoundRobin: (
-            state: Draft<EntityState<System>>,
-            _action: PayloadAction<{}>
-        ) => {
+        advanceRoundRobin: (state: Draft<EntityState<System>>, _action: PayloadAction<{}>) => {
             const system = state.entities['system']
             if (system && system.roundRobin.eligibleAccountIds.length > 0) {
-                system.roundRobin.pointer = 
+                system.roundRobin.pointer =
                     (system.roundRobin.pointer + 1) % system.roundRobin.eligibleAccountIds.length
             }
-        }
-    }
+        },
+    },
 })
 
 // ============= Exports =============

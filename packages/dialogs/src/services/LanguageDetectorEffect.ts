@@ -1,13 +1,12 @@
-import { Effect, Context, Layer, Data, Option, Array as A, pipe, Runtime } from 'effect'
-import * as S from '@effect/schema/Schema'
+import { Effect, Context, Layer, Data } from 'effect'
 
 /**
  * Language detection result with confidence score
  */
-export class DetectionResult extends S.Class<DetectionResult>('DetectionResult')({
-    language: S.String,
-    confidence: S.Number.pipe(S.between(0, 1))
-}) {}
+export interface DetectionResult {
+    readonly language: string
+    readonly confidence: number
+}
 
 /**
  * Language detection error
@@ -80,55 +79,32 @@ const detectLatinLanguage = (text: string, fallbackLanguage: string): string => 
         lowerText.includes(indicator)
     )
     
-    if (hasSpanishIndicators || languagePatterns.es.test(text)) {
-        return 'es'
-    }
-
-    if (fallbackLanguage === 'en' || fallbackLanguage === 'es') {
-        return fallbackLanguage
-    }
-
-    return 'en'
+    return (hasSpanishIndicators || languagePatterns.es.test(text))
+        ? 'es'
+        : (fallbackLanguage === 'en' || fallbackLanguage === 'es') ? fallbackLanguage : 'en'
 }
 
 const detectLanguage = (text: string, fallbackLanguage: string): string => {
     const trimmedText = text.trim()
     
-    if (!trimmedText) {
-        return fallbackLanguage
+    if (!trimmedText) return fallbackLanguage
+
+    // Check language patterns in priority order
+    const patterns = [
+        ['ja', languagePatterns.ja],
+        ['ko', languagePatterns.ko],
+        ['zh', languagePatterns.zh],
+        ['ru', languagePatterns.ru],
+        ['es', languagePatterns.es],
+    ] as const
+    
+    for (const [lang, pattern] of patterns) {
+        if (pattern.test(trimmedText)) return lang
     }
 
-    // Check for Japanese-specific characters first (hiragana/katakana)
-    if (languagePatterns.ja.test(trimmedText)) {
-        return 'ja'
-    }
-    
-    // Check for Korean
-    if (languagePatterns.ko.test(trimmedText)) {
-        return 'ko'
-    }
-    
-    // Check for Chinese (after Japanese, since they share kanji)
-    if (languagePatterns.zh.test(trimmedText)) {
-        return 'zh'
-    }
-    
-    // Check for Russian
-    if (languagePatterns.ru.test(trimmedText)) {
-        return 'ru'
-    }
-    
-    // Check for Spanish
-    if (languagePatterns.es.test(trimmedText)) {
-        return 'es'
-    }
-
-    const hasLatinAlphabet = /[a-zA-Z]/.test(trimmedText)
-    if (hasLatinAlphabet) {
-        return detectLatinLanguage(trimmedText, fallbackLanguage)
-    }
-
-    return fallbackLanguage
+    return /[a-zA-Z]/.test(trimmedText)
+        ? detectLatinLanguage(trimmedText, fallbackLanguage)
+        : fallbackLanguage
 }
 
 /**
@@ -147,14 +123,11 @@ export const LanguageDetectorLive = Layer.succeed(
             }),
 
         detectWithConfidence: (text, fallbackLanguage) =>
-            Effect.gen(function* () {
+            Effect.sync(() => {
                 const trimmedText = text.trim()
                 
                 if (!trimmedText) {
-                    return new DetectionResult({
-                        language: fallbackLanguage,
-                        confidence: 0.1
-                    })
+                    return { language: fallbackLanguage, confidence: 0.1 }
                 }
 
                 // Count characters for each language
@@ -171,94 +144,48 @@ export const LanguageDetectorLive = Layer.succeed(
 
                 // If we have strong language-specific characters
                 if (totalSpecialChars > 0) {
-                    let maxCount = 0
-                    let detectedLang = fallbackLanguage
-                    
-                    for (const [lang, count] of Object.entries(counts)) {
-                        if (count > maxCount) {
-                            maxCount = count
-                            detectedLang = lang
-                        }
-                    }
+                    const [detectedLang, maxCount] = Object.entries(counts).reduce(
+                        ([lang, max], [currentLang, count]) => 
+                            count > max ? [currentLang, count] : [lang, max],
+                        [fallbackLanguage, 0]
+                    )
                     
                     // Calculate confidence based on ratio of specific chars to text length
                     const confidence = Math.min(0.95, Math.max(0.6, (maxCount / trimmedText.length) * 2))
                     
-                    return new DetectionResult({
-                        language: detectedLang,
-                        confidence
-                    })
+                    return { language: detectedLang, confidence }
                 }
 
                 // Fall back to regular detection for Latin languages
                 const detected = detectLanguage(text, fallbackLanguage)
                 const confidence = detected === fallbackLanguage ? 0.3 : 0.5
                 
-                return new DetectionResult({
-                    language: detected,
-                    confidence
-                })
+                return { language: detected, confidence }
             }),
 
         detectMultiple: (texts, primaryLanguage) =>
-            Effect.gen(function* () {
+            Effect.sync(() => {
                 const languageCounts: Record<string, number> = {}
                 
                 // Process all texts
-                yield* Effect.forEach(texts, (text) =>
-                    Effect.sync(() => {
-                        const detected = detectLanguage(text, primaryLanguage)
-                        languageCounts[detected] = (languageCounts[detected] || 0) + 1
-                    })
-                )
+                for (const text of texts) {
+                    const detected = detectLanguage(text, primaryLanguage)
+                    languageCounts[detected] = (languageCounts[detected] || 0) + 1
+                }
                 
                 // Find dominant language
-                let maxCount = 0
-                let dominantLanguage = primaryLanguage
-                
-                for (const [lang, count] of Object.entries(languageCounts)) {
-                    if (count > maxCount) {
-                        maxCount = count
-                        dominantLanguage = lang
-                    }
-                }
+                const [dominantLanguage] = Object.entries(languageCounts).reduce(
+                    ([lang, max], [currentLang, count]) => 
+                        count > max ? [currentLang, count] : [lang, max],
+                    [primaryLanguage, 0]
+                )
                 
                 return dominantLanguage
             }),
 
         isLanguageSwitch: (previousLanguage, currentText) =>
-            Effect.gen(function* () {
-                const detectedLanguage = detectLanguage(currentText, previousLanguage)
-                return detectedLanguage !== previousLanguage
-            })
+            Effect.sync(() => detectLanguage(currentText, previousLanguage) !== previousLanguage)
     }
 )
 
-/**
- * Helper functions for common use cases
- */
-export const detectLanguageEffect = (text: string, fallbackLanguage: string) =>
-    Effect.gen(function* () {
-        const detector = yield* LanguageDetector
-        return yield* detector.detect(text, fallbackLanguage)
-    })
-
-export const detectWithConfidenceEffect = (text: string, fallbackLanguage: string) =>
-    Effect.gen(function* () {
-        const detector = yield* LanguageDetector
-        return yield* detector.detectWithConfidence(text, fallbackLanguage)
-    })
-
-export const detectMultipleEffect = (texts: readonly string[], primaryLanguage: string) =>
-    Effect.gen(function* () {
-        const detector = yield* LanguageDetector
-        return yield* detector.detectMultiple(texts, primaryLanguage)
-    })
-
-export const isLanguageSwitchEffect = (previousLanguage: string, currentText: string) =>
-    Effect.gen(function* () {
-        const detector = yield* LanguageDetector
-        return yield* detector.isLanguageSwitch(previousLanguage, currentText)
-    })
-
-// Backward compatibility wrapper removed - use Effect-based API directly
+// Use LanguageDetector service directly via Effect.gen or Effect.flatMap

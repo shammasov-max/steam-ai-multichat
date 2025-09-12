@@ -17,9 +17,9 @@ export interface EffectSaga<R = never> {
 /**
  * Action matcher for saga triggers
  */
-export type ActionMatcher<A extends UnknownAction = UnknownAction> = 
-    | string 
-    | string[] 
+export type ActionMatcher<A extends UnknownAction = UnknownAction> =
+    | string
+    | string[]
     | ((action: UnknownAction) => action is A)
     | ((action: UnknownAction) => boolean)
 
@@ -30,7 +30,7 @@ export class SagaManager<R> {
     private sagas = new Map<string, Fiber.RuntimeFiber<void, never>>()
     private actionQueue: Queue.Queue<UnknownAction>
     private scope: Scope.CloseableScope
-    
+
     constructor(
         private runtime: Runtime.Runtime<R>,
         private store: { getState: () => any; dispatch: <T>(action: T) => T }
@@ -55,7 +55,7 @@ export class SagaManager<R> {
                 saga.effect,
                 Layer.succeed(ReduxStore, {
                     getState: store.getState,
-                    dispatch: store.dispatch
+                    dispatch: store.dispatch,
                 })
             )
 
@@ -89,12 +89,15 @@ export class SagaManager<R> {
         const fibers = Array.from(this.sagas.values())
         const scope = this.scope
         this.sagas.clear()
-        
+
         // Close scope and interrupt all fibers
         return Runtime.runPromise(this.runtime)(
             Effect.gen(function* () {
                 // First interrupt all fibers
-                yield* Effect.all(fibers.map(f => Fiber.interrupt(f)), { concurrency: 'unbounded' })
+                yield* Effect.all(
+                    fibers.map(f => Fiber.interrupt(f)),
+                    { concurrency: 'unbounded' }
+                )
                 // Then close the scope to trigger finalizers
                 yield* Scope.close(scope, Exit.void)
             })
@@ -128,8 +131,8 @@ export const SagaEffects = {
     ): Effect.Effect<A, never, ReduxStore> =>
         Effect.gen(function* () {
             const store = yield* ReduxStore
-            
-            return yield* Effect.async<A>((resume) => {
+
+            return yield* Effect.async<A>(resume => {
                 const checkAction = (action: UnknownAction): boolean => {
                     if (typeof matcher === 'string') {
                         return action.type === matcher
@@ -144,7 +147,7 @@ export const SagaEffects = {
                 // This would need integration with the middleware
                 // For now, returning a placeholder
                 const unsubscribe = () => {}
-                
+
                 return Effect.sync(() => {
                     unsubscribe()
                 })
@@ -156,10 +159,12 @@ export const SagaEffects = {
         matcher: ActionMatcher<A>,
         handler: (action: A) => Effect.Effect<unknown, E, R>
     ): Effect.Effect<never, never, ReduxStore | R> =>
-        Effect.forever(Effect.gen(function* () {
-            const action = yield* SagaEffects.take(matcher)
-            yield* Effect.fork(handler(action))
-        })),
+        Effect.forever(
+            Effect.gen(function* () {
+                const action = yield* SagaEffects.take(matcher)
+                yield* Effect.fork(handler(action))
+            })
+        ),
 
     // Take latest action (cancels previous)
     takeLatest: <A extends UnknownAction = UnknownAction, R = never, E = never>(
@@ -168,11 +173,13 @@ export const SagaEffects = {
     ): Effect.Effect<never, never, ReduxStore | R> =>
         Effect.gen(function* () {
             let lastFiber: Fiber.RuntimeFiber<unknown, E> | null = null
-            return yield* Effect.forever(Effect.gen(function* () {
-                const action = yield* SagaEffects.take(matcher)
-                if (lastFiber) yield* Fiber.interrupt(lastFiber)
-                lastFiber = yield* Effect.fork(handler(action))
-            }))
+            return yield* Effect.forever(
+                Effect.gen(function* () {
+                    const action = yield* SagaEffects.take(matcher)
+                    if (lastFiber) yield* Fiber.interrupt(lastFiber)
+                    lastFiber = yield* Effect.fork(handler(action))
+                })
+            )
         }),
 
     // Take leading action (ignores subsequent until complete)
@@ -180,10 +187,12 @@ export const SagaEffects = {
         matcher: ActionMatcher<A>,
         handler: (action: A) => Effect.Effect<unknown, never, R>
     ): Effect.Effect<never, never, ReduxStore | R> =>
-        Effect.forever(Effect.gen(function* () {
-            const action = yield* SagaEffects.take(matcher)
-            yield* Effect.asVoid(handler(action))
-        })),
+        Effect.forever(
+            Effect.gen(function* () {
+                const action = yield* SagaEffects.take(matcher)
+                yield* Effect.asVoid(handler(action))
+            })
+        ),
 
     // Debounce actions
     debounce: <A extends UnknownAction = UnknownAction, R = never>(
@@ -191,14 +200,16 @@ export const SagaEffects = {
         delay: number,
         handler: (action: A) => Effect.Effect<unknown, never, R>
     ): Effect.Effect<never, never, ReduxStore | R> =>
-        Effect.forever(Effect.gen(function* () {
-            let action = yield* SagaEffects.take(matcher)
-            const result = yield* Effect.race(
-                Effect.delay(Effect.succeed(action), delay),
-                SagaEffects.take(matcher)
-            )
-            if (result === action) yield* handler(action)
-        })),
+        Effect.forever(
+            Effect.gen(function* () {
+                let action = yield* SagaEffects.take(matcher)
+                const result = yield* Effect.race(
+                    Effect.delay(Effect.succeed(action), delay),
+                    SagaEffects.take(matcher)
+                )
+                if (result === action) yield* handler(action)
+            })
+        ),
 
     // Throttle actions
     throttle: <A extends UnknownAction = UnknownAction, R = never, E = never>(
@@ -206,11 +217,13 @@ export const SagaEffects = {
         delay: number,
         handler: (action: A) => Effect.Effect<unknown, E, R>
     ): Effect.Effect<never, never, ReduxStore | R> =>
-        Effect.forever(Effect.gen(function* () {
-            const action = yield* SagaEffects.take(matcher)
-            yield* Effect.fork(handler(action))
-            yield* Effect.sleep(delay)
-        })),
+        Effect.forever(
+            Effect.gen(function* () {
+                const action = yield* SagaEffects.take(matcher)
+                yield* Effect.fork(handler(action))
+                yield* Effect.sleep(delay)
+            })
+        ),
 
     /**
      * Put (dispatch) an action
@@ -246,27 +259,24 @@ export const SagaEffects = {
     /**
      * Run effects in parallel
      */
-    all: <const T extends readonly Effect.Effect<any, any, any>[]>(
-        effects: T
-    ) => Effect.all(effects) as any
+    all: <const T extends readonly Effect.Effect<any, any, any>[]>(effects: T) =>
+        Effect.all(effects) as any,
 }
 
 /**
  * Create a saga from an Effect
  */
-export function createSaga<R>(
+export const createSaga = <R>(
     id: string,
     effect: Effect.Effect<void, never, R | ReduxStore>
-): EffectSaga<R> {
+): EffectSaga<R> => {
     return { id, effect }
 }
 
 /**
  * Root saga combiner
  */
-export function rootSaga<R>(
-    sagas: EffectSaga<R>[]
-): Effect.Effect<void, never, R | ReduxStore> {
+export const rootSaga = <R>(sagas: EffectSaga<R>[]): Effect.Effect<void, never, R | ReduxStore> => {
     return Effect.gen(function* () {
         yield* Effect.all(sagas.map(s => Effect.fork(s.effect)))
         yield* Effect.never

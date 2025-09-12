@@ -52,7 +52,17 @@
       "Bash(for:*)",
       "Bash(yarn vitest:*)",
       "Bash(tree:*)",
-      "Bash(mongosh:*)"
+      "Bash(mongosh:*)",
+      "Bash(tsc --noEmit)",
+      "Bash(yarn workspace @packages/dialogs exec:*)",
+      "Bash(yarn workspace @packages/server run tsc:*)",
+      "Bash(npx eslint:*)",
+      "Bash(yarn lint:*)",
+      "Bash(xargs ls:*)",
+      "Bash(npx prettier:*)",
+      "Bash(yarn typecheck:*)",
+      "Bash(xargs:*)",
+      "Bash(sed:*)"
     ],
     "deny": [],
     "ask": []

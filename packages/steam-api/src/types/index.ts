@@ -70,3 +70,44 @@ export interface SteamError extends Error {
     eresult?: number
     retryable?: boolean
 }
+
+// Missing types for compatibility
+export interface SteamAgentConfig {
+    accountName: string
+    password?: string
+    steamId: string
+    maFile: MaFile | string
+    proxy?: string
+    autoReconnect?: boolean
+    rateLimits?: RateLimitConfig
+}
+
+export interface Friend {
+    steamId: string
+    relationship: number
+    blocked?: boolean
+    personaName?: string
+    personaState?: number
+}
+
+export interface ChatMessage {
+    steamId: string
+    message: string
+    timestamp: Date
+    incoming: boolean
+}
+
+export interface ChatHistory {
+    steamId: string
+    messages: ChatMessage[]
+    lastActivity?: Date
+}
+
+export interface SteamAgentEvents {
+    loggedOn: { steamId: string }
+    disconnected: { code: number; message: string }
+    friendMessage: { steamId: string; message: string }
+    friendTyping: { steamId: string }
+    friendRelationship: { steamId: string; relationship: number }
+    error: { error: Error }
+}

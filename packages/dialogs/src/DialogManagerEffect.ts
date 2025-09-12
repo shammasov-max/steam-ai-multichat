@@ -189,19 +189,23 @@ export const DialogManagerLive = Layer.effect(
     Layer.provide(Layer.succeed(DialogLogger, new SimpleLogger('DialogManager')))
 )
 
+// Export the complete layer with all dialog services
+export const DialogManagerWithServices = pipe(
+    DialogManagerLive,
+    // Note: The consumer must provide the dialog services
+    // Use either DialogServicesLive, makeDialogServicesLayer, or DialogServicesWithConfig
+)
+
 // Helper function to run with all required layers
 export const runWithDialogManager = <A, E>(
-    effect: Effect.Effect<A, E, DialogManagerService>
-): Effect.Effect<A, E | Error> => {
+    effect: Effect.Effect<A, E, DialogManagerService>,
+    aiConfig: { apiKey: string, model?: string }
+) => {
+    const { makeDialogServicesLayer } = require('./services')
     return pipe(
         effect,
         Effect.provide(DialogManagerLive),
-        // These services need to be provided by the consumer
-        // as they require configuration
-        Effect.provideServiceEffect(AIServiceEffect, Effect.die('AIService not provided')),
-        Effect.provideServiceEffect(ScoringEngineEffect, Effect.die('ScoringEngine not provided')),
-        Effect.provideServiceEffect(ContextCompressorEffect, Effect.die('ContextCompressor not provided')),
-        Effect.provideServiceEffect(LanguageDetector, Effect.die('LanguageDetector not provided'))
+        Effect.provide(makeDialogServicesLayer(aiConfig))
     )
 }
 

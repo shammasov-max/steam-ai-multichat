@@ -2,7 +2,7 @@ import React from 'react'
 import { Search, X } from 'lucide-react'
 import { Input } from './input'
 import { Button } from './button'
-import { cn } from '../../lib/utils'
+import { cn } from '../../css/utils'
 
 interface SearchBoxProps {
   value: string

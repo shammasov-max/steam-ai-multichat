@@ -1,8 +1,7 @@
-import { MongoDatabase } from './MongoDatabase'
 import { accountSlice, dialogSlice, systemSlice, type Account, type Dialog, type System, getSystemId } from '@packages/isomorphic'
 import * as S from 'effect/Schema'
 import { Duration } from 'effect'
-import { createCompleteMongoDB } from './MongoDatabaseEffect'
+import { createCompleteMongoDB } from './database/MongoDBLayer'
 import { SliceConfig } from './types'
 
 // ============= Types =============
@@ -14,47 +13,48 @@ export type {
     SnapshotFilter,
     SliceConfig
 } from './types'
-export type { Repository } from './MongoDatabase'
 
-// ============= Effect Exports =============
+// ============= Errors =============
+export { MongoError } from './errors/MongoError'
+
+// ============= Connection =============
+export { MongoConnection, type MongoConnectionService } from './connection/MongoConnection'
+export { MongoConnectionLive } from './connection/MongoConnectionLive'
+
+// ============= Repository =============
+export { type Repository, type RepositoryConfig } from './repository/Repository'
+export { createRepository, createCachedRepository } from './repository/RepositoryImpl'
+
+// ============= Repository Tags =============
+export { type GenericRepository } from './repository/GenericRepository'
+export { AccountRepository, type AccountRepository as AccountRepositoryService } from './repository/AccountRepository'
+export { DialogRepository, type DialogRepository as DialogRepositoryService } from './repository/DialogRepository'
+export { SystemRepository, type SystemRepository as SystemRepositoryService } from './repository/SystemRepository'
+
+// ============= Repository Implementations =============
+export { AccountRepositoryLive } from './repository/implementations/AccountRepositoryLive'
+export { DialogRepositoryLive } from './repository/implementations/DialogRepositoryLive'
+export { SystemRepositoryLive } from './repository/implementations/SystemRepositoryLive'
+
+// ============= Repository Facade =============
+export { RepositoryFacade, RepositoryFacadeLive, type RepositoryFacade as RepositoryFacadeService } from './database/RepositoryFacade'
+export { AppLayer, createAppLayer, AccountRepoLayer, DialogRepoLayer, SystemRepoLayer, EventStoreLayer } from './database/AppLayer'
+
+// ============= EventStore =============
+export { EventStore, type EventStoreService } from './event-store/EventStore'
+export { EventStoreLive } from './event-store/EventStoreLive'
+
+// ============= Database =============
+export { MongoDB, type MongoDBService } from './database/MongoDB'
+export { createMongoDBLayer, createCompleteMongoDB } from './database/MongoDBLayer'
+
+// ============= Legacy Exports (for backwards compatibility) =============
 export {
-    MongoError,
-    MongoConnection,
-    EventStore,
-    EventStoreLive,
-    MongoDB,
-    MongoConnectionLive,
-    createMongoDBLayer,
-    createCompleteMongoDB,
     runWithMongoDB,
     type Repo
 } from './MongoDatabaseEffect'
 
 // ============= Main Export =============
-
-/**
- * Creates a MongoDB database instance with typed repositories for all isomorphic slices
- * 
- * @param connectionString MongoDB connection string with database name embedded
- * @returns MongoDatabase instance with typed repositories for account, dialog, and system
- * 
- * @example
- * ```typescript
- * import { createDb } from '@packages/db'
- * 
- * const db = createDb('mongodb://localhost:27017/myapp')
- * 
- * await db.init()
- * 
- * // Access typed repositories
- * await db.repos.account.findById('account_123')
- * await db.repos.dialog.findAll()
- * await db.repos.system.findById('system')
- * 
- * // Access event store
- * await db.eventStore.append(event)
- * ```
- */
 // Helper function to safely extract schema
 function extractSchema<T>(schema: S.Schema<T, unknown, never> | undefined): S.Schema<T, unknown, never> {
     if (!schema) {
@@ -89,18 +89,32 @@ const systemSliceConfig = createSliceConfig('system' as const, systemSlice as an
     rateLimits: {}
 }])
 
-export function createDb(connectionString: string) {
-    const slices = [
-        accountSliceConfig,
-        dialogSliceConfig,
-        systemSliceConfig
-    ] as const
-    
-    return new MongoDatabase(connectionString, slices)
-}
 
-// Effect-based database creator
-export function createDbEffect(connectionString: string) {
+/**
+ * Creates an Effect-based MongoDB database layer with typed repositories for all isomorphic slices
+ * 
+ * @param connectionString MongoDB connection string with database name embedded
+ * @returns Object with slices configuration and Effect Layer
+ * 
+ * @example
+ * ```typescript
+ * import { createDb } from '@packages/db'
+ * import { Effect, Layer } from 'effect'
+ * 
+ * const { layer } = createDb('mongodb://localhost:27017/myapp')
+ * 
+ * // Use with Effect runtime
+ * const program = Effect.gen(function* () {
+ *   const db = yield* MongoDB
+ *   const account = yield* db.repos.account.findById('account_123')
+ * })
+ * 
+ * Effect.runPromise(program.pipe(
+ *   Effect.provide(layer)
+ * ))
+ * ```
+ */
+export function createDb(connectionString: string) {
     const slices = [
         accountSliceConfig,
         dialogSliceConfig,
@@ -113,8 +127,6 @@ export function createDbEffect(connectionString: string) {
     }
 }
 
-// Re-export MongoDatabase type for advanced usage
-export type { MongoDatabase }
 
 // Re-export Effect Duration for convenience
 export { Duration } from 'effect'

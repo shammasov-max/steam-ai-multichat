@@ -31,7 +31,7 @@ export interface EffectStoreConfig<S = any, R = any> {
 /**
  * Effect-enhanced Redux store
  */
-export interface EffectStore<S = any, A extends UnknownAction = UnknownAction, R = any> 
+export interface EffectStore<S = any, A extends UnknownAction = UnknownAction, R = any>
     extends EnhancedStore<S, A> {
     /** Saga manager for this store */
     sagaManager: SagaManager<R>
@@ -56,7 +56,7 @@ export interface StoreContext<S = unknown> {
     readonly subscribe: (listener: () => void) => () => void
 }
 
-export const StoreContext = <S = unknown>() => Context.GenericTag<StoreContext<S>>('StoreContext')
+export const StoreContextTag = <S = unknown>() => Context.GenericTag<StoreContext<S>>('StoreContext')
 
 /**
  * Create an Effect-powered Redux store
@@ -73,29 +73,29 @@ export function createEffectStore<S = any, R = any>(
         effectConfig = {},
         sagas = [],
         devTools = true,
-        debug = false
+        debug = false,
     } = config
 
     // Create Effect middleware
     const effectMiddleware = createEffectMiddleware<R>({
         runtime,
         debug,
-        ...effectConfig
+        ...effectConfig,
     })
 
     // Configure the Redux store
     const store = configureStore({
         reducer,
         ...(preloadedState !== undefined && { preloadedState }),
-        middleware: getDefaultMiddleware => 
+        middleware: getDefaultMiddleware =>
             getDefaultMiddleware({ serializableCheck: false, immutableCheck: true })
                 .concat(effectMiddleware)
                 .concat(...middleware),
-        enhancers: getDefaultEnhancers => 
-            enhancers.length > 0 
-                ? getDefaultEnhancers().concat(...enhancers) 
+        enhancers: getDefaultEnhancers =>
+            enhancers.length > 0
+                ? getDefaultEnhancers().concat(...enhancers)
                 : getDefaultEnhancers(),
-        devTools
+        devTools,
     })
 
     // Create saga manager
@@ -106,33 +106,33 @@ export function createEffectStore<S = any, R = any>(
         ...store,
         sagaManager,
         runtime,
-        
+
         runEffect: async <E, A>(effect: Effect.Effect<A, E, R>) => {
-            const storeContext = StoreContext<S>()
+            const storeContext = StoreContextTag<S>()
             const effectWithStore = Effect.provide(
                 effect,
                 Layer.succeed(storeContext, {
                     getState: store.getState,
                     dispatch: store.dispatch,
-                    subscribe: store.subscribe
+                    subscribe: store.subscribe,
                 })
             )
-            
+
             return Runtime.runPromise(runtime)(effectWithStore)
         },
-        
+
         runSaga: (saga: EffectSaga<R>) => {
             sagaManager.run(saga)
         },
-        
+
         stopSaga: (sagaId: string) => {
             sagaManager.stop(sagaId)
         },
-        
+
         dispose: async () => {
             await sagaManager.stopAll()
             // Additional cleanup if needed
-        }
+        },
     }
 
     // Run initial sagas
@@ -153,21 +153,19 @@ export function createEffectStore<S = any, R = any>(
 export function createStoreLayer<S, R>(
     config: EffectStoreConfig<S, R>
 ): Layer.Layer<StoreContext<S>, never, R> {
-    const storeContext = StoreContext<S>()
+    const storeContext = StoreContextTag<S>()
     return Layer.scoped(
         storeContext,
         Effect.gen(function* () {
             const store = createEffectStore(config)
-            
+
             // Add finalizer to dispose store on scope close
-            yield* Effect.addFinalizer(() =>
-                Effect.promise(() => store.dispose())
-            )
-            
+            yield* Effect.addFinalizer(() => Effect.promise(() => store.dispose()))
+
             return {
                 getState: store.getState,
                 dispatch: store.dispatch,
-                subscribe: store.subscribe
+                subscribe: store.subscribe,
             }
         })
     )
@@ -184,7 +182,7 @@ export function createStoreWithDeps<S, R, E, ROut extends R>(
         const runtime = yield* Effect.runtime<ROut>()
         return createEffectStore({
             ...config,
-            runtime: runtime as Runtime.Runtime<ROut>
+            runtime: runtime as Runtime.Runtime<ROut>,
         })
     }).pipe(Effect.provide(dependencies))
 }
@@ -195,7 +193,7 @@ export function createStoreWithDeps<S, R, E, ROut extends R>(
 export function batchActions(actions: UnknownAction[]): UnknownAction {
     return {
         type: '@@BATCH',
-        payload: actions
+        payload: actions,
     }
 }
 
@@ -210,20 +208,20 @@ export const batchMiddleware: Middleware = store => next => (action: any) => {
 // Create a test store for unit testing
 export const createTestStore = <S, R>(
     config: Partial<EffectStoreConfig<S, R>> & { reducer: Reducer<S> }
-): EffectStore<S, UnknownAction, R> => createEffectStore({
-    ...config,
-    runtime: config.runtime || Runtime.defaultRuntime as Runtime.Runtime<R>,
-    debug: true,
-    devTools: false
-})
+): EffectStore<S, UnknownAction, R> =>
+    createEffectStore({
+        ...config,
+        runtime: config.runtime || (Runtime.defaultRuntime as Runtime.Runtime<R>),
+        debug: true,
+        devTools: false,
+    })
 
 // Store hooks for Effect usage
 export const StoreHooks = {
-    useStore: <S>() => StoreContext<S>(),
-    
+    useStore: <S>() => StoreContextTag<S>(),
+
     useSelect: <S, T>(selector: (state: S) => T) =>
-        StoreContext<S>().pipe(Effect.map(store => selector(store.getState()))),
-    
-    useDispatch: <S>() =>
-        StoreContext<S>().pipe(Effect.map(store => store.dispatch))
+        StoreContextTag<S>().pipe(Effect.map(store => selector(store.getState()))),
+
+    useDispatch: <S>() => StoreContextTag<S>().pipe(Effect.map(store => store.dispatch)),
 }

@@ -11,7 +11,8 @@ import {
     createSaga,
     EffectSaga,
     ReduxStore,
-    StoreContext
+    StoreContext,
+    StoreContextTag
 } from '../src/effect-redux'
 
 describe('Effect-Redux Integration', () => {
@@ -307,7 +308,7 @@ describe('Effect-Redux Integration', () => {
 
             const result = await store.runEffect(
                 Effect.gen(function* () {
-                    const storeContext = StoreContext<{ value: number }>()
+                    const storeContext = StoreContextTag<{ value: number }>()
                     const ctx = yield* storeContext
                     
                     // Get initial state

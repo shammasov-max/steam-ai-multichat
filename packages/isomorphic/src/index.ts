@@ -37,11 +37,30 @@ export {
     type AccountId as AccountIdType,
     type DialogId as DialogIdType,
     type SystemId as SystemIdType,
-    type SteamID64 as SteamID64Type
+    type SteamID64 as SteamID64Type,
 } from './types/branded'
 
 // ============= Utils =============
-export { SimpleLogger, createLogger, type LogLevel, type LogEntry } from './utils/logger'
+export {
+    SimpleLogger,
+    createSimpleLogger,
+    type SimpleLogLevel,
+    type SimpleLogEntry,
+    // Effect-based logger
+    Logger,
+    LoggerLayer,
+    LoggerError,
+    createLogger,
+    logDebug,
+    logInfo,
+    logWarn,
+    logError,
+    logTimer,
+    type LogLevel,
+    type LogMetadata,
+    type LogEntry,
+    type LoggerService,
+} from './utils'
 
 // ============= Configuration =============
 export * from './config/index'

@@ -1,8 +1,8 @@
 import { Effect, Context, Layer, Schema, Queue, Stream, Scope, Pool } from 'effect'
 import SteamUser from 'steam-user'
 import SteamTotp from 'steam-totp'
-import { SimpleLogger } from '@packages/isomorphic'
-import { SteamAgentConfig, Friend, ChatMessage } from './types'
+import { Logger, LoggerService } from '@packages/isomorphic'
+import { SteamAgentConfig, Friend, ChatMessage } from './types/index'
 
 // Error types
 export class SteamEffectError extends Schema.TaggedError<SteamEffectError>()('SteamEffectError', {
@@ -28,6 +28,7 @@ export type SteamEvent =
 // Steam connection state
 export interface SteamConnection {
     readonly client: SteamUser
+
     readonly config: SteamAgentConfig
     readonly steamId: string
     readonly isLoggedIn: boolean
@@ -41,9 +42,9 @@ export class SteamConfig extends Context.Tag('SteamConfig')<SteamConfig, SteamAg
 export class SteamConnectionService extends Context.Tag('SteamConnection')<SteamConnectionService, SteamConnection>() {}
 
 export class SteamConnectionPool extends Context.Tag('SteamConnectionPool')<SteamConnectionPool, {
-    acquire: (config: SteamAgentConfig) => Effect.Effect<SteamConnection, SteamEffectError, Scope.Scope>
-    release: (steamId: string) => Effect.Effect<void, never>
-    getAll: () => Effect.Effect<readonly SteamConnection[], never>
+    acquire: (config: SteamAgentConfig) => Effect.Effect<SteamConnection, SteamEffectError, Scope.Scope | Logger>
+    release: (steamId: string) => Effect.Effect<void, never, never>
+    getAll: () => Effect.Effect<readonly SteamConnection[], never, never>
 }>() {}
 
 // Helper functions
@@ -62,7 +63,7 @@ const generateAuthCode = (secret: string, offset?: number) =>
 // Create Steam client with Effect
 const createSteamClient = (config: SteamAgentConfig) =>
     Effect.gen(function* () {
-        const logger = new SimpleLogger('SteamEffect')
+        const logger = yield* Logger
         const client = new SteamUser()
         const events = yield* Queue.unbounded<SteamEvent>()
         const chatHistory = new Map<string, ChatMessage[]>()
@@ -89,10 +90,10 @@ const createSteamClient = (config: SteamAgentConfig) =>
                 chatHistory.set(steamId, [])
             }
             chatHistory.get(steamId)!.push({
-                steamID: steamId,
+                steamId,
                 message,
-                timestamp: Date.now(),
-                direction: 'incoming'
+                timestamp: new Date(),
+                incoming: true
             })
             
             Queue.unsafeOffer(events, { _tag: 'FriendMessage', steamId, message })
@@ -111,7 +112,7 @@ const createSteamClient = (config: SteamAgentConfig) =>
         })
         
         // Login with retry logic
-        const maFile = JSON.parse(config.maFile)
+        const maFile = typeof config.maFile === 'string' ? JSON.parse(config.maFile) : config.maFile
         
         yield* Effect.async<void, SteamEffectError>((resume) => {
             let attempts = 0
@@ -143,7 +144,7 @@ const createSteamClient = (config: SteamAgentConfig) =>
             
             client.once('loggedOn', () => {
                 client.off('steamGuard', steamGuardHandler)
-                logger.info('Steam logged on', { steamId: client.steamID?.toString() })
+                Effect.runSync(logger.info('Steam logged on', { steamId: client.steamID?.toString() }))
                 resume(Effect.void)
             })
             
@@ -159,7 +160,7 @@ const createSteamClient = (config: SteamAgentConfig) =>
             const authCode = SteamTotp.generateAuthCode(maFile.shared_secret)
             
             client.logOn({
-                accountName: config.userName,
+                accountName: config.accountName,
                 password: config.password,
                 twoFactorCode: authCode
             })
@@ -186,10 +187,11 @@ export const SteamConnectionLive = Layer.scoped(
         const connection = yield* createSteamClient(config)
         
         // Register cleanup
+        const logger = yield* Logger
         yield* Effect.addFinalizer(() =>
-            Effect.sync(() => {
+            Effect.gen(function* () {
                 connection.client.logOff()
-                new SimpleLogger('SteamEffect').info('Steam disconnected', { steamId: connection.steamId })
+                yield* Effect.ignore(logger.info('Steam disconnected', { steamId: connection.steamId }))
             })
         )
         
@@ -201,14 +203,14 @@ export const SteamConnectionLive = Layer.scoped(
 export const SteamConnectionPoolLive = Layer.effect(
     SteamConnectionPool,
     Effect.gen(function* () {
-        const logger = new SimpleLogger('SteamPool')
+        const logger = yield* Logger
         const connections = new Map<string, SteamConnection>()
         const connectionPools = new Map<string, Pool.Pool<SteamConnection, SteamEffectError>>()
         
         return {
             acquire: (config: SteamAgentConfig) =>
                 Effect.gen(function* () {
-                    const key = `${config.userName}`
+                    const key = `${config.accountName}`
                     
                     // Check if we already have a pool for this config
                     let pool = connectionPools.get(key)
@@ -225,10 +227,10 @@ export const SteamConnectionPoolLive = Layer.effect(
                     const connection = yield* Pool.get(pool!)
                     connections.set(connection.steamId, connection)
                     
-                    logger.info('Connection acquired', { 
+                    Effect.runSync(logger.info('Connection acquired', { 
                         steamId: connection.steamId, 
-                        userName: config.userName 
-                    })
+                        accountName: config.accountName 
+                    }))
                     
                     return connection
                 }),
@@ -239,7 +241,7 @@ export const SteamConnectionPoolLive = Layer.effect(
                     if (connection) {
                         connection.client.logOff()
                         connections.delete(steamId)
-                        logger.info('Connection released', { steamId })
+                        Effect.runSync(logger.info('Connection released', { steamId }))
                     }
                 }),
             
@@ -271,10 +273,10 @@ export const SteamOperationsLive = Layer.effect(
                         connection.chatHistory.set(steamId, [])
                     }
                     connection.chatHistory.get(steamId)!.push({
-                        steamID: steamId,
+                        steamId,
                         message,
-                        timestamp: Date.now(),
-                        direction: 'outgoing'
+                        timestamp: new Date(),
+                        incoming: false
                     })
                     
                     yield* trySteam('sendMessage', async () => {
@@ -309,10 +311,9 @@ export const SteamOperationsLive = Layer.effect(
                     for (const [steamId, relationship] of Object.entries(myFriends)) {
                         const user = connection.client.users[steamId]
                         friends.push({
-                            steamID: steamId,
-                            personaName: user?.player_name || 'Unknown',
-                            avatarHash: user?.avatar_hash || '',
+                            steamId: steamId,
                             relationship: relationship as number,
+                            personaName: user?.player_name || 'Unknown',
                             personaState: user?.persona_state || 0
                         })
                     }

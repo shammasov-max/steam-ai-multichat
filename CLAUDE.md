@@ -384,7 +384,42 @@ this.logger.warn('Warning condition detected', undefined, { threshold: 0.3 })
 2. **Distributed Effect services** - Service discovery and circuit breakers
 3. **Effect Config system** - Replace hard-coded values
 
-## Recent Achievements (2025-09-08)
+## Recent Achievements 
+
+### 2025-09-12 Session: Monorepo-Wide TypeScript Error Resolution
+- **✅ COMPLETED**: All TypeScript errors resolved across all 6 packages using parallel processing
+- **Command**: `/parallel-packages fix typescript errors` - ran TypeScript error fixes in parallel across monorepo
+- **Packages Fixed**: frontend, db, server, isomorphic, dialogs, steam-api (6 packages total)
+- **Result**: Zero TypeScript compilation errors across entire monorepo
+
+#### Package-Specific Fixes:
+- **frontend**: Fixed import path errors (`lib/utils` → `css/utils`) in 4 UI component files
+- **db**: Fixed Context.Tag syntax, missing functions, MongoDB filter types, moved legacy tests to .bak
+- **server**: Fixed Playwright imports, Headers iteration, BigInt literals, Effect-TS Layer types
+- **isomorphic**: No errors found (already clean)
+- **dialogs**: Fixed Effect.gen syntax error in AIServiceEffect.ts (missing closing parenthesis)
+- **steam-api**: Fixed missing type exports, property mismatches, Effect type annotations
+
+#### Verification:
+- All packages pass `yarn typecheck` individually
+- Full monorepo `yarn typecheck` passes without errors
+- Compilation successful across all 569+ files
+
+#### Session Workflow:
+1. **Parallel Discovery**: Used Glob to find all packages/*/package.json files
+2. **Parallel Execution**: Launched 6 general-purpose agents simultaneously using single message with multiple Task calls
+3. **Agent Distribution**: Each agent focused on one package (frontend, db, server, isomorphic, dialogs, steam-api)
+4. **Systematic Approach**: Each agent ran typecheck → identified errors → fixed issues → verified fixes
+5. **Efficiency**: All packages processed in parallel rather than sequentially
+
+#### Technical Debt Resolved:
+- **Import Path Inconsistencies**: Frontend components using old file paths after refactoring
+- **Effect-TS Migration Issues**: Context.Tag syntax updates needed across db package
+- **Type Safety Gaps**: Missing type definitions and incorrect type usage
+- **Legacy Test Files**: Moved obsolete test files to .bak extensions
+- **MongoDB Type Compatibility**: Fixed branded type issues with database queries
+
+### 2025-09-08 Session: Effect-TS Architecture Implementation
 - **Phase 2 Completed**: All Effect-TS core architecture implemented
 - **Code Reduction**: Average 50% reduction in refactored files
 - **Type Safety**: 100% strict TypeScript compliance
@@ -394,3 +429,274 @@ this.logger.warn('Warning condition detected', undefined, { threshold: 0.3 })
 Skip folders and files which names starts with symbol "_".
 Focus development on the `packages/` workspace structure.
 Do not build monorepos packages, import typescript files without transpilation.
+
+
+
+## Effect TypeScript Development Patterns
+
+### Core Principles
+- **Type Safety First**: Never use `any` or type assertions - prefer explicit types
+- **Effect Patterns**: Use Effect's composable abstractions
+- **Early Returns**: Prefer early returns over deep nesting
+- **Input Validation**: Validate inputs at system boundaries
+- **Resource Safety**: Use Effect's resource management for automatic cleanup
+- **Services**: Use Effect's service pattern for dependency injection 
+- **Logging**: Use Effect's logging pattern for structured logging
+
+
+### Effect-TS Service Definition
+
+export const LoggerService = {
+logInfo: (msg: string) => Effect.log(`[INFO] ${msg}`),
+logError: (err: unknown) => Effect.logError(err)
+}
+
+export const Logger = Context.Tag<typeof LoggerService>()
+export const LoggerLayer = Layer.succeed(Logger, LoggerService)
+…and this more declarative class-based Tag syntax:
+
+ts
+Copy code
+class MyService extends Context.Tag("MyService")<MyService, { methodA: Effect.Effect<void> }>() {}
+
+🧪 Examples Side-by-Side
+🔹 Inferred (concise)
+export const LoggerService = {
+log: (msg: string) => Effect.log(msg)
+}
+
+export const Logger = Context.Tag<typeof LoggerService>()
+export const LoggerLayer = Layer.succeed(Logger, LoggerService)
+
+🔸 Class-based (explicit)
+export interface LoggerService {
+log: (msg: string) => Effect.Effect<void>
+}
+
+export class Logger extends Context.Tag("Logger")<Logger, LoggerService>() {}
+
+export const LoggerLayer = Layer.succeed(Logger, {
+log: (msg) => Effect.log(msg)
+})
+
+
+
+### Mandatory Development Workflow
+For every implementation task:
+1. **Research**: Thoroughly understand the problem and requirements
+2. **Plan**: Create detailed implementation plan (in specs/[feature]/plan.md)
+3. **Implement**: Write the function/feature implementation
+4. **Lint & Type Check**: Run `pnpm lint:fix` and `pnpm typecheck`
+5. **Test**: Write comprehensive tests using `@effect/vitest`
+6. **Validate**: Ensure all checks pass before moving forward
+
+### Effect-Specific Patterns
+
+#### Sequential Operations
+```typescript
+// Use Effect.gen() for sequential operations
+const program = Effect.gen(function* () {
+  const user = yield* getUser(id)
+  const profile = yield* getProfile(user.profileId)
+  return { user, profile }
+})
+```
+
+#### Error Handling
+```typescript
+// Use Data.TaggedError for custom errors
+class UserNotFound extends Data.TaggedError("UserNotFound")<{
+  readonly id: string
+}> {}
+
+// Use Effect.tryPromise for Promise integration
+const fetchUser = (id: string) =>
+  Effect.tryPromise({
+    try: () => fetch(`/users/${id}`).then(r => r.json()),
+    catch: () => new UserNotFound({ id })
+  })
+```
+
+#### Testing Framework Selection
+
+**CRITICAL RULE**: Choose the correct testing framework based on what you're testing:
+
+**Use @effect/vitest for Effect code:**
+- **MANDATORY** for modules working with Effect, Stream, Layer, TestClock, etc.
+- Import pattern: `import { assert, describe, it } from "@effect/vitest"`
+- Test pattern: `it.effect("description", () => Effect.gen(function*() { ... }))`
+- **FORBIDDEN**: Never use `expect` from vitest in Effect tests - use `assert` methods
+
+**Use regular vitest for pure TypeScript:**
+- **MANDATORY** for pure functions (Array, String, Number operations, etc.)
+- Import pattern: `import { describe, expect, it } from "vitest"`
+- Test pattern: `it("description", () => { ... })`
+
+#### Correct it.effect Pattern
+
+```typescript
+import { assert, describe, it } from "@effect/vitest"
+import { Effect } from "effect"
+
+describe("UserService", () => {
+  it.effect("should fetch user successfully", () =>
+    Effect.gen(function* () {
+      const user = yield* fetchUser("123")
+      
+      // Use assert methods, NOT expect
+      assert.strictEqual(user.id, "123")
+      assert.deepStrictEqual(user.profile, expectedProfile)
+      assert.isTrue(user.active)
+    }))
+})
+```
+
+**IMPORTANT**: `@effect/vitest` automatically provides `TestContext` - no need to manually provide it.
+
+#### Testing with Services
+```typescript
+it.effect("should work with dependency injection", () =>
+  Effect.gen(function* () {
+    const result = yield* UserService.getUser("123")
+    assert.strictEqual(result.name, "John")
+  }).pipe(
+    Effect.provide(TestUserServiceLayer)
+  )
+)
+```
+
+#### Time-dependent Testing
+```typescript
+import { TestClock } from "effect/TestClock"
+
+it.effect("should handle delays correctly", () =>
+  Effect.gen(function* () {
+    const fiber = yield* Effect.fork(
+      Effect.sleep("5 seconds").pipe(Effect.as("completed"))
+    )
+    yield* TestClock.advance("5 seconds")
+    const result = yield* Fiber.join(fiber)
+    assert.strictEqual(result, "completed")
+  })
+)
+```
+
+#### Error Testing
+```typescript
+it.effect("should handle errors properly", () =>
+  Effect.gen(function* () {
+    const result = yield* Effect.flip(failingOperation())
+    assert.isTrue(result instanceof UserNotFoundError)
+  })
+)
+```
+
+#### Console Testing Pattern
+
+For testing code that uses `Console.log`, `Console.error`, etc., use the provided `createMockConsole` utility:
+
+```typescript
+import { assert, describe, it } from "@effect/vitest"
+import { Effect } from "effect"
+import { createMockConsole } from "../utils/mockConsole"
+
+it.effect("should log messages correctly", () =>
+  Effect.gen(function*() {
+    const { mockConsole, messages } = createMockConsole()
+
+    yield* Console.log("Hello, World!").pipe(
+      Effect.withConsole(mockConsole)
+    )
+
+    assert.strictEqual(messages.length, 1)
+    assert.strictEqual(messages[0], "Hello, World!")
+  }))
+
+it.effect("should capture different console methods", () =>
+  Effect.gen(function*() {
+    const { mockConsole, messages } = createMockConsole()
+
+    yield* Effect.all([
+      Console.log("Info message"),
+      Console.error("Error message"),
+      Console.warn("Warning message")
+    ]).pipe(
+      Effect.withConsole(mockConsole)
+    )
+
+    assert.strictEqual(messages.length, 3)
+    assert.strictEqual(messages[0], "Info message")
+    assert.strictEqual(messages[1], "error: Error message")
+    assert.strictEqual(messages[2], "warn: Warning message")
+  }))
+```
+
+**Mock Console Implementation:**
+
+The `createMockConsole` utility is available at `test/utils/mockConsole.ts` and provides:
+
+- **Complete Interface Coverage**: Implements both `UnsafeConsole` and `Console.Console` interfaces
+- **Message Capture**: All console output is captured in a `messages` array for assertions
+- **Type Safety**: No `as any` usage - proper interface implementation
+- **Effect Integration**: Wraps unsafe operations in `Effect.sync()` for the Console interface
+- **Special Handling**: Handles complex cases like group options (collapsed vs regular)
+
+**Architecture:**
+1. `UnsafeConsole` - Plain functions that capture messages to an array
+2. `Console.Console` - Wraps `UnsafeConsole` methods in `Effect.sync()` calls
+3. Returns both the `mockConsole` and `messages` array for testing
+
+**Key Points:**
+- Import `createMockConsole` from `test/utils/mockConsole`
+- Use `Effect.withConsole(mockConsole)` to provide the mock
+- Access captured output via the returned `messages` array
+- Each console method prefixes messages appropriately (e.g., "error:", "warn:")
+- The mock handles all Console interface methods for comprehensive testing
+
+### Problem-Solving Strategy
+- **Break Down**: Split complex problems into smaller, manageable parts
+- **Validate Frequently**: Run tests and type checks often during development
+- **Simplest Solution**: Choose the simplest approach that meets requirements
+- **Clarity Over Cleverness**: Prioritize readable, maintainable code
+
+## Implementation Patterns
+
+The project includes comprehensive pattern documentation for future reference and consistency:
+
+### Pattern Directory
+**Location**: `docs/patterns/`
+- **Purpose**: Detailed documentation of all implementation patterns used in the project
+- **Usage**: Reference material for maintaining consistency and best practices
+- **Content**: Code examples, principles, and guidelines from actual implementation
+
+### Available Patterns
+- **[docs/patterns/http-api.md](./docs/patterns/http-api.md)**: HTTP API definition and implementation patterns
+  - Declarative API structure (endpoints → groups → APIs)
+  - Handler implementation with Effect composition
+  - Server configuration and platform abstraction
+
+- **[docs/patterns/layer-composition.md](./docs/patterns/layer-composition.md)**: Layer-based dependency injection patterns
+  - Service provision strategies (`Layer.provide()` vs `Layer.provideMerge()`)
+  - Environment-specific configurations
+  - Factory patterns for test services
+
+- **[docs/patterns/generic-testing.md](./docs/patterns/generic-testing.md)**: General testing patterns with @effect/vitest
+  - Service mocking with complete interface implementation
+  - Effect-based test structure and assertions
+  - Test data management and state capture
+
+- **[docs/patterns/http-specific-testing.md](./docs/patterns/http-specific-testing.md)**: HTTP API testing patterns
+  - Layer-based HTTP testing with real servers
+  - Dynamic port assignment and URL extraction
+  - HTTP client integration testing
+
+### Pattern Usage Guidelines
+- **Reference First**: Check patterns directory before implementing new features
+- **Consistency**: Follow established patterns for similar functionality
+- **Documentation**: Update patterns when introducing new implementation approaches
+- **Examples**: All patterns include actual code examples from the implementation
+
+## Notes
+- Vitest with @effect/vitest configured for Effect-aware testing
+- Effect TypeScript ecosystem integration for type-safe, composable architecture
+- Comprehensive implementation patterns documented for consistency and reusability

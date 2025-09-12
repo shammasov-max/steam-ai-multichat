@@ -24,6 +24,7 @@
     "format:check": "prettier --check ."
   },
   "devDependencies": {
+    "@modelcontextprotocol/sdk": "^1.18.0",
     "@types/js-yaml": "^4.0.0",
     "@typescript-eslint/eslint-plugin": "^8.39.1",
     "@typescript-eslint/parser": "^8.39.1",
@@ -37,6 +38,7 @@
     "typescript": "^5.9.2"
   },
   "dependencies": {
+    "@niklaserik/effect-mcp": "^1.0.7",
     "@vitest/ui": "^3.2.4",
     "fastq": "^1.19.1",
     "js-yaml": "^4.1.0",

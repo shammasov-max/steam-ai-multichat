@@ -5,7 +5,7 @@ import * as Duration from 'effect/Duration'
 import { pipe } from 'effect/Function'
 import OpenAI from 'openai'
 import { CompressedContext } from '../types'
-import { SimpleLogger } from '@packages/isomorphic'
+import { Logger } from '@packages/isomorphic'
 // Resilience features removed - not needed for happy path
 
 export type AIModel = 
@@ -148,11 +148,12 @@ export class AIConfigEffect extends Context.Tag('AIConfig')<AIConfigEffect, Requ
 // Create the service implementation with resilience patterns
 const makeAIService = (
   config: Required<AIServiceConfig>,
-  openai: OpenAI,
-  logger: SimpleLogger
-): AIServiceOps => {
+  openai: OpenAI
+): Effect.Effect<AIServiceOps, never, Logger> => 
+  Effect.gen(function* () {
+    const logger = yield* Logger
 
-  return {
+    return {
     generateResponse: (context, userMessage, language) =>
         pipe(
           Effect.tryPromise({
@@ -190,7 +191,7 @@ const makeAIService = (
           }
         },
         catch: (error) => {
-          logger.error('OpenAI API error', error as Error)
+          Effect.runSync(logger.error('OpenAI API error', error as Error))
           const errorMessage = error instanceof Error ? error.message : 'Unknown error'
           return new AIServiceError(`Failed to generate AI response: ${errorMessage}`, error as Error)
           }
@@ -205,13 +206,13 @@ const makeAIService = (
           return response && response.data && response.data.length > 0
         },
         catch: (error) => {
-          logger.error('OpenAI connection test failed', error as Error)
+          Effect.runSync(logger.error('OpenAI connection test failed', error as Error))
           return new AIServiceError('Connection test failed', error as Error)
         }
         })
       )
-  }
-}
+    }
+  })
 
 // Helper functions (pure, no side effects)
 const buildSystemPrompt = (
@@ -300,10 +301,10 @@ export const AIServiceLive = Layer.effect(
   AIServiceEffect,
   Effect.gen(function* () {
     const config = yield* AIConfigEffect
-    const logger = new SimpleLogger('AIServiceEffect')
+    const logger = yield* Logger
     const openai = new OpenAI({ apiKey: config.apiKey })
     
-    logger.info('Initializing AI Service with resilience patterns', { 
+    yield* logger.info('Initializing AI Service with resilience patterns', { 
       model: config.model,
       resilience: 'disabled'
     })
@@ -311,7 +312,7 @@ export const AIServiceLive = Layer.effect(
     // Create resilience components if enabled
     // TODO: Fix Effect layer provision for resilience patterns
     // Currently disabled to avoid fiber refs issues
-    return makeAIService(config, openai, logger)
+    return yield* makeAIService(config, openai)
   })
 )
 

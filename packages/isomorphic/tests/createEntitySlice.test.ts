@@ -18,7 +18,7 @@ type User = {
   name: string;
   email: string;
   role: 'admin' | 'user' | 'guest';
-  createdAt: Date;
+  createdAt: number; // Store as epoch milliseconds to maintain Redux serialization
 };
 
 type Product = {
@@ -40,14 +40,14 @@ test('createEntitySlice: initializes state and selectors work', async () => {
         name: 'Alice Johnson',
         email: 'alice@example.com',
         role: 'admin',
-        createdAt: new Date('2024-01-01'),
+        createdAt: new Date('2024-01-01').getTime(),
       },
       {
         userId: 'user-2',
         name: 'Bob Smith',
         email: 'bob@example.com',
         role: 'user',
-        createdAt: new Date('2024-01-15'),
+        createdAt: new Date('2024-01-15').getTime(),
       },
     ],
     entityReducers: {

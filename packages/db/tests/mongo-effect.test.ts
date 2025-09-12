@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { Effect, pipe, Option, Duration } from 'effect'
-import { createDbEffect, MongoDB, runWithMongoDB } from '../src'
+import { createDb, MongoDB, runWithMongoDB } from '../src'
 import { typeid } from 'typeid-js'
 import { MongoClient } from 'mongodb'
 
@@ -25,7 +25,7 @@ describe('MongoDB Effect Implementation', () => {
     })
     
     it('should connect and initialize with Effect', async () => {
-        const { slices, layer } = createDbEffect(connectionString)
+        const { slices, layer } = createDb(connectionString)
         
         // Create a config object for testing
         const config = {
@@ -60,7 +60,7 @@ describe('MongoDB Effect Implementation', () => {
     })
     
     it('should perform CRUD operations with repositories', async () => {
-        const { slices } = createDbEffect(connectionString)
+        const { slices } = createDb(connectionString)
         
         // Create a config object for testing
         const config = {
@@ -124,7 +124,7 @@ describe('MongoDB Effect Implementation', () => {
     })
     
     it('should handle batch operations', async () => {
-        const { slices } = createDbEffect(connectionString)
+        const { slices } = createDb(connectionString)
         
         // Create a config object for testing
         const config = {
@@ -178,7 +178,7 @@ describe('MongoDB Effect Implementation', () => {
     })
     
     it('should handle event store operations', async () => {
-        const { slices } = createDbEffect(connectionString)
+        const { slices } = createDb(connectionString)
         
         // Create a config object for testing
         const config = {
@@ -231,7 +231,7 @@ describe('MongoDB Effect Implementation', () => {
     })
     
     it('should handle errors gracefully', async () => {
-        const { slices } = createDbEffect('mongodb://localhost:27099/test') // Non-existent port
+        const { slices } = createDb('mongodb://localhost:27099/test') // Non-existent port
         
         // Create a config object for testing with bad connection string
         const config = {

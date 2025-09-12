@@ -1,9 +1,6 @@
-import * as Effect from 'effect/Effect'
-import * as Context from 'effect/Context'
-import * as Layer from 'effect/Layer'
-import * as Option from 'effect/Option'
-import { pipe } from 'effect/Function'
+import { Effect, Context, Layer, Data, pipe } from 'effect'
 import { CompressedContext, UserInfo } from '../types'
+import { ConfigService, getContextConfig } from '@packages/isomorphic'
 
 interface Message {
   role: string
@@ -18,16 +15,10 @@ interface ContextConfig {
 }
 
 // Error types
-export class CompressionError extends Error {
-  readonly _tag: string = 'CompressionError'
-  constructor(message: string, override readonly cause?: Error) {
-    super(message)
-  }
-}
-
-export class InvalidMessageError extends CompressionError {
-  override readonly _tag = 'InvalidMessageError' as const
-}
+export class CompressionError extends Data.TaggedError('CompressionError')<{
+  readonly message: string
+  readonly cause?: Error
+}> {}
 
 // Service Interface
 interface ContextCompressorOps {
@@ -49,63 +40,42 @@ export class ContextCompressorEffect extends Context.Tag('ContextCompressor')<Co
 export class ContextConfigEffect extends Context.Tag('ContextConfig')<ContextConfigEffect, ContextConfig>() {}
 
 // Pattern definitions
-const REJECTION_PATTERNS = [
-  /no thanks/i,
-  /not interested/i,
-  /don't want/i,
-  /不需要/i,
-  /不感兴趣/i,
-  /不用了/i,
-  /いいえ/i,
-  /結構です/i,
-  /아니요/i,
-  /관심없/i,
-  /no gracias/i,
-  /no me interesa/i
-]
-
-const AGREEMENT_PATTERNS = [
-  /yes|yeah|sure|okay|ok|agree|sounds good|let's do it/i,
-  /好的|可以|同意|没问题|行/i,
-  /はい|いいです|分かりました|了解/i,
-  /네|좋아요|알겠습니다/i,
-  /sí|de acuerdo|está bien|vale/i
-]
-
-const PREFERENCE_PATTERNS = [
-  /i (like|prefer|love|hate|dislike)/i,
-  /我(喜欢|偏好|讨厌)/i,
-  /(好き|嫌い|苦手)/i,
-  /(좋아|싫어)/i,
-  /me (gusta|encanta|disgusta)/i
-]
-
-const PERSONAL_INFO_PATTERNS = [
-  /my name is/i,
-  /i am \d+ years old/i,
-  /i live in/i,
-  /i work/i,
-  /我叫/i,
-  /我住在/i,
-  /私は.*です/i
-]
-
-const GREETING_PATTERNS = [
-  /^(hi|hello|hey|greetings)(\s+there)?$/i,
-  /^good\s+(morning|afternoon|evening)$/i,
-  /^(你好|您好)$/,
-  /^(こんにちは|おはよう|おはようございます)$/,
-  /^(안녕|안녕하세요)$/,
-  /^(hola|buenos días|buenas tardes)$/i
-]
-
-const FAREWELL_PATTERNS = [
-  /^(bye|goodbye|see you later|take care)$/i,
-  /^(再见|拜拜)$/,
-  /^(さようなら|またね|じゃあね)$/,
-  /^(안녕히|다음에)$/,
-  /^(adiós|hasta luego|hasta pronto)$/i
-]
+const PATTERNS = {
+  rejection: [
+    /no thanks/i, /not interested/i, /don't want/i,
+    /不需要/i, /不感兴趣/i, /不用了/i,
+    /いいえ/i, /結構です/i,
+    /아니요/i, /관심없/i,
+    /no gracias/i, /no me interesa/i
+  ],
+  agreement: [
+    /yes|yeah|sure|okay|ok|agree|sounds good|let's do it/i,
+    /好的|可以|同意|没问题|行/i,
+    /はい|いいです|分かりました|了解/i,
+    /네|좋아요|알겠습니다/i,
+    /sí|de acuerdo|está bien|vale/i
+  ],
+  preference: [
+    /i (like|prefer|love|hate|dislike)/i,
+    /我(喜欢|偏好|讨厌)/i, /(好き|嫌い|苦手)/i,
+    /(좋아|싫어)/i, /me (gusta|encanta|disgusta)/i
+  ],
+  personalInfo: [
+    /my name is/i, /i am \d+ years old/i, /i live in/i, /i work/i,
+    /我叫/i, /我住在/i, /私は.*です/i
+  ],
+  greeting: [
+    /^(hi|hello|hey|greetings)(\s+there)?$/i,
+    /^good\s+(morning|afternoon|evening)$/i,
+    /^(你好|您好)$/, /^(こんにちは|おはよう|おはようございます)$/,
+    /^(안녕|안녕하세요)$/, /^(hola|buenos días|buenas tardes)$/i
+  ],
+  farewell: [
+    /^(bye|goodbye|see you later|take care)$/i,
+    /^(再见|拜拜)$/, /^(さようなら|またね|じゃあね)$/,
+    /^(안녕히|다음에)$/, /^(adiós|hasta luego|hasta pronto)$/i
+  ]
+}
 
 const TOPIC_KEYWORDS = {
   gaming: /game|play|level|character|quest|mission/i,
@@ -115,357 +85,195 @@ const TOPIC_KEYWORDS = {
   support: /help|support|assist|guide|tutorial/i
 }
 
-// Helper functions (pure)
-const containsRejection = (content: string): boolean => {
-  return REJECTION_PATTERNS.some(pattern => pattern.test(content))
+// Helper functions
+const hasPattern = (content: string, patterns: RegExp[]) => 
+  patterns.some(p => p.test(content))
+
+const containsQuestion = (content: string) => 
+  content.includes('?') || /^(what|when|where|who|why|how|is|are|can|could|would|will)/i.test(content)
+
+const containsImportantInfo = (content: string) => {
+  const c = content.toLowerCase()
+  return hasPattern(c, PATTERNS.rejection) ||
+         hasPattern(c, PATTERNS.agreement) ||
+         containsQuestion(c) ||
+         hasPattern(c, PATTERNS.personalInfo) ||
+         /\$|price|cost|\d+/.test(c)
 }
 
-const containsAgreement = (content: string): boolean => {
-  return AGREEMENT_PATTERNS.some(pattern => pattern.test(content))
+const isSimpleGreeting = (content: string) => {
+  const trimmed = content.trim()
+  return !trimmed.includes('\n') && trimmed.length <= 20 && hasPattern(trimmed, PATTERNS.greeting)
 }
 
-const containsPreference = (content: string): boolean => {
-  return PREFERENCE_PATTERNS.some(pattern => pattern.test(content))
+const isSimpleFarewell = (content: string) => {
+  const trimmed = content.trim()
+  return !trimmed.includes('\n') && trimmed.length <= 20 && hasPattern(trimmed, PATTERNS.farewell)
 }
 
-const containsQuestion = (content: string): boolean => {
-  return content.includes('?') || 
-         /^(what|when|where|who|why|how|is|are|can|could|would|will)/i.test(content)
-}
+const extractSnippet = (content: string, maxLength = 50) =>
+  content.length <= maxLength ? content : content.substring(0, maxLength) + '...'
 
-const containsPersonalInfo = (content: string): boolean => {
-  return PERSONAL_INFO_PATTERNS.some(pattern => pattern.test(content))
-}
-
-const containsImportantInfo = (content: string): boolean => {
-  return containsRejection(content) ||
-         containsAgreement(content) ||
-         containsQuestion(content) ||
-         containsPersonalInfo(content) ||
-         content.includes('$') ||
-         content.includes('price') ||
-         content.includes('cost') ||
-         /\d+/.test(content)
-}
-
-const isGreeting = (content: string): boolean => {
-  const trimmedContent = content.trim()
-  if (trimmedContent.includes('\n')) return false
-  if (trimmedContent.length > 20) return false
-  return GREETING_PATTERNS.some(pattern => pattern.test(trimmedContent))
-}
-
-const isFarewell = (content: string): boolean => {
-  const trimmedContent = content.trim()
-  if (trimmedContent.includes('\n')) return false
-  if (trimmedContent.length > 20) return false
-  return FAREWELL_PATTERNS.some(pattern => pattern.test(trimmedContent))
-}
-
-const extractSnippet = (content: string, maxLength: number = 50): string => {
-  if (content.length <= maxLength) return content
-  return content.substring(0, maxLength) + '...'
-}
-
-const extractPreference = (content: string): string | null => {
+const extractPreference = (content: string) => {
   const match = content.match(/i (like|prefer|love|hate|dislike) (\w+)/i)
-  if (match) {
-    return `User ${match[1]}s: ${match[2]}`
+  return match ? `User ${match[1]}s: ${match[2]}` : null
+}
+
+const extractPersonalInfo = (content: string) => {
+  const matchers = [
+    [/my name is (\w+)/i, (m: RegExpMatchArray) => `User name: ${m[1]}`],
+    [/i am (\d+) years old/i, (m: RegExpMatchArray) => `User age: ${m[1]}`],
+    [/i live in ([\w\s]+)/i, (m: RegExpMatchArray) => `User location: ${m[1]}`]
+  ] as const
+  
+  for (const [pattern, formatter] of matchers) {
+    const match = content.match(pattern)
+    if (match) return formatter(match)
   }
   return null
 }
 
-const extractPersonalInfo = (content: string): string | null => {
-  const nameMatch = content.match(/my name is (\w+)/i)
-  if (nameMatch) return `User name: ${nameMatch[1]}`
-  
-  const ageMatch = content.match(/i am (\d+) years old/i)
-  if (ageMatch) return `User age: ${ageMatch[1]}`
-  
-  const locationMatch = content.match(/i live in ([\w\s]+)/i)
-  if (locationMatch) return `User location: ${locationMatch[1]}`
-  
-  return null
-}
+const deduplicateFacts = (facts: string[]) => 
+  [...new Set(facts.map(f => f.toLowerCase().trim()))].slice(0, 10)
 
-const deduplicateFacts = (facts: string[]): string[] => {
-  const seen = new Set<string>()
-  return facts.filter(fact => {
-    const normalized = fact.toLowerCase().trim()
-    if (seen.has(normalized)) return false
-    seen.add(normalized)
-    return true
-  })
-}
-
-const extractTopics = (messages: Message[]): string[] => {
+const extractTopics = (messages: Message[]) => {
   const topics = new Set<string>()
-  
   for (const message of messages) {
     for (const [topic, pattern] of Object.entries(TOPIC_KEYWORDS)) {
-      if (pattern.test(message.content)) {
-        topics.add(topic)
-      }
+      if (pattern.test(message.content)) topics.add(topic)
     }
   }
-  
   return [...topics]
 }
 
-const determineUserStance = (messages: Message[]): string => {
+const analyzeMessages = (messages: Message[]) => {
   const userMessages = messages.filter(m => m.role === 'USER')
-  let positiveCount = 0
-  let negativeCount = 0
-  let neutralCount = 0
+  let positive = 0, negative = 0, neutral = 0
   
-  for (const message of userMessages) {
-    const content = message.content.toLowerCase()
-    if (containsAgreement(content)) {
-      positiveCount++
-    } else if (containsRejection(content)) {
-      negativeCount++
-    } else {
-      neutralCount++
-    }
+  for (const msg of userMessages) {
+    const content = msg.content.toLowerCase()
+    if (hasPattern(content, PATTERNS.agreement)) positive++
+    else if (hasPattern(content, PATTERNS.rejection)) negative++
+    else neutral++
   }
   
-  if (negativeCount > positiveCount * 2) return 'resistant'
-  if (positiveCount > negativeCount * 2) return 'receptive'
-  if (neutralCount > (positiveCount + negativeCount)) return 'neutral/exploring'
-  return 'mixed'
+  const stance = 
+    negative > positive * 2 ? 'resistant' :
+    positive > negative * 2 ? 'receptive' :
+    neutral > (positive + negative) ? 'neutral/exploring' : 'mixed'
+  
+  const progress = 
+    positive > 0 && negative === 0 ? 'positive trajectory' :
+    negative > positive ? 'facing resistance' :
+    messages.length > 10 && positive === 0 ? 'slow progress' :
+    positive > 0 && negative > 0 ? 'mixed signals' : 'initial phase'
+  
+  return { stance, progress, rejectionCount: negative }
 }
 
-const assessProgress = (messages: Message[]): string => {
-  const totalMessages = messages.length
-  const agreements = messages.filter(m => 
-    m.role === 'USER' && containsAgreement(m.content.toLowerCase())
-  ).length
-  const rejections = messages.filter(m => 
-    m.role === 'USER' && containsRejection(m.content.toLowerCase())
-  ).length
+// Implementation helpers
+const extractFactsFromMessages = (messages: Message[]) => {
+  const facts: string[] = []
   
-  if (agreements > 0 && rejections === 0) return 'positive trajectory'
-  if (rejections > agreements) return 'facing resistance'
-  if (totalMessages > 10 && agreements === 0) return 'slow progress'
-  if (agreements > 0 && rejections > 0) return 'mixed signals'
-  return 'initial phase'
+  for (const msg of messages) {
+    const content = msg.content
+    const lower = content.toLowerCase()
+    
+    if (hasPattern(lower, PATTERNS.rejection)) {
+      facts.push(`User rejection detected: "${extractSnippet(content)}"`)
+    }
+    if (hasPattern(lower, PATTERNS.agreement)) {
+      facts.push(`User agreement: "${extractSnippet(content)}"`)
+    }
+    
+    const preference = extractPreference(content)
+    if (preference) facts.push(preference)
+    
+    if (containsQuestion(lower) && msg.role === 'USER') {
+      facts.push(`User question: "${extractSnippet(content)}"`)
+    }
+    
+    const info = extractPersonalInfo(content)
+    if (info) facts.push(info)
+  }
+  
+  return deduplicateFacts(facts)
+}
+
+const createSummaryFromAnalysis = (messages: Message[]) => {
+  const topics = extractTopics(messages)
+  const { stance, progress, rejectionCount } = analyzeMessages(messages)
+  
+  const parts: string[] = []
+  if (topics.length > 0) parts.push(`Discussion about ${topics.join(', ')}`)
+  if (stance) parts.push(`User stance: ${stance}`)
+  if (progress) parts.push(`Progress: ${progress}`)
+  if (rejectionCount > 0) parts.push(`User has rejected ${rejectionCount} time(s)`)
+  
+  return parts.join('. ') || 'Conversation ongoing.'
+}
+
+const compressMessageContent = (content: string) => {
+  if (isSimpleGreeting(content)) return '[GREETING]'
+  if (isSimpleFarewell(content)) return '[FAREWELL]'
+  if (content.length <= 500) return content
+  
+  const sentences = content.match(/[^.!?]+[.!?]+/g) || [content]
+  const important = sentences.filter(s => containsImportantInfo(s.toLowerCase()))
+  
+  return important.length > 0
+    ? important.join(' ').substring(0, 400) + '...'
+    : content.substring(0, 400) + '...'
 }
 
 // Create the service implementation
 const makeContextCompressor = (config: ContextConfig): ContextCompressorOps => ({
   extractKeyFacts: (messages) =>
     Effect.try({
-      try: () => {
-        const facts: string[] = []
-        
-        for (const message of messages) {
-          const content = message.content.toLowerCase()
-          
-          if (containsRejection(content)) {
-            facts.push(`User rejection detected: "${extractSnippet(message.content)}"`)
-          }
-          
-          if (containsAgreement(content)) {
-            facts.push(`User agreement: "${extractSnippet(message.content)}"`)
-          }
-          
-          if (containsPreference(content)) {
-            const preference = extractPreference(message.content)
-            if (preference) facts.push(preference)
-          }
-          
-          if (containsQuestion(content) && message.role === 'USER') {
-            facts.push(`User question: "${extractSnippet(message.content)}"`)
-          }
-          
-          if (containsPersonalInfo(content)) {
-            const info = extractPersonalInfo(message.content)
-            if (info) facts.push(info)
-          }
-        }
-        
-        return deduplicateFacts(facts).slice(0, 10)
-      },
-      catch: (error) => new CompressionError('Failed to extract key facts', error as Error)
+      try: () => extractFactsFromMessages(messages),
+      catch: (error) => new CompressionError({ message: 'Failed to extract key facts', cause: error as Error })
     }),
 
   createSummary: (messages) =>
     Effect.try({
-      try: () => {
-        const topics = extractTopics(messages)
-        const userStance = determineUserStance(messages)
-        const progressMade = assessProgress(messages)
-        
-        const parts: string[] = []
-        
-        if (topics.length > 0) {
-          parts.push(`Discussion about ${topics.join(', ')}`)
-        }
-        
-        if (userStance) {
-          parts.push(`User stance: ${userStance}`)
-        }
-        
-        if (progressMade) {
-          parts.push(`Progress: ${progressMade}`)
-        }
-        
-        const rejectionCount = messages.filter(m => 
-          m.role === 'USER' && containsRejection(m.content.toLowerCase())
-        ).length
-        
-        if (rejectionCount > 0) {
-          parts.push(`User has rejected ${rejectionCount} time(s)`)
-        }
-        
-        return parts.join('. ') || 'Conversation ongoing.'
-      },
-      catch: (error) => new CompressionError('Failed to create summary', error as Error)
+      try: () => createSummaryFromAnalysis(messages),
+      catch: (error) => new CompressionError({ message: 'Failed to create summary', cause: error as Error })
     }),
 
   compressMessage: (content) =>
     Effect.try({
-      try: () => {
-        if (isGreeting(content)) return '[GREETING]'
-        if (isFarewell(content)) return '[FAREWELL]'
-        
-        if (content.length <= 500) return content
-        
-        const sentences = content.match(/[^.!?]+[.!?]+/g) || [content]
-        const important = sentences.filter(s => 
-          containsImportantInfo(s.toLowerCase())
-        )
-        
-        if (important.length > 0) {
-          return important.join(' ').substring(0, 400) + '...'
-        }
-        
-        return content.substring(0, 400) + '...'
-      },
-      catch: (error) => new CompressionError('Failed to compress message', error as Error)
+      try: () => compressMessageContent(content),
+      catch: (error) => new CompressionError({ message: 'Failed to compress message', cause: error as Error })
     }),
 
   compress: (messages, goal, init, userInfo) =>
-    pipe(
-      Effect.all({
-        keyFacts: Effect.try({
-          try: () => {
-            const facts: string[] = []
-            
-            for (const message of messages) {
-              const content = message.content.toLowerCase()
-              
-              if (containsRejection(content)) {
-                facts.push(`User rejection detected: "${extractSnippet(message.content)}"`)
-              }
-              
-              if (containsAgreement(content)) {
-                facts.push(`User agreement: "${extractSnippet(message.content)}"`)
-              }
-              
-              if (containsPreference(content)) {
-                const preference = extractPreference(message.content)
-                if (preference) facts.push(preference)
-              }
-              
-              if (containsQuestion(content) && message.role === 'USER') {
-                facts.push(`User question: "${extractSnippet(message.content)}"`)
-              }
-              
-              if (containsPersonalInfo(content)) {
-                const info = extractPersonalInfo(message.content)
-                if (info) facts.push(info)
-              }
-            }
-            
-            return deduplicateFacts(facts).slice(0, 10)
-          },
-          catch: (error) => new CompressionError('Failed to extract key facts', error as Error)
-        }),
-        summary: Effect.try({
-          try: () => {
-            if (messages.length <= config.compressionAfterMessages) {
-              return ''
-            }
-            
-            const messagesToCompress = messages.slice(0, -config.keepLastMessagesVerbatim)
-            const topics = extractTopics(messagesToCompress)
-            const userStance = determineUserStance(messagesToCompress)
-            const progressMade = assessProgress(messagesToCompress)
-            
-            const parts: string[] = []
-            
-            if (topics.length > 0) {
-              parts.push(`Discussion about ${topics.join(', ')}`)
-            }
-            
-            if (userStance) {
-              parts.push(`User stance: ${userStance}`)
-            }
-            
-            if (progressMade) {
-              parts.push(`Progress: ${progressMade}`)
-            }
-            
-            const rejectionCount = messagesToCompress.filter(m => 
-              m.role === 'USER' && containsRejection(m.content.toLowerCase())
-            ).length
-            
-            if (rejectionCount > 0) {
-              parts.push(`User has rejected ${rejectionCount} time(s)`)
-            }
-            
-            return parts.join('. ') || 'Conversation ongoing.'
-          },
-          catch: (error) => new CompressionError('Failed to create summary', error as Error)
-        }),
-        recentMessages: Effect.try({
-          try: () => {
-            const keepCount = messages.length > config.compressionAfterMessages 
-              ? config.keepLastMessagesVerbatim
-              : messages.length
-            
-            const recentMessages = messages.slice(-keepCount)
-            
-            return recentMessages.map(msg => {
-              const content = msg.content
-              let compressedContent = content
-              
-              if (isGreeting(content)) {
-                compressedContent = '[GREETING]'
-              } else if (isFarewell(content)) {
-                compressedContent = '[FAREWELL]'
-              } else if (content.length > 500) {
-                const sentences = content.match(/[^.!?]+[.!?]+/g) || [content]
-                const important = sentences.filter(s => 
-                  containsImportantInfo(s.toLowerCase())
-                )
-                
-                if (important.length > 0) {
-                  compressedContent = important.join(' ').substring(0, 400) + '...'
-                } else {
-                  compressedContent = content.substring(0, 400) + '...'
-                }
-              }
-              
-              return {
-                role: msg.role.toLowerCase() as 'user' | 'assistant',
-                content: compressedContent
-              }
-            })
-          },
-          catch: (error) => new CompressionError('Failed to process recent messages', error as Error)
-        })
-      }),
-      Effect.map(({ keyFacts, summary, recentMessages }) => ({
-        summary,
-        keyFacts,
-        recentMessages,
-        goal,
-        init,
-        ...(userInfo && { userInfo })
-      }))
-    )
+    Effect.try({
+      try: () => {
+        const shouldCompress = messages.length > config.compressionAfterMessages
+        const messagesToSummarize = shouldCompress 
+          ? messages.slice(0, -config.keepLastMessagesVerbatim)
+          : messages
+        
+        const keepCount = shouldCompress 
+          ? config.keepLastMessagesVerbatim 
+          : messages.length
+        
+        const recentMessages = messages.slice(-keepCount).map(msg => ({
+          role: msg.role.toLowerCase() as 'user' | 'assistant',
+          content: compressMessageContent(msg.content)
+        }))
+        
+        return {
+          summary: shouldCompress ? createSummaryFromAnalysis(messagesToSummarize) : '',
+          keyFacts: extractFactsFromMessages(messages),
+          recentMessages,
+          goal,
+          init,
+          ...(userInfo && { userInfo })
+        }
+      },
+      catch: (error) => new CompressionError({ message: 'Failed to compress context', cause: error as Error })
+    })
 })
 
 // Layer creation
@@ -479,15 +287,16 @@ export const ContextCompressorLive = Layer.effect(
 
 // Factory function for creating the layer with configuration
 export const makeContextCompressorLayer = (config?: ContextConfig) => {
-  const fullConfig: ContextConfig = config || {
-    compressionAfterMessages: 10,
-    maxMessagesInContext: 20,
-    keepLastMessagesVerbatim: 5
+  if (config) {
+    return pipe(
+      Layer.succeed(ContextConfigEffect, config),
+      Layer.provideMerge(ContextCompressorLive)
+    )
   }
   
-  return Layer.succeed(ContextConfigEffect, fullConfig).pipe(
+  // Use ConfigService for defaults
+  return pipe(
+    Layer.effect(ContextConfigEffect, getContextConfig),
     Layer.provideMerge(ContextCompressorLive)
   )
 }
-
-// Backward compatibility wrapper removed - use Effect-based API directly

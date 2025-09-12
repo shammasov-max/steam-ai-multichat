@@ -30,6 +30,14 @@ export default [
             parserOptions: {
                 ecmaVersion: 2022,
                 sourceType: 'module'
+            },
+            globals: {
+                console: 'readonly',
+                process: 'readonly',
+                Buffer: 'readonly',
+                global: 'readonly',
+                __dirname: 'readonly',
+                __filename: 'readonly'
             }
         },
         plugins: {

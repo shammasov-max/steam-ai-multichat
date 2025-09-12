@@ -40,85 +40,90 @@ interface EffectExecution {
 /**
  * Creates Redux middleware that can handle Effect-based actions
  */
-export function createEffectMiddleware<R>(
-    config: EffectMiddlewareConfig<R>
-): Middleware {
+export const createEffectMiddleware = <R>(config: EffectMiddlewareConfig<R>): Middleware => {
     const executions = new Map<string, EffectExecution>()
     const { runtime, onError, onSuccess, debug } = config
 
-    return ((api: MiddlewareAPI) => (next: Dispatch) => <T extends UnknownAction>(action: T): T => {
-        const effectAction = action as EffectAction
-        if (!effectAction.effect) return next(action) as T
+    return ((api: MiddlewareAPI) =>
+        (next: Dispatch) =>
+        <T extends UnknownAction>(action: T): T => {
+            const effectAction = action as EffectAction
+            if (!effectAction.effect) return next(action) as T
 
-        const { meta } = effectAction
-        const effectId = meta?.effectId ?? `effect_${Date.now()}_${Math.random()}`
-        const finalEffectId = meta?.debounce ? action.type : effectId
+            const { meta } = effectAction
+            const effectId = meta?.effectId ?? `effect_${Date.now()}_${Math.random()}`
+            const finalEffectId = meta?.debounce ? action.type : effectId
 
-        // Cancel previous if needed
-        const prev = executions.get(finalEffectId)
-        if (prev && (meta?.cancelPrevious || meta?.debounce)) {
-            debug && console.log(`[EffectMiddleware] Cancelling: ${finalEffectId}`)
-            // Use runPromise to ensure interruption completes
-            Runtime.runPromise(runtime)(Fiber.interrupt(prev.fiber)).catch(() => {})
-            executions.delete(finalEffectId)
-        }
+            // Cancel previous if needed
+            const prev = executions.get(finalEffectId)
+            if (prev && (meta?.cancelPrevious || meta?.debounce)) {
+                debug && console.log(`[EffectMiddleware] Cancelling: ${finalEffectId}`)
+                // Use runPromise to ensure interruption completes
+                Runtime.runPromise(runtime)(Fiber.interrupt(prev.fiber)).catch(() => {})
+                executions.delete(finalEffectId)
+            }
 
-        // Build effect with store context
-        const effectPipeline = Effect.gen(function* () {
-            debug && console.log(`[EffectMiddleware] Starting: ${finalEffectId}`)
-            const result = yield* Effect.provide(
-                effectAction.effect!,
-                Layer.succeed(ReduxStore, { getState: api.getState, dispatch: api.dispatch })
-            )
-            debug && console.log(`[EffectMiddleware] Completed: ${finalEffectId}`, result)
-            return result
-        })
+            // Build effect with store context
+            const effectPipeline = Effect.gen(function* () {
+                debug && console.log(`[EffectMiddleware] Starting: ${finalEffectId}`)
+                const result = yield* Effect.provide(
+                    effectAction.effect!,
+                    Layer.succeed(ReduxStore, { getState: api.getState, dispatch: api.dispatch })
+                )
+                debug && console.log(`[EffectMiddleware] Completed: ${finalEffectId}`, result)
+                return result
+            })
 
-        // Add debounce if needed
-        const finalEffect = meta?.debounce
-            ? Effect.gen(function* () {
-                yield* Effect.sleep(meta.debounce!)
-                return yield* effectPipeline
-              })
-            : effectPipeline
+            // Add debounce if needed
+            const finalEffect = meta?.debounce
+                ? Effect.gen(function* () {
+                      yield* Effect.sleep(meta.debounce!)
+                      return yield* effectPipeline
+                  })
+                : effectPipeline
 
-        // Create execution token to track this specific execution
-        const executionToken = Symbol('execution')
-        
-        // Execute with handlers
-        const fiber = Runtime.runFork(runtime)(
-            finalEffect.pipe(
-                Effect.tapBoth({
-                    onFailure: error => Effect.sync(() => {
-                        debug && console.error(`[EffectMiddleware] Failed: ${effectId}`, error)
-                        onError?.(Cause.fail(error))
+            // Create execution token to track this specific execution
+            const executionToken = Symbol('execution')
+
+            // Execute with handlers
+            const fiber = Runtime.runFork(runtime)(
+                finalEffect.pipe(
+                    Effect.tapBoth({
+                        onFailure: error =>
+                            Effect.sync(() => {
+                                debug &&
+                                    console.error(`[EffectMiddleware] Failed: ${effectId}`, error)
+                                onError?.(Cause.fail(error))
+                            }),
+                        onSuccess: value =>
+                            Effect.sync(() => {
+                                // Only call onSuccess if this execution is still current
+                                const current = executions.get(finalEffectId)
+                                if (current?.token === executionToken && value !== undefined) {
+                                    onSuccess?.(value)
+                                }
+                            }),
                     }),
-                    onSuccess: value => Effect.sync(() => {
-                        // Only call onSuccess if this execution is still current
-                        const current = executions.get(finalEffectId)
-                        if (current?.token === executionToken && value !== undefined) {
-                            onSuccess?.(value)
-                        }
-                    })
-                }),
-                Effect.ensuring(Effect.sync(() => {
-                    const current = executions.get(finalEffectId)
-                    if (current?.token === executionToken) {
-                        executions.delete(finalEffectId)
-                    }
-                }))
+                    Effect.ensuring(
+                        Effect.sync(() => {
+                            const current = executions.get(finalEffectId)
+                            if (current?.token === executionToken) {
+                                executions.delete(finalEffectId)
+                            }
+                        })
+                    )
+                )
             )
-        )
 
-        executions.set(finalEffectId, {
-            fiber,
-            effectId: finalEffectId,
-            startTime: Date.now(),
-            token: executionToken
-        })
+            executions.set(finalEffectId, {
+                fiber,
+                effectId: finalEffectId,
+                startTime: Date.now(),
+                token: executionToken,
+            })
 
-        return next(action) as T
-    }) as Middleware
+            return next(action) as T
+        }) as Middleware
 }
 
 /**
@@ -149,13 +154,21 @@ export const debouncedEffectAction = <R, E, A>(
     type: string,
     effect: Effect.Effect<A, E, R>,
     debounce: number
-): EffectAction<R, E, A> => effectAction(type, effect, { debounce, cancelPrevious: true, effectId: type })
+): EffectAction<R, E, A> =>
+    effectAction(type, effect, { debounce, cancelPrevious: true, effectId: type })
 
 // Stream-based action dispatcher
-export const createStreamDispatcher = <R>(runtime: Runtime.Runtime<R>) => 
-    <A>(stream: Stream.Stream<A, never, R>, actionCreator: (value: A) => UnknownAction, dispatch: Dispatch<UnknownAction>) => {
+export const createStreamDispatcher =
+    <R>(runtime: Runtime.Runtime<R>) =>
+    <A>(
+        stream: Stream.Stream<A, never, R>,
+        actionCreator: (value: A) => UnknownAction,
+        dispatch: Dispatch<UnknownAction>
+    ) => {
         const fiber = Runtime.runFork(runtime)(
             Stream.runForEach(stream, value => Effect.sync(() => dispatch(actionCreator(value))))
         )
-        return () => { Runtime.runFork(runtime)(Fiber.interrupt(fiber)) }
+        return () => {
+            Runtime.runFork(runtime)(Fiber.interrupt(fiber))
+        }
     }

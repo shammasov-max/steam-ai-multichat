@@ -1,6 +1,6 @@
 /**
  * Effect-Redux Integration
- * 
+ *
  * This module provides seamless integration between Effect-TS and Redux,
  * enabling Effect-based side effects, sagas, and middleware in Redux applications.
  */
@@ -14,7 +14,7 @@ export {
     createStreamDispatcher,
     ReduxStore,
     type EffectMiddlewareConfig,
-    type EffectAction
+    type EffectAction,
 } from './middleware'
 
 // Saga bridge exports
@@ -24,7 +24,7 @@ export {
     createSaga,
     rootSaga,
     type EffectSaga,
-    type ActionMatcher
+    type ActionMatcher,
 } from './saga-bridge'
 
 // Store factory exports
@@ -36,18 +36,19 @@ export {
     batchActions,
     batchMiddleware,
     StoreContext,
+    StoreContextTag,
     StoreHooks,
     type EffectStoreConfig,
-    type EffectStore
+    type EffectStore,
 } from './store-factory'
 
 /**
  * Quick start example:
- * 
+ *
  * ```typescript
  * import { Runtime } from 'effect'
  * import { createEffectStore, createSaga, SagaEffects } from '@packages/isomorphic/effect-redux'
- * 
+ *
  * // Create a saga
  * const mySaga = createSaga('mySaga', Effect.gen(function* () {
  *   while (true) {
@@ -56,7 +57,7 @@ export {
  *     yield* Effect.fork(fetchDataEffect(action.payload))
  *   }
  * }))
- * 
+ *
  * // Create the store
  * const store = createEffectStore({
  *   reducer: rootReducer,

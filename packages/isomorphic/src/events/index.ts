@@ -1,3 +1,2 @@
-export * as Core from "./core";
-export * as Meta from "./meta";
-
+export * as Core from './core'
+export * as Meta from './meta'

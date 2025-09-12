@@ -9,7 +9,7 @@ export {
     EnvironmentSchema,
     AppConfigSchema,
     defaultScoringConfig,
-    defaultContextConfig
+    defaultContextConfig,
 } from './ConfigSchema'
 
 export type {
@@ -20,7 +20,7 @@ export type {
     ServerConfig,
     RateLimitConfig,
     Environment,
-    AppConfig
+    AppConfig,
 } from './ConfigSchema'
 
 // Service exports
@@ -37,12 +37,10 @@ export {
     getContextConfig,
     getServerConfig,
     getRateLimitConfig,
-    getEnvironment
+    getEnvironment,
 } from './ConfigService'
 
-export type {
-    ConfigProvider
-} from './ConfigService'
+export type { ConfigProvider } from './ConfigService'
 
 // Layer exports
 export {
@@ -52,7 +50,7 @@ export {
     ConfigWithDefaultsLive,
     createCustomConfigLive,
     createConfigForEnvironment,
-    validateConfig
+    validateConfig,
 } from './ConfigLive'
 
 // Re-export for convenience
