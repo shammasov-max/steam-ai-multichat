@@ -139,11 +139,13 @@ Events are Redux actions with structured payloads:
 ### Entity Slices
 Located in `packages/isomorphic/src/slices/`:
 
-#### Account Slice (`accounts.ts`)
-- Manages Steam account entities
-- Schema: `AccountSchema` with branded `AccountId`
-- Entity reducers: `connected`, `disconnected`, `authenticationFailed`
-- Related schemas: `MaFileSchema`, `SessionSchema`
+#### Account Slices
+- **`accounts.ts`**: Original account management slice
+  - Schema: `AccountSchema` with branded `AccountId`
+  - Entity reducers: `connected`, `disconnected`, `authenticationFailed`
+  - Related schemas: `MaFileSchema`, `SessionSchema`
+- **`accountsSimplified.ts`**: Simplified account slice *(uncommitted)*
+  - Streamlined version for migration
 
 #### Dialog Slice (`dialogs.ts`)
 - AI-driven conversation management
@@ -284,27 +286,25 @@ const fixturesPath = join(__dirname, '../../../fixtures/all.txt')
 ## Logging
 
 ### Structured Logging
-The project uses structured JSON logging instead of console.log statements:
+The project uses Effect-based structured logging:
 
 ```typescript
-import { SimpleLogger } from '@packages/isomorphic'
+import { logInfo, logError, logWarn } from '@packages/isomorphic'
 
-// Service-specific logger instances
-private logger = new SimpleLogger('ServiceName')
-
-// Usage patterns with type-safe metadata (generics added in refactoring)
-this.logger.info('Operation completed', { entityId: 'account_123', duration: 450 })
-this.logger.error('Operation failed', error, { context: 'additional data' })
-this.logger.warn('Warning condition detected', undefined, { threshold: 0.3 })
+// Effect-based logging in services
+yield* logInfo('Operation completed', { entityId: 'account_123', duration: 450 })
+yield* logError('Operation failed', error, { context: 'additional data' })
+yield* logWarn('Warning condition detected', { threshold: 0.3 })
 ```
 
 ### Logger Features
-- **Type-safe metadata**: Generic types for metadata objects (no more `any` types)
+- **Effect Integration**: Native Effect service with dependency injection
+- **Type-safe metadata**: Generic types for metadata objects
 - **JSON output format**: Searchable and parseable logs
 - **Service identification**: Each logger instance tagged with service name
 - **Structured metadata**: Context data as key-value pairs
 - **Error handling**: Automatic error message and stack trace capture
-- **Performance tracking**: Built-in timing utilities via `logger.timer()`
+- **Performance tracking**: Built-in timing utilities via `logTimer()`
 
 ### Log Levels
 - `debug<TMetadata>()`: Development debugging information
@@ -323,112 +323,77 @@ this.logger.warn('Warning condition detected', undefined, { threshold: 0.3 })
 }
 ```
 
-## Refactoring Roadmap
+## Migration Status
 
-### Phase 1: Type Safety & Quick Wins (No Effect-TS)
-**Status: ✅ COMPLETED (2025-09-08)**
+### Completed Migrations to Effect-TS
+- **Logger Service**: Full Effect service with backward compatibility wrapper
+- **MongoDB Layer**: Complete Effect implementation with resource management
+- **Steam API Service**: Effect-based with connection pooling and streaming
+- **Dialog Manager**: Effect service with Context and Layer patterns
+- **AI Service**: Migrated to AIServiceEffect.ts with proper error handling
+- **Scoring Engine**: Migrated to ScoringEngineEffect.ts with functional composition
 
-#### Completed Tasks
-1. **Type Safety Improvements** - Eliminated 30+ `any` types:
-   - `EventRecord` and `StateSnapshot` now use generic type parameters
-   - Logger methods use generics for type-safe metadata
-   - Redux integration uses proper action types (`UnknownAction`, `PayloadAction`)
-   - 3 intentional `any` types documented with `@intentional-any` comments
+### Current Effect-TS Architecture
 
-2. **Structured Logging** - Implemented across all packages:
-   - SimpleLogger with JSON output and generic metadata support
-   - Replaced 24+ console.log statements
-   - Added service identification and error handling
+#### Core Services (packages/db)
+- **AppLayer.ts**: Main application layer composition
+- **SimplifiedRepositories.ts**: Effect-based repository pattern *(uncommitted)*
 
-3. **Memoization Added** - Performance improvements in `createEntitySlice`:
-   - Integrated `reselect` for memoized selectors
-   - Added 6 new memoized selectors: `selectEntity`, `selectAllEntities`, `selectEntitiesByIds`, `selectEntityCount`, `selectHasEntity`
-   - Improved performance for entity queries
+#### Dialog Services (packages/dialogs)
+- **AIServiceEffect.ts**: AI integration with Effect patterns
+- **ScoringEngineEffect.ts**: Scoring logic with functional composition
 
-4. **Code Organization & Simplification**:
-   - **ScoringEngine.ts refactored**: 538 → 254 lines (53% reduction)
-     - Consolidated patterns into const objects
-     - Used functional composition
-     - Simplified conditionals with ternary operators
-   - **Type logic extracted**: Created `entityTypes.ts` (69 lines) for better separation
-   - **DialogManager Effect version**: Created Effect-based implementation (171 lines)
+#### Server Architecture (packages/server) *(uncommitted)*
+- **ServerService.ts**: Main server service with Effect
+- **ServerServiceRefactored.ts**: Refactored version with improved patterns
+- **routes.ts**: HTTP routing with Effect-TS
 
-### Phase 2: Core Architecture (With Effect-TS)
-**Status: ✅ COMPLETED (2025-09-08)**
+#### Effect-Redux Integration (packages/isomorphic/src/effect-redux) *(uncommitted)*
+- **ReduxService.ts**: Effect service for Redux integration
+- **redux-core.ts**: Core Redux-Effect bridge
+- **redux-effects.ts**: Effect-based Redux effects
+- **redux-saga.ts**: Saga pattern implementation with Effect
+- **middleware.ts**: Redux middleware for Effect integration
+- **saga-bridge.ts**: Bridge between Redux-Saga and Effect
+- **store-factory.ts**: Factory for creating Effect-aware stores
 
-#### Completed Tasks
-1. **DialogManager Effect Service** - `DialogManagerEffect.ts` (171 lines)
-   - Full Effect service pattern with Context and Layer
-   - Simplified dependency injection using single DialogDeps context
-   - Export both classic and Effect-based versions for gradual migration
+#### Effect Patterns (packages/isomorphic/src/effect-patterns) *(uncommitted)*
+- **examples.ts**: Example implementations
+- **type-utils.ts**: Type utilities for Effect patterns
 
-2. **MongoDB Effect Layer** - `MongoDatabaseEffect.ts` (262 lines)
-   - Complete Effect-TS implementation with Context, Layer, and Resource management
-   - Connection pooling with configurable pool size
-   - Query batching via `findBatch` method
-   - Optional per-repository caching with TTL
-   - Proper resource cleanup with `Effect.addFinalizer`
-   - Custom `MongoError` type for structured error handling
-   - 100% type-safe with zero `any` types
+#### Error Handling (packages/isomorphic/src/errors) *(uncommitted)*
+- Structured error types with Effect TaggedError
 
-3. **Steam API Effect Service** - `SteamAgentEffect.ts` (348 lines) & `SteamAgentEffectWrapper.ts` (181 lines)
-   - Full Effect-based Steam client implementation
-   - Connection pooling for multiple Steam accounts
-   - Event streaming with Queue and Stream patterns
-   - Resource management with proper cleanup
-   - Backward compatibility wrapper for gradual migration
-   - Tagged error types for structured error handling
+#### Resilience Patterns (packages/isomorphic/src/utils) *(uncommitted)*
+- **ResiliencePatterns.ts**: Circuit breakers, retries, and fallbacks
 
-### Phase 3: Advanced Patterns - Next Steps
-1. **Effect-Redux integration** - Move from experimental to production
-2. **Distributed Effect services** - Service discovery and circuit breakers
-3. **Effect Config system** - Replace hard-coded values
+## Recent Updates
 
-## Recent Achievements 
+### 2025-09-15: Effect-TS Migration Progress
+- **Effect-Redux Integration**: Production-ready implementation in `packages/isomorphic/src/effect-redux/`
+- **New Effect Patterns**: Added resilience patterns, error handling, and type utilities
+- **Simplified Repositories**: New repository pattern in `packages/db/src/repository/SimplifiedRepositories.ts`
+- **Server Refactoring**: Improved server architecture with ServerService and routes
 
-### 2025-09-12 Session: Monorepo-Wide TypeScript Error Resolution
-- **✅ COMPLETED**: All TypeScript errors resolved across all 6 packages using parallel processing
-- **Command**: `/parallel-packages fix typescript errors` - ran TypeScript error fixes in parallel across monorepo
-- **Packages Fixed**: frontend, db, server, isomorphic, dialogs, steam-api (6 packages total)
-- **Result**: Zero TypeScript compilation errors across entire monorepo
+### TypeScript Compliance
+- All packages pass `yarn typecheck`
+- Zero TypeScript compilation errors
+- Strict mode enabled across monorepo
 
-#### Package-Specific Fixes:
-- **frontend**: Fixed import path errors (`lib/utils` → `css/utils`) in 4 UI component files
-- **db**: Fixed Context.Tag syntax, missing functions, MongoDB filter types, moved legacy tests to .bak
-- **server**: Fixed Playwright imports, Headers iteration, BigInt literals, Effect-TS Layer types
-- **isomorphic**: No errors found (already clean)
-- **dialogs**: Fixed Effect.gen syntax error in AIServiceEffect.ts (missing closing parenthesis)
-- **steam-api**: Fixed missing type exports, property mismatches, Effect type annotations
 
-#### Verification:
-- All packages pass `yarn typecheck` individually
-- Full monorepo `yarn typecheck` passes without errors
-- Compilation successful across all 569+ files
 
-#### Session Workflow:
-1. **Parallel Discovery**: Used Glob to find all packages/*/package.json files
-2. **Parallel Execution**: Launched 6 general-purpose agents simultaneously using single message with multiple Task calls
-3. **Agent Distribution**: Each agent focused on one package (frontend, db, server, isomorphic, dialogs, steam-api)
-4. **Systematic Approach**: Each agent ran typecheck → identified errors → fixed issues → verified fixes
-5. **Efficiency**: All packages processed in parallel rather than sequentially
+## Development Guidelines
 
-#### Technical Debt Resolved:
-- **Import Path Inconsistencies**: Frontend components using old file paths after refactoring
-- **Effect-TS Migration Issues**: Context.Tag syntax updates needed across db package
-- **Type Safety Gaps**: Missing type definitions and incorrect type usage
-- **Legacy Test Files**: Moved obsolete test files to .bak extensions
-- **MongoDB Type Compatibility**: Fixed branded type issues with database queries
+### File Organization
+- Skip folders and files starting with "_" (legacy code)
+- Focus on `packages/` workspace structure
+- Import TypeScript files directly without transpilation
 
-### 2025-09-08 Session: Effect-TS Architecture Implementation
-- **Phase 2 Completed**: All Effect-TS core architecture implemented
-- **Code Reduction**: Average 50% reduction in refactored files
-- **Type Safety**: 100% strict TypeScript compliance
-- **Performance**: Memoization, query batching, and caching added
-
-## Legacy Code
-Skip folders and files which names starts with symbol "_".
-Focus development on the `packages/` workspace structure.
-Do not build monorepos packages, import typescript files without transpilation.
+### Active Development Areas
+- **Effect-Redux**: Production implementation in `packages/isomorphic/src/effect-redux/`
+- **Effect Patterns**: Reusable patterns in `packages/isomorphic/src/effect-patterns/`
+- **Server Services**: Refactored services in `packages/server/src/`
+- **Database Layer**: Simplified repositories in `packages/db/src/repository/`
 
 
 
@@ -486,7 +451,7 @@ For every implementation task:
 1. **Research**: Thoroughly understand the problem and requirements
 2. **Plan**: Create detailed implementation plan (in specs/[feature]/plan.md)
 3. **Implement**: Write the function/feature implementation
-4. **Lint & Type Check**: Run `pnpm lint:fix` and `pnpm typecheck`
+4. **Lint & Type Check**: Run `yarn lint:fix` and `yarn typecheck`
 5. **Test**: Write comprehensive tests using `@effect/vitest`
 6. **Validate**: Ensure all checks pass before moving forward
 
@@ -670,25 +635,11 @@ The project includes comprehensive pattern documentation for future reference an
 - **Content**: Code examples, principles, and guidelines from actual implementation
 
 ### Available Patterns
-- **[docs/patterns/http-api.md](./docs/patterns/http-api.md)**: HTTP API definition and implementation patterns
-  - Declarative API structure (endpoints → groups → APIs)
-  - Handler implementation with Effect composition
-  - Server configuration and platform abstraction
-
-- **[docs/patterns/layer-composition.md](./docs/patterns/layer-composition.md)**: Layer-based dependency injection patterns
-  - Service provision strategies (`Layer.provide()` vs `Layer.provideMerge()`)
-  - Environment-specific configurations
-  - Factory patterns for test services
-
-- **[docs/patterns/generic-testing.md](./docs/patterns/generic-testing.md)**: General testing patterns with @effect/vitest
-  - Service mocking with complete interface implementation
-  - Effect-based test structure and assertions
-  - Test data management and state capture
-
-- **[docs/patterns/http-specific-testing.md](./docs/patterns/http-specific-testing.md)**: HTTP API testing patterns
-  - Layer-based HTTP testing with real servers
-  - Dynamic port assignment and URL extraction
-  - HTTP client integration testing
+- **HTTP API Patterns**: API definition and implementation with Effect
+- **Layer Composition**: Dependency injection and service provision
+- **Testing Patterns**: Effect-based testing with @effect/vitest
+- **Error Handling**: Structured errors with TaggedError
+- **Resilience Patterns**: Circuit breakers, retries, and fallbacks
 
 ### Pattern Usage Guidelines
 - **Reference First**: Check patterns directory before implementing new features

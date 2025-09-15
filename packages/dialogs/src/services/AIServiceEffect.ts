@@ -107,27 +107,34 @@ export interface AIResponse {
   strategy?: string
 }
 
-// Error types
-export class AIServiceError extends Error {
-  readonly _tag: string = 'AIServiceError'
-  constructor(message: string, override readonly cause?: Error) {
-    super(message)
-  }
-}
+// Error types using Effect's TaggedError
+import { Data } from 'effect'
 
-export class OpenAIAPIError extends AIServiceError {
-  override readonly _tag = 'OpenAIAPIError' as const
-  constructor(message: string, cause?: Error) {
-    super(message, cause)
-  }
-}
+export class AIServiceError extends Data.TaggedError('AIServiceError')<{
+  readonly message: string
+  readonly cause?: unknown
+}> {}
 
-export class InvalidResponseError extends AIServiceError {
-  override readonly _tag = 'InvalidResponseError' as const
-  constructor(message: string) {
-    super(message)
-  }
-}
+export class OpenAIAPIError extends Data.TaggedError('OpenAIAPIError')<{
+  readonly message: string
+  readonly statusCode?: number
+  readonly cause?: unknown
+}> {}
+
+export class InvalidResponseError extends Data.TaggedError('InvalidResponseError')<{
+  readonly message: string
+  readonly response?: unknown
+}> {}
+
+export class RateLimitError extends Data.TaggedError('RateLimitError')<{
+  readonly message: string
+  readonly retryAfter?: number
+}> {}
+
+export class ConnectionError extends Data.TaggedError('ConnectionError')<{
+  readonly message: string
+  readonly cause?: unknown
+}> {}
 
 // Service Interface
 interface AIServiceOps {
@@ -177,7 +184,7 @@ const makeAIService = (
 
           const choice = response.choices[0]
           if (!choice) {
-            throw new InvalidResponseError('No response choice received from OpenAI')
+            throw new Error('No response choice received from OpenAI')
           }
           
           const tokensUsed = response.usage?.total_tokens || 0
@@ -193,7 +200,43 @@ const makeAIService = (
         catch: (error) => {
           Effect.runSync(logger.error('OpenAI API error', error as Error))
           const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-          return new AIServiceError(`Failed to generate AI response: ${errorMessage}`, error as Error)
+          
+          // Check for specific error types
+          if (error instanceof Error && error.message.includes('rate limit')) {
+            return new RateLimitError({ 
+              message: 'OpenAI rate limit exceeded',
+              retryAfter: 60000 
+            })
+          }
+          
+          if (error instanceof Error && error.message.includes('No response choice')) {
+            return new InvalidResponseError({ 
+              message: errorMessage,
+              response: error 
+            })
+          }
+          
+          if (error instanceof Error && (error.message.includes('ECONNREFUSED') || error.message.includes('ETIMEDOUT'))) {
+            return new ConnectionError({ 
+              message: 'Failed to connect to OpenAI API',
+              cause: error 
+            })
+          }
+          
+          // Check for OpenAI API errors with status codes
+          const statusCode = (error as any)?.response?.status
+          if (statusCode) {
+            return new OpenAIAPIError({ 
+              message: errorMessage,
+              statusCode,
+              cause: error 
+            })
+          }
+          
+          return new AIServiceError({ 
+            message: `Failed to generate AI response: ${errorMessage}`,
+            cause: error 
+          })
           }
         })
       ),
@@ -207,7 +250,18 @@ const makeAIService = (
         },
         catch: (error) => {
           Effect.runSync(logger.error('OpenAI connection test failed', error as Error))
-          return new AIServiceError('Connection test failed', error as Error)
+          
+          if (error instanceof Error && (error.message.includes('ECONNREFUSED') || error.message.includes('ETIMEDOUT'))) {
+            return new ConnectionError({ 
+              message: 'Failed to connect to OpenAI API',
+              cause: error 
+            })
+          }
+          
+          return new AIServiceError({ 
+            message: 'Connection test failed',
+            cause: error 
+          })
         }
         })
       )
@@ -296,7 +350,114 @@ const cleanResponse = (response: string): string => {
     .trim()
 }
 
-// Layer creation with optional resilience patterns
+// Import resilience patterns
+import { 
+    exponentialBackoff, 
+    CircuitBreaker, 
+    withResilience,
+    retryWithExponentialBackoff 
+} from '@packages/isomorphic'
+import { Schedule } from 'effect'
+
+// Enhanced service with resilience
+const makeResilientAIService = (
+  config: Required<AIServiceConfig>,
+  openai: OpenAI
+): Effect.Effect<AIServiceOps, never, Logger> => 
+  Effect.gen(function* () {
+    const logger = yield* Logger
+    
+    // Create circuit breaker for OpenAI API
+    const circuitBreaker = yield* CircuitBreaker.make({
+      failureThreshold: 5,
+      resetTimeout: Duration.seconds(60),
+      halfOpenMaxAttempts: 3
+    })
+    
+    const baseService = yield* makeAIService(config, openai)
+    
+    // Wrap generateResponse with resilience patterns
+    const resilientGenerateResponse: AIServiceOps['generateResponse'] = (context, userMessage, language) =>
+      withResilience(
+        baseService.generateResponse(context, userMessage, language),
+        {
+          retry: {
+            schedule: exponentialBackoff(
+              Duration.millis(config.retryDelayMs),
+              Duration.seconds(30),
+              2
+            ).pipe(
+              Schedule.whileInput((attempt: number) => attempt < config.maxRetries)
+            ),
+            filter: (error: any) => {
+              // Retry on rate limit and connection errors
+              if (error instanceof RateLimitError || error instanceof ConnectionError) {
+                return true
+              }
+              // Don't retry on invalid response errors
+              if (error instanceof InvalidResponseError) {
+                return false
+              }
+              return true
+            }
+          },
+          timeout: Duration.seconds(30),
+          circuitBreaker: {
+            failureThreshold: 5,
+            resetTimeout: Duration.seconds(60),
+            halfOpenMaxAttempts: 3
+          }
+        }
+      ).pipe(
+        Effect.catchAll((error: any) =>
+          Effect.gen(function* () {
+            if (error._tag !== 'CircuitBreakerError') return Effect.fail(error)
+            yield* logger.error('Circuit breaker open for OpenAI API', undefined, {
+              state: (error as any).state,
+              lastFailure: (error as any).lastFailureTime
+            })
+            return yield* Effect.fail(new ConnectionError({
+              message: 'OpenAI API circuit breaker is open - too many failures',
+              cause: error
+            }))
+          })
+        ),
+        Effect.catchAll((error: any) =>
+          Effect.gen(function* () {
+            if (error._tag !== 'RetryExhaustedError') return Effect.fail(error)
+            yield* logger.error('Retry attempts exhausted for OpenAI API', undefined, {
+              attempts: (error as any).attempts
+            })
+            return yield* Effect.fail(new AIServiceError({
+              message: `Failed after ${(error as any).attempts} retry attempts`,
+              cause: (error as any).lastError
+            }))
+          })
+        )
+      )
+    
+    // Wrap testConnection with retry
+    const resilientTestConnection: AIServiceOps['testConnection'] = () =>
+      retryWithExponentialBackoff(
+        baseService.testConnection(),
+        3,
+        Duration.seconds(1)
+      ).pipe(
+        Effect.catchAll((error) =>
+          Effect.gen(function* () {
+            yield* logger.error('Connection test failed after retries', undefined, { error })
+            return yield* Effect.fail(error)
+          })
+        )
+      )
+    
+    return {
+      generateResponse: resilientGenerateResponse,
+      testConnection: resilientTestConnection
+    }
+  })
+
+// Layer creation with resilience patterns
 export const AIServiceLive = Layer.effect(
   AIServiceEffect,
   Effect.gen(function* () {
@@ -306,13 +467,13 @@ export const AIServiceLive = Layer.effect(
     
     yield* logger.info('Initializing AI Service with resilience patterns', { 
       model: config.model,
-      resilience: 'disabled'
+      resilience: 'enabled',
+      maxRetries: config.maxRetries,
+      retryDelayMs: config.retryDelayMs
     })
     
-    // Create resilience components if enabled
-    // TODO: Fix Effect layer provision for resilience patterns
-    // Currently disabled to avoid fiber refs issues
-    return yield* makeAIService(config, openai)
+    // Use resilient service implementation
+    return yield* makeResilientAIService(config, openai)
   })
 )
 

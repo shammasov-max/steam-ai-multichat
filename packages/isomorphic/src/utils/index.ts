@@ -15,13 +15,17 @@ export {
     type LoggerService,
 } from './LoggerService'
 
-// Export backward-compatible wrapper
-export { SimpleLogger, createLogger } from './LoggerServiceBackcompat'
-
-// Aliases for backward compatibility
-export { createLogger as createSimpleLogger } from './LoggerServiceBackcompat'
-
-import type { LogLevel, LogEntry } from './LoggerService'
-
-export type SimpleLogLevel = LogLevel
-export type SimpleLogEntry = LogEntry
+// Export resilience patterns
+export {
+    exponentialBackoff,
+    linearBackoff,
+    fibonacciBackoff,
+    CircuitBreaker,
+    withResilience,
+    retryWithExponentialBackoff,
+    CircuitBreakerError,
+    RetryExhaustedError,
+    QueueFullError,
+    RateLimitError,
+    TimeoutError,
+} from './ResiliencePatterns'

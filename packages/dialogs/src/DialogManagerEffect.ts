@@ -17,7 +17,7 @@ import { AIServiceEffect, type AIResponse } from './services/AIServiceEffect'
 import { ScoringEngineEffect, type ScoringResult } from './services/ScoringEngineEffect'
 import { ContextCompressorEffect } from './services/ContextCompressorEffect'
 import { LanguageDetector } from './services/LanguageDetectorEffect'
-import { SimpleLogger } from '@packages/isomorphic'
+import { Logger, LoggerLayer } from '@packages/isomorphic'
 
 // Message type for internal use
 interface Message {

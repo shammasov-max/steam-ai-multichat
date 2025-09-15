@@ -4,16 +4,23 @@
     "composite": true,
     "declaration": true,
     "outDir": "./dist",
+    "rootDir": "./",
     "moduleResolution": "bundler",
     "baseUrl": ".",
     "paths": {
       "@packages/isomorphic": ["../isomorphic/src/index.ts"],
-      "@packages/isomorphic/*": ["../isomorphic/src/*"]
+      "@packages/isomorphic/*": ["../isomorphic/src/*"],
+      "@packages/db": ["../db/src/index.ts"],
+      "@packages/db/*": ["../db/src/*"]
     },
     "plugins": [
       { "name": "@effect/language-service" }
     ]
   },
-  "include": ["src/**/*", "tests/**/*"]
+  "include": ["src/**/*", "tests/**/*"],
+  "references": [
+    { "path": "../isomorphic" },
+    { "path": "../db" }
+  ]
 }
 

@@ -1,6 +1,3 @@
-// Server package - placeholder for future implementation
-export const SERVER_VERSION = '0.0.1'
+export * from './ServerService'
 
-export default {
-    version: SERVER_VERSION
-}
+export const SERVER_VERSION = '1.0.0'

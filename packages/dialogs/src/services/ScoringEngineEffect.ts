@@ -27,17 +27,23 @@ export interface ScoringResult {
   }>
 }
 
-// Error types
-export class ScoringError extends Error {
-  readonly _tag: string = 'ScoringError'
-  constructor(message: string, override readonly cause?: Error) {
-    super(message)
-  }
-}
+// Error types using Effect's TaggedError
+import { Data } from 'effect'
 
-export class InvalidInputError extends ScoringError {
-  override readonly _tag = 'InvalidInputError' as const
-}
+export class ScoringError extends Data.TaggedError('ScoringError')<{
+  readonly message: string
+  readonly cause?: unknown
+}> {}
+
+export class InvalidInputError extends Data.TaggedError('InvalidInputError')<{
+  readonly message: string
+  readonly invalidData?: unknown
+}> {}
+
+export class ConfigurationError extends Data.TaggedError('ConfigurationError')<{
+  readonly message: string
+  readonly missingConfig?: string
+}> {}
 
 // Pattern definitions
 const PATTERNS = {
@@ -242,7 +248,7 @@ const makeScoringEngine = (
             goalProximity: calculateProximity(userMessages)
           }
         },
-        catch: (error) => new ScoringError('Failed to calculate factors', error as Error)
+        catch: (error) => new ScoringError({ message: 'Failed to calculate factors', cause: error })
       }),
 
     detectIssues: (messages, factors) =>
@@ -293,7 +299,7 @@ const makeScoringEngine = (
           
           return issues
         },
-        catch: (error) => new ScoringError('Failed to detect issues', error as Error)
+        catch: (error) => new ScoringError({ message: 'Failed to detect issues', cause: error })
       }),
 
     evaluateDialog: (messages, goal, init) =>
@@ -317,7 +323,7 @@ const makeScoringEngine = (
                 goalProximity: calculateProximity(userMessages)
               }
             },
-            catch: (error) => new ScoringError('Failed to calculate factors', error as Error)
+            catch: (error) => new ScoringError({ message: 'Failed to calculate factors', cause: error })
           }),
           goalProgress: Effect.succeed(calculateGoalProgress(messages))
         }),
@@ -377,7 +383,7 @@ const makeScoringEngine = (
                 
                 return issues
               },
-              catch: (error) => new ScoringError('Failed to detect issues', error as Error)
+              catch: (error) => new ScoringError({ message: 'Failed to detect issues', cause: error })
             }),
             Effect.map((issuesDetected) => ({
               continuationScore,

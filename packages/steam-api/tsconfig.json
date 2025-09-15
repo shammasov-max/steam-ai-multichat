@@ -3,11 +3,14 @@
   "compilerOptions": {
     "composite": true,
     "declaration": true,
-    "rootDir": "./src",
+    "rootDir": "./",
     "outDir": "./dist",
     "module": "es2015",
     "moduleResolution": "bundler",
     "noEmit": false
   },
-  "include": ["src/**/*", "../../../tests/**/*"]
+  "include": ["src/**/*", "tests/**/*"],
+  "references": [
+    { "path": "../isomorphic" }
+  ]
 }

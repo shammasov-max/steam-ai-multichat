@@ -42,15 +42,11 @@ export {
 
 // ============= Utils =============
 export {
-    SimpleLogger,
-    createSimpleLogger,
-    type SimpleLogLevel,
-    type SimpleLogEntry,
     // Effect-based logger
     Logger,
     LoggerLayer,
     LoggerError,
-    createLogger,
+    createLoggerService,
     logDebug,
     logInfo,
     logWarn,
@@ -60,6 +56,18 @@ export {
     type LogMetadata,
     type LogEntry,
     type LoggerService,
+    // Resilience patterns
+    exponentialBackoff,
+    linearBackoff,
+    fibonacciBackoff,
+    CircuitBreaker,
+    withResilience,
+    retryWithExponentialBackoff,
+    CircuitBreakerError,
+    RetryExhaustedError,
+    QueueFullError,
+    RateLimitError,
+    TimeoutError,
 } from './utils'
 
 // ============= Configuration =============
@@ -67,3 +75,32 @@ export * from './config/index'
 
 // ============= Effect-Redux Integration =============
 export * from './effect-redux/index'
+
+// ============= Effect Patterns =============
+export {
+    tag,
+    serviceTag,
+    schema,
+    timestamped,
+    entityAction,
+    serviceLayer,
+    syncLayer,
+    factoryLayer,
+    repositoryTag,
+    inMemoryRepository,
+    error,
+    mockService,
+    mockLayer,
+    stateService,
+    type Op,
+    type ServiceOps,
+    type OpsOf,
+    type Repository,
+    type DeepPartial,
+    type SuccessOf,
+    type ErrorOf,
+    type ContextOf,
+    type RequireKeys
+} from './effect-patterns/type-utils'
+
+export * from './effect-patterns/index'
