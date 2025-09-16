@@ -142,8 +142,8 @@ interface AIServiceOps {
     context: CompressedContext,
     userMessage: string,
     language: string
-  ) => Effect.Effect<AIResponse, AIServiceError>
-  readonly testConnection: () => Effect.Effect<boolean, AIServiceError>
+  ) => Effect.Effect<AIResponse, AIServiceError | OpenAIAPIError | InvalidResponseError | RateLimitError | ConnectionError>
+  readonly testConnection: () => Effect.Effect<boolean, AIServiceError | ConnectionError>
 }
 
 // Service Tag
@@ -350,112 +350,7 @@ const cleanResponse = (response: string): string => {
     .trim()
 }
 
-// Import resilience patterns
-import { 
-    exponentialBackoff, 
-    CircuitBreaker, 
-    withResilience,
-    retryWithExponentialBackoff 
-} from '@packages/isomorphic'
-import { Schedule } from 'effect'
-
-// Enhanced service with resilience
-const makeResilientAIService = (
-  config: Required<AIServiceConfig>,
-  openai: OpenAI
-): Effect.Effect<AIServiceOps, never, Logger> => 
-  Effect.gen(function* () {
-    const logger = yield* Logger
-    
-    // Create circuit breaker for OpenAI API
-    const circuitBreaker = yield* CircuitBreaker.make({
-      failureThreshold: 5,
-      resetTimeout: Duration.seconds(60),
-      halfOpenMaxAttempts: 3
-    })
-    
-    const baseService = yield* makeAIService(config, openai)
-    
-    // Wrap generateResponse with resilience patterns
-    const resilientGenerateResponse: AIServiceOps['generateResponse'] = (context, userMessage, language) =>
-      withResilience(
-        baseService.generateResponse(context, userMessage, language),
-        {
-          retry: {
-            schedule: exponentialBackoff(
-              Duration.millis(config.retryDelayMs),
-              Duration.seconds(30),
-              2
-            ).pipe(
-              Schedule.whileInput((attempt: number) => attempt < config.maxRetries)
-            ),
-            filter: (error: any) => {
-              // Retry on rate limit and connection errors
-              if (error instanceof RateLimitError || error instanceof ConnectionError) {
-                return true
-              }
-              // Don't retry on invalid response errors
-              if (error instanceof InvalidResponseError) {
-                return false
-              }
-              return true
-            }
-          },
-          timeout: Duration.seconds(30),
-          circuitBreaker: {
-            failureThreshold: 5,
-            resetTimeout: Duration.seconds(60),
-            halfOpenMaxAttempts: 3
-          }
-        }
-      ).pipe(
-        Effect.catchAll((error: any) =>
-          Effect.gen(function* () {
-            if (error._tag !== 'CircuitBreakerError') return Effect.fail(error)
-            yield* logger.error('Circuit breaker open for OpenAI API', undefined, {
-              state: (error as any).state,
-              lastFailure: (error as any).lastFailureTime
-            })
-            return yield* Effect.fail(new ConnectionError({
-              message: 'OpenAI API circuit breaker is open - too many failures',
-              cause: error
-            }))
-          })
-        ),
-        Effect.catchAll((error: any) =>
-          Effect.gen(function* () {
-            if (error._tag !== 'RetryExhaustedError') return Effect.fail(error)
-            yield* logger.error('Retry attempts exhausted for OpenAI API', undefined, {
-              attempts: (error as any).attempts
-            })
-            return yield* Effect.fail(new AIServiceError({
-              message: `Failed after ${(error as any).attempts} retry attempts`,
-              cause: (error as any).lastError
-            }))
-          })
-        )
-      )
-    
-    // Wrap testConnection with retry
-    const resilientTestConnection: AIServiceOps['testConnection'] = () =>
-      retryWithExponentialBackoff(
-        baseService.testConnection(),
-        3,
-        Duration.seconds(1)
-      ).pipe(
-        Effect.catchAll((error) =>
-          Effect.gen(function* () {
-            yield* logger.error('Connection test failed after retries', undefined, { error })
-            return yield* Effect.fail(error)
-          })
-        )
-      )
-    
-    return {
-      generateResponse: resilientGenerateResponse,
-      testConnection: resilientTestConnection
-    }
-  })
+// Direct service implementation (resilience patterns removed for simplicity)
 
 // Layer creation with resilience patterns
 export const AIServiceLive = Layer.effect(
@@ -472,8 +367,8 @@ export const AIServiceLive = Layer.effect(
       retryDelayMs: config.retryDelayMs
     })
     
-    // Use resilient service implementation
-    return yield* makeResilientAIService(config, openai)
+    // Use direct service implementation
+    return yield* makeAIService(config, openai)
   })
 )
 

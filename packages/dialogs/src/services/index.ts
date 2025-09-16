@@ -1,39 +1,77 @@
 import { Layer, pipe, Effect } from 'effect'
-import { ConfigService } from '@packages/isomorphic'
 
-// Import all service layers
-import { AIServiceEffect, AIServiceLive, makeAIServiceLayer } from './AIServiceEffect'
-import { ScoringEngineEffect, ScoringEngineLive, makeScoringEngineLayer } from './ScoringEngineEffect'
-import { ContextCompressorEffect, ContextCompressorLive, makeContextCompressorLayer } from './ContextCompressorEffect'
-import { LanguageDetector, LanguageDetectorLive } from './LanguageDetectorEffect'
+// Import all service layers from Effect implementations
+import {
+    AIServiceEffect as AIService,
+    AIServiceLive,
+    makeAIServiceLayer as AIServiceWithConfig,
+    AIServiceConfig as AIConfig,
+    AIConfigEffect as AIConfigTag,
+    AIServiceError as AIError,
+    RateLimitError,
+    InvalidResponseError,
+    OpenAIAPIError,
+    ConnectionError,
+    type AIModel,
+    type AIResponse
+} from './AIServiceEffect'
+import {
+    ScoringEngineEffect as ScoringEngine,
+    ScoringEngineLive,
+    ScoringError,
+    InvalidInputError,
+    type ScoringResult
+} from './ScoringEngineEffect'
+import {
+    ContextCompressorEffect,
+    ContextCompressorLive,
+    makeContextCompressorLayer
+} from './ContextCompressorEffect'
+import {
+    LanguageDetector,
+    LanguageDetectorLive
+} from './LanguageDetectorEffect'
+import {
+    DialogManagerService as DialogManager,
+    DialogManagerLive
+} from '../DialogManagerEffect'
 
 // Re-export services for external use
 export {
     // AI Service
-    AIServiceEffect,
+    AIService,
     AIServiceLive,
-    makeAIServiceLayer,
-    
+    AIServiceWithConfig,
+    AIConfig,
+    AIConfigTag,
+    AIError,
+    RateLimitError,
+    InvalidResponseError,
+    OpenAIAPIError,
+    ConnectionError,
+
     // Scoring Engine
-    ScoringEngineEffect,
+    ScoringEngine,
     ScoringEngineLive,
-    makeScoringEngineLayer,
-    
+    ScoringError,
+    InvalidInputError,
+
+    // Dialog Manager
+    DialogManager,
+    DialogManagerLive,
+
     // Context Compressor
     ContextCompressorEffect,
     ContextCompressorLive,
     makeContextCompressorLayer,
-    
+
     // Language Detector
     LanguageDetector,
     LanguageDetectorLive
 }
 
 // Re-export types
-export type { AIResponse, AIServiceConfig, AIModel, AIServiceError } from './AIServiceEffect'
-export type { ScoringResult, ScoringError } from './ScoringEngineEffect'
-export type { DetectionResult, LanguageDetectionError } from './LanguageDetectorEffect'
-export type { CompressionError } from './ContextCompressorEffect'
+export type { AIModel, ScoringResult, AIResponse }
 
 /**
  * Combined layer for all dialog services with default configuration
@@ -42,29 +80,15 @@ export type { CompressionError } from './ContextCompressorEffect'
 export const DialogServicesLive = pipe(
     // Language detector (no config needed)
     LanguageDetectorLive,
-    
-    // Context compressor with default config (will use ConfigService if available)
+
+    // Context compressor with default config
     Layer.provideMerge(makeContextCompressorLayer()),
-    
+
     // Scoring engine with default config
-    Layer.provideMerge(makeScoringEngineLayer({
-        thresholds: {
-            highSuccess: 0.7,
-            moderateSuccess: 0.5,
-            riskZone: 0.3,
-            critical: 0.2
-        },
-        weights: {
-            userEngagement: 0.3,
-            topicRelevance: 0.25,
-            emotionalTone: 0.2,
-            responseQuality: 0.15,
-            goalProximity: 0.1
-        }
-    }))
-    
-    // Note: AI Service requires API key, so it must be provided separately
-    // Use makeAIServiceLayer({ apiKey: 'your-key' }) when composing
+    Layer.provideMerge(ScoringEngineLive)
+
+    // Note: AI Service and Dialog Manager require additional dependencies
+    // They must be provided separately based on your configuration
 )
 
 /**
@@ -72,29 +96,19 @@ export const DialogServicesLive = pipe(
  * @param aiConfig Configuration for AI service (requires API key)
  * @returns Complete layer with all dialog services
  */
-export const makeDialogServicesLayer = (aiConfig: { apiKey: string, model?: string }) =>
+export const makeDialogServicesLayer = (aiConfig: AIConfig) =>
     pipe(
         DialogServicesLive,
-        Layer.provideMerge(makeAIServiceLayer({
-            apiKey: aiConfig.apiKey,
-            model: aiConfig.model as any || 'gpt-4-turbo-preview'
-        }))
+        Layer.provideMerge(AIServiceWithConfig(aiConfig)),
+        Layer.provideMerge(DialogManagerLive)
     )
 
 /**
- * Factory function to create dialog services using ConfigService
- * Requires ConfigService to be available in the environment
+ * Test layer for dialog services with mock implementations
  */
-export const makeDialogServicesWithConfig = () =>
-    Effect.gen(function* () {
-        const config = yield* ConfigService
-        const appConfig = yield* config.getFullConfig()
-        
-        // Return the composed layer
-        return pipe(
-            LanguageDetectorLive,
-            Layer.provideMerge(makeContextCompressorLayer(appConfig.context)),
-            Layer.provideMerge(makeScoringEngineLayer(appConfig.scoring)),
-            Layer.provideMerge(makeAIServiceLayer(appConfig.openai))
-        )
-    })
+export const DialogServicesTest = pipe(
+    LanguageDetectorLive,
+    Layer.provideMerge(makeContextCompressorLayer()),
+    Layer.provideMerge(ScoringEngineLive)
+    // Note: Add test/mock implementations of AIService and DialogManager as needed
+)

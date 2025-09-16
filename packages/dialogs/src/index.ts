@@ -1,50 +1,46 @@
-// Core Dialog Manager
-export { 
-    DialogManagerService, 
-    DialogManagerLive,
-    DialogManagerWithServices,
-    runWithDialogManager,
-    createDialog,
-    processMessage
-} from './DialogManagerEffect'
-
 // Individual Services and Layers
 export {
     // AI Service
-    AIServiceEffect,
+    AIService,
     AIServiceLive,
-    makeAIServiceLayer,
-    
+    AIServiceWithConfig,
+    AIConfig,
+    AIConfigTag,
+    AIError,
+    RateLimitError,
+    InvalidResponseError,
+    OpenAIAPIError,
+    ConnectionError,
+
     // Scoring Engine
-    ScoringEngineEffect,
+    ScoringEngine,
     ScoringEngineLive,
-    makeScoringEngineLayer,
-    
+    ScoringError,
+    InvalidInputError,
+
+    // Dialog Manager
+    DialogManager,
+    DialogManagerLive,
+
     // Context Compressor
     ContextCompressorEffect,
     ContextCompressorLive,
     makeContextCompressorLayer,
-    
+
     // Language Detector
     LanguageDetector,
     LanguageDetectorLive,
-    
+
     // Unified Layer Compositions
     DialogServicesLive,
-    makeDialogServicesLayer,
-    makeDialogServicesWithConfig
+    DialogServicesTest,
+    makeDialogServicesLayer
 } from './services'
 
 // Types
 export * from './types'
-export type { 
-    AIResponse, 
-    AIServiceConfig, 
-    AIModel, 
-    AIServiceError,
+export type {
+    AIModel,
     ScoringResult,
-    ScoringError,
-    DetectionResult,
-    LanguageDetectionError,
-    CompressionError
+    AIResponse
 } from './services'

@@ -38,8 +38,6 @@ interface DialogManagerOps {
 // Service Tag
 export class DialogManagerService extends Context.Tag('DialogManager')<DialogManagerService, DialogManagerOps>() {}
 
-// Logger Tag
-class DialogLogger extends Context.Tag('DialogLogger')<DialogLogger, SimpleLogger>() {}
 
 // Implementation with proper Effect service dependencies
 const makeDialogManager = Effect.gen(function* () {
@@ -47,7 +45,7 @@ const makeDialogManager = Effect.gen(function* () {
     const scoring = yield* ScoringEngineEffect
     const compressor = yield* ContextCompressorEffect
     const detector = yield* LanguageDetector
-    const logger = yield* DialogLogger
+    const logger = yield* Logger
 
     const createDialog = (params: CreateDialogParams): Effect.Effect<CreateDialogResult, Error> =>
         Effect.gen(function* () {
@@ -186,7 +184,7 @@ export const DialogManagerLive = Layer.effect(
     DialogManagerService,
     makeDialogManager
 ).pipe(
-    Layer.provide(Layer.succeed(DialogLogger, new SimpleLogger('DialogManager')))
+    Layer.provide(LoggerLayer('DialogManager'))
 )
 
 // Export the complete layer with all dialog services
