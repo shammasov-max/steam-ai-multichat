@@ -1,7 +1,6 @@
 import * as Effect from 'effect/Effect'
 import * as Context from 'effect/Context'
 import * as Layer from 'effect/Layer'
-import * as Option from 'effect/Option'
 import { pipe } from 'effect/Function'
 import { ScoringFactors } from '../types'
 

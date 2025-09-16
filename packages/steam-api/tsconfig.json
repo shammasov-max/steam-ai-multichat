@@ -5,7 +5,7 @@
     "declaration": true,
     "rootDir": "./",
     "outDir": "./dist",
-    "module": "es2015",
+    "module": "es2022",
     "moduleResolution": "bundler",
     "noEmit": false
   },

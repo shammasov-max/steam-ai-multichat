@@ -11,7 +11,7 @@ export {
 } from './accounts'
 
 // ============= Core Types =============
-export { type AccountStatus, SteamID64 } from '../events/core'
+export { type AccountStatusType as AccountStatus, SteamID64 } from '../events/core'
 
 // ============= Dialogs Slice =============
 export {
@@ -39,11 +39,24 @@ export {
     type DialogProgressUpdatedPayload,
 } from './dialogs'
 
-// ============= System Slice =============
+// ============= System Config Slice =============
 export {
     systemSlice,
-    systemActions,
+    systemPatched,
     systemReducer,
+    selectSystem,
+    type SystemState,
+    SystemStateSchema,
+    SYSTEM_CONFIG_ID,
+    DEFAULT_SYSTEM_CONFIG,
+    initializeSystemConfig,
+} from './systemSlice'
+
+// ============= Legacy System Slice (to be removed) =============
+export {
+    systemSlice as legacySystemSlice,
+    systemActions as legacySystemActions,
+    systemReducer as legacySystemReducer,
     type System,
     type RoundRobinState,
     type RateLimitEntry,
@@ -63,7 +76,8 @@ export {
 
 import { accountSlice } from './accounts'
 import { dialogSlice } from './dialogs'
-import { systemSlice } from './system'
+import { systemSlice } from './systemSlice'
+import { systemSlice as legacySystemSlice } from './system'
 
 /**
  * All slice reducers ready to be mounted in the store
@@ -72,7 +86,8 @@ import { systemSlice } from './system'
 export const sliceReducers = {
     accounts: accountSlice.reducer,
     dialogs: dialogSlice.reducer,
-    systems: systemSlice.reducer, // Note: 'systems' plural even though it's singleton
+    system: systemSlice.reducer, // Singleton system config
+    systems: legacySystemSlice.reducer, // Legacy - to be removed
 } as const
 
 /**
@@ -81,7 +96,8 @@ export const sliceReducers = {
 export const sliceActions = {
     accounts: accountSlice.actions,
     dialogs: dialogSlice.actions,
-    systems: systemSlice.actions,
+    system: systemSlice.actions,
+    systems: legacySystemSlice.actions, // Legacy - to be removed
 } as const
 
 /**
@@ -89,22 +105,23 @@ export const sliceActions = {
  */
 export const sliceSelectors = {
     accounts: {
-        selectEntity: accountSlice.selectEntity,
-        selectAllEntities: accountSlice.selectAllEntities,
-        selectEntityIds: accountSlice.selectEntityIds,
+        selectEntity: accountSlice.selectors.selectEntity,
+        selectAllEntities: accountSlice.selectors.selectAllEntities,
+        selectEntityIds: accountSlice.selectors.selectEntityIds,
     },
     dialogs: {
-        selectEntity: dialogSlice.selectEntity,
-        selectAllEntities: dialogSlice.selectAllEntities,
-        selectEntityIds: dialogSlice.selectEntityIds,
+        selectEntity: dialogSlice.selectors.selectEntity,
+        selectAllEntities: dialogSlice.selectors.selectAllEntities,
+        selectEntityIds: dialogSlice.selectors.selectEntityIds,
     },
+    system: selectSystem, // New system config selector
     systems: {
-        selectEntity: systemSlice.selectEntity,
-        selectAllEntities: systemSlice.selectAllEntities,
-        selectEntityIds: systemSlice.selectEntityIds,
-        // Helper selector for the singleton system entity
-        selectSystem: (state: ReturnType<typeof systemSlice.reducer>) =>
-            systemSlice.selectEntity(state, 'system'),
+        // Legacy selectors - to be removed
+        selectEntity: legacySystemSlice.selectors.selectEntity,
+        selectAllEntities: legacySystemSlice.selectors.selectAllEntities,
+        selectEntityIds: legacySystemSlice.selectors.selectEntityIds,
+        selectSystem: (state: ReturnType<typeof legacySystemSlice.reducer>) =>
+            legacySystemSlice.selectors.selectEntity(state, 'system'),
     },
 } as const
 
@@ -113,5 +130,20 @@ export const sliceSelectors = {
 export type RootState = {
     accounts: ReturnType<typeof accountSlice.reducer>
     dialogs: ReturnType<typeof dialogSlice.reducer>
-    systems: ReturnType<typeof systemSlice.reducer>
+    system: ReturnType<typeof systemSlice.reducer>
+    systems: ReturnType<typeof legacySystemSlice.reducer> // Legacy - to be removed
 }
+
+// ============= Root Reducer =============
+
+import { combineReducers } from '@reduxjs/toolkit'
+
+/**
+ * Root reducer combining all entity slices
+ * This is used to create the Redux store
+ */
+export const rootReducer = combineReducers({
+    accounts: accountSlice.reducer,
+    dialogs: dialogSlice.reducer,
+    systems: systemSlice.reducer,
+})

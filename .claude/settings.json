@@ -3,7 +3,7 @@
     "env": {
     "NEXT_TELEMETRY_DISABLED": "1",
     "NODE_ENV": "development"
-  },
+  },"disabledMcpjsonServers": ["docker","playwright",""],
   "hooks": {},
   "statusLine": {
     "type": "command",
@@ -20,5 +20,6 @@
       "Prisma"
     ],
     "note": "This is a composed configuration. Review and adjust as needed."
-  }
+  },
+  "mcpSettings": "./mcp_settings.json"
 }

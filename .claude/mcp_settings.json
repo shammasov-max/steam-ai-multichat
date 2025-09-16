@@ -2,6 +2,7 @@
   "version": "1.0.0",
   "description": "MCP Settings for Browser Automation with Playwright and Puppeteer",
   "servers": {
+s
     "playwright": {
       "enabled": true,
       "priority": 1,

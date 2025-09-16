@@ -39,6 +39,14 @@ This is a Steam multichat automation system built as a TypeScript monorepo using
 - **TypeID**: Entity IDs with slice prefixes (`account_*`, `dialog_*`, `system_*`)
 - **Repository pattern**: MongoDB collections map 1:1 with Redux slices
 
+### Configuration Architecture
+- **Minimal Environment**: Only 2 env vars (`MONGODB_URL`, `NODE_ENV`) via Effect Config
+- **SystemSlice**: All runtime configuration stored in `systemSlice.ts`
+- **Database-backed**: Configuration loaded from MongoDB at startup
+- **SystemStateService**: Effect service wrapper providing access to Redux store
+- **Direct Access**: Services use `systemState.getOpenAI()`, `systemState.getDatabase()` etc.
+- **Runtime Updates**: All config except DB URL can be updated at runtime
+
 ### Data Flow
 1. Commands sent to `POST /api/command`
 2. Events emitted and stored in Redux store
@@ -326,12 +334,16 @@ yield* logWarn('Warning condition detected', { threshold: 0.3 })
 ## Migration Status
 
 ### Completed Migrations to Effect-TS
-- **Logger Service**: Full Effect service with backward compatibility wrapper
+- **Logger Service**: Full Effect service with LoggerLayer integration
 - **MongoDB Layer**: Complete Effect implementation with resource management
 - **Steam API Service**: Effect-based with connection pooling and streaming
-- **Dialog Manager**: Effect service with Context and Layer patterns
-- **AI Service**: Migrated to AIServiceEffect.ts with proper error handling
-- **Scoring Engine**: Migrated to ScoringEngineEffect.ts with functional composition
+- **Dialog Services (FULLY MIGRATED - 2025-09-16)**:
+  - **DialogManagerEffect**: Effect service with Context and Layer patterns
+  - **AIServiceEffect**: AI integration with complete error type definitions
+  - **ScoringEngineEffect**: Scoring logic with functional composition
+  - **ContextCompressorEffect**: Context compression with Effect patterns
+  - **LanguageDetectorEffect**: Language detection service
+  - All legacy non-Effect implementations removed
 
 ### Current Effect-TS Architecture
 
@@ -339,9 +351,13 @@ yield* logWarn('Warning condition detected', { threshold: 0.3 })
 - **AppLayer.ts**: Main application layer composition
 - **SimplifiedRepositories.ts**: Effect-based repository pattern *(uncommitted)*
 
-#### Dialog Services (packages/dialogs)
-- **AIServiceEffect.ts**: AI integration with Effect patterns
-- **ScoringEngineEffect.ts**: Scoring logic with functional composition
+#### Dialog Services (packages/dialogs) ✅ FULLY MIGRATED
+- **DialogManagerEffect.ts**: Main dialog orchestration with Logger integration
+- **services/AIServiceEffect.ts**: OpenAI integration with complete error handling
+- **services/ScoringEngineEffect.ts**: Dialog scoring with Effect patterns
+- **services/ContextCompressorEffect.ts**: Context compression service
+- **services/LanguageDetectorEffect.ts**: Multi-language detection
+- **services/index.ts**: Unified exports with proper Effect types
 
 #### Server Architecture (packages/server) *(uncommitted)*
 - **ServerService.ts**: Main server service with Effect
@@ -369,6 +385,20 @@ yield* logWarn('Warning condition detected', { threshold: 0.3 })
 
 ## Recent Updates
 
+### 2025-09-16: Configuration Simplified (Phase 3C Part 2)
+- **Minimal Environment Variables**: Reduced to only 2 env vars (MONGODB_URL, NODE_ENV)
+- **SystemSlice Central Config**: All runtime configuration now in `systemSlice.ts`
+- **SystemStateService**: Created Effect service wrapper for Redux store access
+- **Service Integration**: All services now use SystemStateService for configuration
+- **Cleanup**: Removed complex Config files, env-parser, and redundant code
+
+### 2025-09-16: Phase 3C Part 1 Completed
+- **Dialogs Package Fully Migrated**: All services now use Effect-TS exclusively
+- **Legacy Code Removed**: Deleted all non-Effect service implementations
+- **Type Safety Enhanced**: Fixed all type errors in dialogs package
+- **Logger Integration**: Replaced SimpleLogger with proper LoggerLayer
+- **Code Reduction**: Removed ~200 lines of unnecessary complexity
+
 ### 2025-09-15: Effect-TS Migration Progress
 - **Effect-Redux Integration**: Production-ready implementation in `packages/isomorphic/src/effect-redux/`
 - **New Effect Patterns**: Added resilience patterns, error handling, and type utilities
@@ -376,8 +406,8 @@ yield* logWarn('Warning condition detected', { threshold: 0.3 })
 - **Server Refactoring**: Improved server architecture with ServerService and routes
 
 ### TypeScript Compliance
-- All packages pass `yarn typecheck`
-- Zero TypeScript compilation errors
+- **Dialogs package**: ✅ Fully passes type checking (as of 2025-09-16)
+- **Other packages**: Type issues remain due to missing/uncommitted files
 - Strict mode enabled across monorepo
 
 

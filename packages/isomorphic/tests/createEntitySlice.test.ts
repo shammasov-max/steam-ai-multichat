@@ -70,17 +70,17 @@ test('createEntitySlice: initializes state and selectors work', async () => {
 
   // Initial state assertions
   let state = store.getState();
-  expect(userSlice.selectEntityIds(state.users)).toEqual(['user-1', 'user-2']);
-  expect(userSlice.selectEntity(state.users, 'user-1')?.name).toBe('Alice Johnson');
-  expect(userSlice.selectAllEntities(state.users)).toHaveLength(2);
+  expect(userSlice.selectors.selectEntityIds(state.users)).toEqual(['user-1', 'user-2']);
+  expect(userSlice.selectors.selectEntity(state.users, 'user-1')?.name).toBe('Alice Johnson');
+  expect(userSlice.selectors.selectAllEntities(state.users)).toHaveLength(2);
 
   // Updates via reducers
   store.dispatch(userSlice.actions.updateName({ userId: 'user-1', name: 'Alice Williams' }));
   store.dispatch(userSlice.actions.changeRole({ userId: 'user-2', role: 'admin' }));
 
   state = store.getState();
-  expect(userSlice.selectEntity(state.users, 'user-1')?.name).toBe('Alice Williams');
-  expect(userSlice.selectEntity(state.users, 'user-2')?.role).toBe('admin');
+  expect(userSlice.selectors.selectEntity(state.users, 'user-1')?.name).toBe('Alice Williams');
+  expect(userSlice.selectors.selectEntity(state.users, 'user-2')?.role).toBe('admin');
 });
 
 
@@ -125,7 +125,7 @@ test('createEntitySlice: warns and does nothing when entity is not found', async
   expect(logEntry.level).toBe('WARN');
   expect(logEntry.message).toBe('Entity not found');
   expect(logEntry.entityId).toBe('prod-123');
-  expect(productSlice.selectEntity(state.products, 'prod-123')).toBeUndefined();
+  expect(productSlice.selectors.selectEntity(state.products, 'prod-123')).toBeUndefined();
 });
 
 

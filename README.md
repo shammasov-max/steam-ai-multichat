@@ -41,32 +41,17 @@ yarn install
 
 ### 3. Environment Configuration
 
-Create a `.env` file in the root directory:
+Create a `.env` file in the root directory with only 2 required variables:
 
 ```env
-# MongoDB Configuration
-MONGODB_URI=mongodb://localhost:27017
-MONGODB_DATABASE=effect-redux
+# MongoDB Connection (required)
+MONGODB_URL=mongodb://localhost:27017/effect-redux
 
-# OpenAI Configuration
-OPENAI_API_KEY=sk-your-openai-api-key
-
-# Steam Configuration (optional for development)
-STEAM_ACCOUNT_NAME=your-steam-account
-STEAM_PASSWORD=your-steam-password
-
-# Server Configuration
-PORT=3000
+# Environment Mode (optional, defaults to development)
 NODE_ENV=development
-
-# Frontend Configuration
-VITE_API_URL=http://localhost:3000
-
-# Google Sheets (optional)
-GOOGLE_SHEETS_SPREADSHEET_ID=your-spreadsheet-id
-GOOGLE_SERVICE_ACCOUNT_EMAIL=your-service-account@project.iam.gserviceaccount.com
-GOOGLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n..."
 ```
+
+**Note**: All other configuration (OpenAI API keys, server ports, rate limits, etc.) is now stored in the database via SystemSlice and can be updated at runtime without restarting the application.
 
 ### 4. Database Setup
 
@@ -360,10 +345,11 @@ Please read [CONTRIBUTING.md](./CONTRIBUTING.md) for development guidelines and 
 
 ## Security
 
-- Never commit `.env` files or secrets
-- Use environment variables for sensitive data
-- Rotate API keys regularly
+- Never commit `.env` files (only used for MONGODB_URL now)
+- Store sensitive configuration (API keys, credentials) in database, not in code
+- Rotate API keys regularly via SystemSlice updates
 - Follow Steam ToS and rate limits
+- All runtime configuration is managed through SystemSlice
 - Implement proper authentication for production
 
 ## License

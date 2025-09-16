@@ -6,7 +6,7 @@ import { MongoError } from '../errors/MongoError'
 const tryMongo = <A>(operation: string, fn: () => Promise<A>) =>
     Effect.tryPromise({
         try: fn,
-        catch: (e) => MongoError.queryFailed(operation, String(e), e)
+        catch: e => MongoError.queryFailed(operation, String(e), e),
     })
 
 export const createRepository = <T>(
@@ -15,46 +15,50 @@ export const createRepository = <T>(
     cache?: Cache.Cache<string, Option.Option<T>, MongoError>
 ): Repository<T> => {
     const idField = config.idField || `${config.sliceName}Id`
-    
-    const tryOp = (op: string) => <A>(fn: () => Promise<A>) =>
-        tryMongo(`${op}:${config.sliceName}`, fn)
-    
+
+    const tryOp =
+        (op: string) =>
+        <A>(fn: () => Promise<A>) =>
+            tryMongo(`${op}:${config.sliceName}`, fn)
+
     const withCache = (id: string, fetch: () => Effect.Effect<Option.Option<T>, MongoError>) =>
-        cache ? cache.get(id).pipe(
-            Effect.flatMap(cached =>
-                Option.isSome(cached)
-                    ? Effect.succeed(cached)
-                    : fetch().pipe(Effect.tap(result => cache.set(id, result)))
-            )
-        ) : fetch()
-    
+        cache
+            ? cache
+                  .get(id)
+                  .pipe(
+                      Effect.flatMap(cached =>
+                          Option.isSome(cached)
+                              ? Effect.succeed(cached)
+                              : fetch().pipe(Effect.tap(result => cache.set(id, result)))
+                      )
+                  )
+            : fetch()
+
     return {
-        findById: (id) =>
+        findById: id =>
             withCache(id, () =>
                 tryOp('find')(() =>
-                    collection.findOne(
-                        { [idField]: id } as Filter<T & Document>,
-                        { projection: { _id: 0 } }
-                    )
+                    collection.findOne({ [idField]: id } as Filter<T & Document>, {
+                        projection: { _id: 0 },
+                    })
                 ).pipe(Effect.map(result => Option.fromNullable(result as T | null)))
             ),
-        
+
         findAll: () =>
-            tryOp('findAll')(() =>
-                collection.find({}, { projection: { _id: 0 } }).toArray()
-            ).pipe(Effect.map(results => results as unknown as readonly T[])),
-        
-        findBatch: (ids) =>
+            tryOp('findAll')(() => collection.find({}, { projection: { _id: 0 } }).toArray()).pipe(
+                Effect.map(results => results as unknown as readonly T[])
+            ),
+
+        findBatch: ids =>
             tryOp('findBatch')(() =>
                 collection
-                    .find(
-                        { [idField]: { $in: [...ids] } } as Filter<T & Document>,
-                        { projection: { _id: 0 } }
-                    )
+                    .find({ [idField]: { $in: [...ids] } } as Filter<T & Document>, {
+                        projection: { _id: 0 },
+                    })
                     .toArray()
             ).pipe(Effect.map(results => results as unknown as readonly T[])),
-        
-        save: (entity) => {
+
+        save: entity => {
             const entityRecord = entity as Record<string, unknown>
             const id = entityRecord[idField] as string
             return pipe(
@@ -69,15 +73,15 @@ export const createRepository = <T>(
                 Effect.asVoid
             )
         },
-        
-        delete: (id) =>
+
+        delete: id =>
             pipe(
                 tryOp('delete')(() =>
                     collection.deleteOne({ [idField]: id } as Filter<T & Document>)
                 ),
                 Effect.tap(() => (cache ? cache.invalidate(id) : Effect.void)),
                 Effect.asVoid
-            )
+            ),
     }
 }
 
@@ -90,12 +94,11 @@ export const createCachedRepository = <T>(
         timeToLive: Duration.minutes(config.cacheTTLMinutes),
         lookup: (id: string) =>
             Effect.tryPromise({
-                try: () => collection.findOne(
-                    { [config.idField || `${config.sliceName}Id`]: id } as Filter<T & Document>,
-                    { projection: { _id: 0 } }
-                ),
-                catch: (e) => MongoError.queryFailed(`find:${config.sliceName}`, String(e), e)
-            }).pipe(Effect.map(result => Option.fromNullable(result as T | null)))
-    }).pipe(
-        Effect.map(cache => createRepository(collection, config, cache as any))
-    )
+                try: () =>
+                    collection.findOne(
+                        { [config.idField || `${config.sliceName}Id`]: id } as Filter<T & Document>,
+                        { projection: { _id: 0 } }
+                    ),
+                catch: e => MongoError.queryFailed(`find:${config.sliceName}`, String(e), e),
+            }).pipe(Effect.map(result => Option.fromNullable(result as T | null))),
+    }).pipe(Effect.map(cache => createRepository(collection, config, cache as any)))

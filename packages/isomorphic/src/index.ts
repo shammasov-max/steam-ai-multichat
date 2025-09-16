@@ -1,3 +1,26 @@
+// ============= Effect Patterns =============
+export * as effectPatterns from './effect-patterns'
+// Re-export Effect types to fix TS4023 errors
+export type { Channel } from 'effect/Channel'
+export type { Sink } from 'effect/Sink'
+export type { Stream } from 'effect/Stream'
+export type { NodeInspectSymbol } from 'effect/Inspectable'
+
+// ============= Entity Definition =============
+export { defineEntity } from './define-entity'
+export {
+    entities,
+    Account,
+    Dialog,
+    System,
+    createRootReducer,
+    AllRepositoriesLayer,
+    mocks,
+    type AccountEntity,
+    type DialogEntity,
+    type SystemEntity,
+} from './entities'
+
 // ============= Base utilities =============
 export {
     createEntitySlice,
@@ -17,7 +40,13 @@ export {
 export * from './slices/index'
 
 // ============= Store setup helpers =============
-export { sliceReducers, sliceActions, sliceSelectors, type RootState } from './slices/index'
+export {
+    sliceReducers,
+    sliceActions,
+    sliceSelectors,
+    rootReducer,
+    type RootState,
+} from './slices/index'
 
 // ============= Events =============
 export * from './events/meta'
@@ -34,11 +63,20 @@ export {
     isAccountId,
     isDialogId,
     isSystemId,
-    type AccountId as AccountIdType,
-    type DialogId as DialogIdType,
-    type SystemId as SystemIdType,
-    type SteamID64 as SteamID64Type,
+    type AccountIdType,
+    type DialogIdType,
+    type SystemIdType,
+    type SteamID64Type,
 } from './types/branded'
+
+// ============= Configuration =============
+export { Env, EnvLive, EnvTest, type EnvConfig } from './config'
+export {
+    SystemStateService,
+    SystemStateServiceLive,
+    ReduxStore,
+    initializeSystemState,
+} from './system-state-service'
 
 // ============= Utils =============
 export {
@@ -70,11 +108,9 @@ export {
     TimeoutError,
 } from './utils'
 
-// ============= Configuration =============
-export * from './config/index'
-
 // ============= Effect-Redux Integration =============
 export * from './effect-redux/index'
+export { ReduxService, createReduxLayer } from './effect-redux/ReduxService'
 
 // ============= Effect Patterns =============
 export {
@@ -83,6 +119,9 @@ export {
     schema,
     timestamped,
     entityAction,
+    brandedId,
+    indexed,
+    defineService,
     serviceLayer,
     syncLayer,
     factoryLayer,
@@ -100,7 +139,7 @@ export {
     type SuccessOf,
     type ErrorOf,
     type ContextOf,
-    type RequireKeys
+    type RequireKeys,
 } from './effect-patterns/type-utils'
 
 export * from './effect-patterns/index'

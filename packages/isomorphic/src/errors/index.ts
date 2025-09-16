@@ -7,10 +7,7 @@ import { Data } from 'effect'
 /**
  * Creates a tagged error class with standard fields
  */
-export const createError = <T extends string>(
-    tag: T,
-    defaultMessage?: string
-) => {
+export const createError = <T extends string>(tag: T, defaultMessage?: string) => {
     return class extends Data.TaggedError(tag)<{
         readonly message: string
         readonly cause?: unknown
@@ -21,10 +18,10 @@ export const createError = <T extends string>(
             cause?: unknown,
             metadata?: Record<string, unknown>
         ) {
-            return new this({ 
-                message, 
+            return new this({
+                message,
                 cause,
-                ...(metadata !== undefined && { metadata })
+                ...(metadata !== undefined && { metadata }),
             })
         }
 
@@ -33,13 +30,13 @@ export const createError = <T extends string>(
                 return new this({
                     message: error.message,
                     cause: error,
-                    ...(metadata !== undefined && { metadata })
+                    ...(metadata !== undefined && { metadata }),
                 })
             }
             return new this({
                 message: String(error),
                 cause: error,
-                ...(metadata !== undefined && { metadata })
+                ...(metadata !== undefined && { metadata }),
             })
         }
     }
@@ -83,11 +80,11 @@ export const createServiceError = <T extends string>(serviceName: T) => {
             cause?: unknown,
             context?: Record<string, unknown>
         ) {
-            return new this({ 
-                operation, 
-                message, 
+            return new this({
+                operation,
+                message,
                 cause,
-                ...(context !== undefined && { context })
+                ...(context !== undefined && { context }),
             })
         }
     }
@@ -108,7 +105,7 @@ export const createRepositoryError = <T extends string>(entityName: T) => {
             return new this({
                 operation: 'find',
                 entityId,
-                message: `${entityName} not found: ${entityId}`
+                message: `${entityName} not found: ${entityId}`,
             })
         }
 
@@ -117,7 +114,7 @@ export const createRepositoryError = <T extends string>(entityName: T) => {
                 operation: 'save',
                 entityId,
                 message: `Failed to save ${entityName}: ${entityId}`,
-                cause
+                cause,
             })
         }
 
@@ -126,7 +123,7 @@ export const createRepositoryError = <T extends string>(entityName: T) => {
                 operation: 'delete',
                 entityId,
                 message: `Failed to delete ${entityName}: ${entityId}`,
-                cause
+                cause,
             })
         }
     }
@@ -155,7 +152,7 @@ export const createApiError = <T extends string>(apiName: T) => {
                 method,
                 statusCode,
                 message: `${apiName} API error: ${statusCode}`,
-                response
+                response,
             })
         }
     }
@@ -172,12 +169,7 @@ export const isTaggedError = <T extends { _tag: string }>(
     error: unknown,
     tag: T['_tag']
 ): error is T => {
-    return (
-        typeof error === 'object' &&
-        error !== null &&
-        '_tag' in error &&
-        error._tag === tag
-    )
+    return typeof error === 'object' && error !== null && '_tag' in error && error._tag === tag
 }
 
 /**

@@ -1,10 +1,18 @@
 import { describe, test, expect, beforeAll, afterAll } from 'vitest'
 // Legacy createSteamAgent has been removed - use Effect-based API
 // import { createSteamAgent } from '../src/index.js'
-import { TestAccount } from '../../../tests/fixtures.js'
+// TestAccount is now defined locally since fixtures.js doesn't export it
+// import { TestAccount } from '../../../tests/fixtures.js'
 import { readFile } from 'fs/promises'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
+
+interface TestAccount {
+    login: string
+    password: string
+    proxy: string
+    maFile: string
+}
 
 // Get the directory of this test file
 const __filename = fileURLToPath(import.meta.url)
@@ -12,118 +20,118 @@ const __dirname = dirname(__filename)
 
 // Load test accounts from fixtures
 async function loadTestAccounts(): Promise<TestAccount[]> {
-  // Use fixtures directory in root (relative to this test file location)
-  const fixturesPath = join(__dirname, '../../../fixtures/all.txt')
-  
-  try {
-    const content = await readFile(fixturesPath, 'utf-8')
-    
-    const accounts: TestAccount[] = []
-    
-    for (const line of content.split('\n')) {
-      const trimmed = line.trim()
-      if (!trimmed || trimmed.startsWith('#')) continue
-      
-      const parts = trimmed.split(' - ')
-      if (parts.length !== 2) continue
-      
-      const [loginPassword, proxyInfo] = parts
-      const [login, password] = loginPassword.split(':')
-      
-      if (!login || !password || !proxyInfo) continue
-      
-      // Parse proxy format: IP:PORT:username:password
-      const proxyParts = proxyInfo.split(':')
-      if (proxyParts.length === 4) {
-        const [ip, port, proxyUser, proxyPass] = proxyParts
-        const proxyUrl = `http://${proxyUser}:${proxyPass}@${ip}:${port}`
-        
-        const maFilePath = join(__dirname, '../../../fixtures/mafile', `${login}.maFile`)
-        const maFileContent = await readFile(maFilePath, 'utf-8')
-        
-        accounts.push({
-          login,
-          password,
-          proxy: proxyUrl,
-          maFile: maFileContent
-        })
-      }
+    // Use fixtures directory in root (relative to this test file location)
+    const fixturesPath = join(__dirname, '../../../fixtures/all.txt')
+
+    try {
+        const content = await readFile(fixturesPath, 'utf-8')
+
+        const accounts: TestAccount[] = []
+
+        for (const line of content.split('\n')) {
+            const trimmed = line.trim()
+            if (!trimmed || trimmed.startsWith('#')) continue
+
+            const parts = trimmed.split(' - ')
+            if (parts.length !== 2) continue
+
+            const [loginPassword, proxyInfo] = parts
+            const [login, password] = loginPassword.split(':')
+
+            if (!login || !password || !proxyInfo) continue
+
+            // Parse proxy format: IP:PORT:username:password
+            const proxyParts = proxyInfo.split(':')
+            if (proxyParts.length === 4) {
+                const [ip, port, proxyUser, proxyPass] = proxyParts
+                const proxyUrl = `http://${proxyUser}:${proxyPass}@${ip}:${port}`
+
+                const maFilePath = join(__dirname, '../../../fixtures/mafile', `${login}.maFile`)
+                const maFileContent = await readFile(maFilePath, 'utf-8')
+
+                accounts.push({
+                    login,
+                    password,
+                    proxy: proxyUrl,
+                    maFile: maFileContent,
+                })
+            }
+        }
+
+        return accounts
+    } catch (error) {
+        console.warn('Test fixtures not found. Steam API integration tests will be skipped.')
+        return []
     }
-    
-    return accounts
-  } catch (error) {
-    console.warn('Test fixtures not found. Steam API integration tests will be skipped.')
-    return []
-  }
 }
 
 // Helper to wait for event with timeout
 function waitForEvent<T>(emitter: any, eventName: string, timeout = 60000): Promise<T> {
-  return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => {
-      reject(new Error(`Timeout waiting for event: ${eventName}`))
-    }, timeout)
+    return new Promise((resolve, reject) => {
+        const timer = setTimeout(() => {
+            reject(new Error(`Timeout waiting for event: ${eventName}`))
+        }, timeout)
 
-    // Also listen for errors
-    const errorHandler = (err: any) => {
-      clearTimeout(timer)
-      emitter.off(eventName, successHandler)
-      reject(err)
-    }
-    
-    const successHandler = (...args: any[]) => {
-      clearTimeout(timer)
-      emitter.off('error', errorHandler)
-      resolve(args.length === 1 ? args[0] : args as T)
-    }
+        // Also listen for errors
+        const errorHandler = (err: any) => {
+            clearTimeout(timer)
+            emitter.off(eventName, successHandler)
+            reject(err)
+        }
 
-    emitter.once(eventName, successHandler)
-    emitter.once('error', errorHandler)
-  })
+        const successHandler = (...args: any[]) => {
+            clearTimeout(timer)
+            emitter.off('error', errorHandler)
+            resolve(args.length === 1 ? args[0] : (args as T))
+        }
+
+        emitter.once(eventName, successHandler)
+        emitter.once('error', errorHandler)
+    })
 }
 
 // Configure test timeout - 30 seconds per CLAUDE.md
 // Timeout configured in vitest.config.ts
 
 describe('Steam API Integration Tests', () => {
-  let agent: any
-  let account: TestAccount
-  let skipAllTests = false
-  
-  beforeAll(async () => {
-    // Load test accounts and use the first one
-    const accounts = await loadTestAccounts()
-    if (accounts.length < 1) {
-      console.warn('No test accounts available. Steam API integration tests will be skipped.')
-      skipAllTests = true
-      return
-    }
-    account = accounts[0]
-    console.log(`Using test account: ${account.login}`)
-    
-    // Add a delay to avoid rate limiting if tests were recently run
-    console.log('Waiting 5 seconds before test to avoid rate limiting...')
-    await new Promise(resolve => setTimeout(resolve, 5000))
-  })
-  
-  afterAll(async () => {
-    if (agent) {
-      try {
-        agent.logout()
-        await new Promise(resolve => setTimeout(resolve, 1000))
-      } catch (e) {
-        console.warn('Cleanup warning:', e)
-      }
-    }
-  })
-  
-  test.skip('login and basic operations', async () => {
-    // Test disabled - createSteamAgent has been removed
-    // This test needs to be rewritten to use Effect-based API
-    console.warn('Test disabled: Needs migration to Effect-based API')
-    return
-    
-    /* Disabled code for reference:
+    let agent: any
+    let account: TestAccount
+    let skipAllTests = false
+
+    beforeAll(async () => {
+        // Load test accounts and use the first one
+        const accounts = await loadTestAccounts()
+        if (accounts.length < 1) {
+            console.warn('No test accounts available. Steam API integration tests will be skipped.')
+            skipAllTests = true
+            return
+        }
+        account = accounts[0]
+        console.log(`Using test account: ${account.login}`)
+
+        // Add a delay to avoid rate limiting if tests were recently run
+        console.log('Waiting 5 seconds before test to avoid rate limiting...')
+        await new Promise(resolve => setTimeout(resolve, 5000))
+    })
+
+    afterAll(async () => {
+        if (agent) {
+            try {
+                agent.logout()
+                await new Promise(resolve => setTimeout(resolve, 1000))
+            } catch (e) {
+                console.warn('Cleanup warning:', e)
+            }
+        }
+    })
+
+    test.skip('login and basic operations', async () => {
+        // Test disabled - createSteamAgent has been removed
+        // This test needs to be rewritten to use Effect-based API
+        console.warn('Test disabled: Needs migration to Effect-based API')
+        return
+
+        /* Disabled code for reference:
     if (!account) {
       console.warn('Skipping test: No test account available')
       return
@@ -165,34 +173,34 @@ describe('Steam API Integration Tests', () => {
     const chatHistories = agent.getAllChatHistories()
     console.log(`✅ Retrieved ${chatHistories.length} chat histories`)
     */
-  })
-  
-  test('send message to self (echo test)', async () => {
-    if (!account) {
-      console.warn('Skipping test: No test account available')
-      return
-    }
-    if (!agent || !agent.getIsLoggedIn()) {
-      console.warn('Skipping test: Agent not logged in')
-      return
-    }
-    
-    const steamID = agent.getSteamID()
-    const testMessage = `Self test - ${new Date().toISOString()}`
-    
-    // Send message to self
-    await agent.sendMessage(steamID, testMessage)
-    console.log(`✅ Sent message to self: "${testMessage}"`)
-    
-    // Wait a moment for message to register
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    // Check chat history
-    const chatHistory = agent.getChatHistory(steamID)
-    expect(chatHistory.messages.length).toBeGreaterThan(0)
-    
-    const lastMessage = chatHistory.messages[chatHistory.messages.length - 1]
-    expect(lastMessage.message).toBe(testMessage)
-    console.log('✅ Message verified in chat history')
-  })
+    })
+
+    test('send message to self (echo test)', async () => {
+        if (!account) {
+            console.warn('Skipping test: No test account available')
+            return
+        }
+        if (!agent || !agent.getIsLoggedIn()) {
+            console.warn('Skipping test: Agent not logged in')
+            return
+        }
+
+        const steamID = agent.getSteamID()
+        const testMessage = `Self test - ${new Date().toISOString()}`
+
+        // Send message to self
+        await agent.sendMessage(steamID, testMessage)
+        console.log(`✅ Sent message to self: "${testMessage}"`)
+
+        // Wait a moment for message to register
+        await new Promise(resolve => setTimeout(resolve, 1000))
+
+        // Check chat history
+        const chatHistory = agent.getChatHistory(steamID)
+        expect(chatHistory.messages.length).toBeGreaterThan(0)
+
+        const lastMessage = chatHistory.messages[chatHistory.messages.length - 1]
+        expect(lastMessage.message).toBe(testMessage)
+        console.log('✅ Message verified in chat history')
+    })
 })

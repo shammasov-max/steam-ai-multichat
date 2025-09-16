@@ -13,14 +13,8 @@ export {
     runWithSteam,
     runWithSteamPool,
     type SteamConnection,
-    type SteamEvent
+    type SteamEvent,
 } from './SteamAgentEffect'
 
 // Legacy types still exported for compatibility
-export type {
-    SteamAgentConfig,
-    Friend,
-    ChatMessage,
-    ChatHistory,
-    SteamAgentEvents,
-} from './types'
+export type { SteamAgentConfig, Friend, ChatMessage, ChatHistory, SteamAgentEvents } from './types'

@@ -14,7 +14,4 @@ export interface MongoDBService<TSlices extends readonly SliceConfig[]> {
     clearAll: () => Effect.Effect<void, MongoError>
 }
 
-export class MongoDB extends Context.Tag('MongoDB')<
-    MongoDB,
-    MongoDBService<any>
->() {}
+export class MongoDB extends Context.Tag('MongoDB')<MongoDB, MongoDBService<any>>() {}

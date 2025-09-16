@@ -56,12 +56,13 @@ export interface StoreContext<S = unknown> {
     readonly subscribe: (listener: () => void) => () => void
 }
 
-export const StoreContextTag = <S = unknown>() => Context.GenericTag<StoreContext<S>>('StoreContext')
+export const StoreContextTag = <S = unknown>() =>
+    Context.GenericTag<StoreContext<S>>('StoreContext')
 
 /**
  * Create an Effect-powered Redux store
  */
-export function createEffectStore<S = any, R = any>(
+export const createEffectStore = function createEffectStore<S = any, R = any>(
     config: EffectStoreConfig<S, R>
 ): EffectStore<S, UnknownAction, R> {
     const {
@@ -150,7 +151,7 @@ export function createEffectStore<S = any, R = any>(
 /**
  * Create a Layer that provides a Redux store
  */
-export function createStoreLayer<S, R>(
+export const createStoreLayer = function createStoreLayer<S, R>(
     config: EffectStoreConfig<S, R>
 ): Layer.Layer<StoreContext<S>, never, R> {
     const storeContext = StoreContextTag<S>()
@@ -174,7 +175,7 @@ export function createStoreLayer<S, R>(
 /**
  * Helper to create a store with dependencies
  */
-export function createStoreWithDeps<S, R, E, ROut extends R>(
+export const createStoreWithDeps = function createStoreWithDeps<S, R, E, ROut extends R>(
     config: Omit<EffectStoreConfig<S, ROut>, 'runtime'>,
     dependencies: Layer.Layer<ROut, E, R>
 ): Effect.Effect<EffectStore<S, UnknownAction, ROut>, E, R> {
@@ -190,7 +191,7 @@ export function createStoreWithDeps<S, R, E, ROut extends R>(
 /**
  * Batch actions helper
  */
-export function batchActions(actions: UnknownAction[]): UnknownAction {
+export const batchActions = function batchActions(actions: UnknownAction[]): UnknownAction {
     return {
         type: '@@BATCH',
         payload: actions,

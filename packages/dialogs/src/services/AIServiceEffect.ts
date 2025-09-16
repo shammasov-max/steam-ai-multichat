@@ -368,24 +368,14 @@ export const AIServiceLive = Layer.effect(
     })
     
     // Use direct service implementation
-    return yield* makeAIService(config, openai)
+    return yield* makeAIService({
+      model: openAIConfig.model,
+      maxTokensPerRequest: openAIConfig.maxTokensPerRequest,
+      timeout: openAIConfig.timeout
+    }, openai)
   })
 )
 
-// Factory function for creating the layer with configuration
-export const makeAIServiceLayer = (config: AIServiceConfig) => {
-  const fullConfig: Required<AIServiceConfig> = {
-    apiKey: config.apiKey,
-    model: config.model || 'gpt-4-turbo-preview',
-    maxTokensPerRequest: config.maxTokensPerRequest || 8000,
-    retryDelayMs: config.retryDelayMs || 1000,
-    maxRetries: config.maxRetries || 3,
-    // Resilience disabled - not needed for happy path
-  }
-  
-  return Layer.succeed(AIConfigEffect, fullConfig).pipe(
-    Layer.provideMerge(AIServiceLive)
-  )
-}
+// Factory function deprecated - use AIServiceLive directly with SystemStateService
 
 // Backward compatibility wrapper removed - use Effect-based API directly

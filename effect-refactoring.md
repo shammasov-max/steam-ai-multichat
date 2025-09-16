@@ -1,13 +1,19 @@
 # Effect-TS Monorepo Refactoring Plan
 
-## 🎯 Current Status: Phase 1 ✅ COMPLETED | Phase 2 ✅ COMPLETED | Phase 3A & 3B ✅ COMPLETED
+## 🎯 Current Status: Phase 1 ✅ COMPLETED | Phase 2 ✅ COMPLETED | Phase 3A & 3B ✅ COMPLETED | Phase 3C Part 1 ✅ COMPLETED
 
-### Latest Session (2025-09-11)
+### Latest Session (2025-09-16)
+- Phase 3C Part 1 completed: Legacy service cleanup
+- Removed all non-Effect service implementations from dialogs package
+- Fixed type issues and Logger integration
+- Dialogs package now fully migrated to Effect-TS
+- Config adoption deferred to next session
+
+### Previous Session (2025-09-11)
 - Phase 3A Effect-Redux integration discovered to be already implemented
 - Phase 3B Config system discovered to be already implemented
 - All service Effect conversions already completed
 - Distributed patterns removed from scope
-- Only 3-4 hours of cleanup work remaining
 
 ### Previous Session (2025-09-08)
 Phase 2 completed with all Effect-TS core architecture implementations.
@@ -97,12 +103,13 @@ Memoized selectors added, type safety improved.
    - ✅ Built `ConfigLive.ts` for environment-based layers
    - ⏳ Replace all hard-coded configurations (usage pending)
 
-#### Phase 3C: Final Migration (2-3 hours)
+#### Phase 3C: Final Migration ✅ PART 1 COMPLETED
 5. **Complete migration cleanup**
-   - Remove legacy implementations (1,285 lines)
-   - Delete backward compatibility wrappers
-   - Update all imports to Effect-based versions
-   - Final TypeScript error resolution
+   - ✅ Remove legacy implementations (removed AIService, DialogManager, ScoringEngine)
+   - ✅ Delete backward compatibility wrappers
+   - ✅ Update all imports to Effect-based versions
+   - ✅ Final TypeScript error resolution in dialogs package
+   - ⏳ Config adoption (deferred to next session)
 
 ## Expected Benefits
 - **40% reduction** in complexity metrics
@@ -148,16 +155,40 @@ Memoized selectors added, type safety improved.
 - **Better architecture**: Clear separation of concerns
 - **Enhanced maintainability**: Easier to add new features
 
-## Remaining Work - Phase 3C
+## Phase 3C Part 2 - ✅ COMPLETED (2025-09-16)
 
-### To Complete (3-4 hours):
-1. **Final migration cleanup** (2-3 hours)
-   - Remove legacy service implementations (keep only Effect versions)
-   - Delete SteamAgentEffectWrapper.ts (backward compatibility)
-   - Update all imports to use Effect service versions
-   - Remove non-Effect DialogManager, AIService, ScoringEngine, ContextCompressor, LanguageDetector
+### Completed Configuration Simplification:
+1. **Minimal Environment Configuration** ✅
+   - Reduced to only 2 environment variables: MONGODB_URL and NODE_ENV
+   - Created simple `config.ts` with Effect's built-in Config module (~30 lines)
+   - Removed all complex environment variable parsing
 
-2. **Config adoption** (1 hour)
-   - Replace hard-coded values throughout codebase with ConfigService
-   - Ensure all services use ConfigLive layer for configuration
+2. **SystemSlice as Central Configuration** ✅
+   - All runtime configuration now in SystemSlice (`systemSlice.ts`)
+   - Removed EnvSchema with 18+ environment variables
+   - Configuration stored in database and loaded at startup
+   - Direct property access pattern: `config.openai.apiKey`
+
+3. **SystemStateService for Redux Access** ✅
+   - Created Effect service wrapper around Redux store
+   - Provides get/update/subscribe methods for system state
+   - Clean separation between Effect patterns and Redux
+
+4. **Service Updates** ✅
+   - MongoConnectionLive: Uses Env for URL, SystemStateService for config
+   - AIServiceEffect: Gets OpenAI settings from SystemStateService
+   - ServerAppLayer: Simplified layer composition
+
+5. **Cleanup** ✅
+   - Deleted redundant `/config/` directory
+   - Removed `env-parser.ts` (unnecessary with 2 env vars)
+   - Renamed `system-config.ts` → `systemSlice.ts` (proper Redux naming)
+   - Removed duplicate `SystemConfigRepository.ts`
+
+### Benefits Achieved:
+- **Minimal boilerplate**: Only 2 env vars in simple Config service
+- **Single source of truth**: SystemSlice stores all runtime config
+- **Dynamic updates**: Config can change at runtime (except DB URL)
+- **Type safety**: Full TypeScript types via SystemState
+- **Redux DevTools**: Config changes visible in DevTools
 

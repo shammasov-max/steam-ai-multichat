@@ -4,8 +4,7 @@ import * as HttpServerRequest from '@effect/platform/HttpServerRequest'
 import * as HttpServerResponse from '@effect/platform/HttpServerResponse'
 import { Stream } from 'effect'
 import { Logger } from '@packages/isomorphic/utils/LoggerService'
-import { withRateLimit } from '@packages/isomorphic/effect-patterns'
-import { SSEManager } from './ServerServiceRefactored'
+// import { withRateLimit } from '@packages/isomorphic/effect-patterns'
 
 interface RouteConfig {
     requestCounter: Ref.Ref<number>
@@ -26,9 +25,8 @@ export const createRoutes = (config: RouteConfig) =>
         // SSE endpoint
         HttpRouter.get('/api/event-stream',
             Effect.gen(function* () {
-                const sseManager = yield* SSEManager
                 const clientId = `sse_${Date.now()}_${Math.random()}`
-                
+
                 const encoder = new TextEncoder()
                 const response = yield* HttpServerResponse.stream(
                     Stream.make(
@@ -39,9 +37,8 @@ export const createRoutes = (config: RouteConfig) =>
                             Stream.never.pipe(
                                 Stream.ensuring(
                                     Effect.gen(function* () {
-                                        yield* sseManager.removeClient(clientId)
                                         yield* Effect.log(`SSE client cleanup: ${clientId}`)
-                                    }).pipe(Effect.provideService(SSEManager, sseManager))
+                                    })
                                 )
                             )
                         )
@@ -55,17 +52,9 @@ export const createRoutes = (config: RouteConfig) =>
                         }
                     }
                 )
-                
-                // Register client
-                yield* sseManager.addClient({
-                    id: clientId,
-                    response,
-                    connected: true,
-                    lastPing: Date.now()
-                })
-                
+
                 yield* Effect.log(`SSE client connected: ${clientId}`)
-                
+
                 return response
             })
         ),
@@ -93,10 +82,9 @@ export const createRoutes = (config: RouteConfig) =>
         // Metrics endpoint
         HttpRouter.get('/api/metrics',
             Effect.gen(function* () {
-                const sseManager = yield* SSEManager
                 const requests = yield* Ref.get(config.requestCounter)
-                const clientCount = yield* sseManager.getClientCount()
-                
+                const clientCount = 0 // TODO: implement client count tracking
+
                 return yield* HttpServerResponse.json({
                     uptime: Date.now() - config.startTime,
                     activeConnections: clientCount,

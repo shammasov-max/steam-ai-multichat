@@ -19,10 +19,7 @@ export class LoggerError extends Data.TaggedError('LoggerError')<{
     readonly cause?: unknown
 }> {}
 
-// Service interface
 export interface LoggerService {
-    readonly serviceName: string
-
     readonly debug: <TMetadata extends LogMetadata = LogMetadata>(
         message: string,
         metadata?: TMetadata
@@ -50,7 +47,6 @@ export interface LoggerService {
     ) => Effect.Effect<() => Effect.Effect<void, LoggerError>, LoggerError>
 }
 
-// Context tag
 export class Logger extends Context.Tag('Logger')<Logger, LoggerService>() {}
 
 // Implementation

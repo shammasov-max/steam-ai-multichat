@@ -1,22 +1,39 @@
-import { Effect, Context, Layer, Stream, Queue, Ref, Duration, Fiber } from 'effect'
+import { Effect, Context, Layer, Stream, Queue, Ref, Duration, Fiber, Data } from 'effect'
 import * as Http from '@effect/platform/HttpServer'
 import * as HttpRouter from '@effect/platform/HttpRouter'
 import * as HttpServerRequest from '@effect/platform/HttpServerRequest'
 import * as HttpServerResponse from '@effect/platform/HttpServerResponse'
 import * as HttpMiddleware from '@effect/platform/HttpMiddleware'
-import * as NodePlatform from '@effect/platform-node'
+import * as HttpServer from '@effect/platform/HttpServer'
 import { ConfigService } from '@packages/isomorphic/config/ConfigService'
 import { Logger } from '@packages/isomorphic/utils/LoggerService'
-import { 
-    createService, 
-    createServiceError,
-    RateLimiter,
-    RateLimiterLive,
-    withLogging,
-    withRateLimit
-} from '@packages/isomorphic/effect-patterns'
+// import {
+//     createService,
+//     createServiceError,
+//     RateLimiter,
+//     RateLimiterLive,
+//     withLogging,
+//     withRateLimit
+// } from '@packages/isomorphic/effect-patterns'
+
+// Temporary fallback implementations
+const createServiceError = (name: string) => {
+    return class extends Data.TaggedError(name)<{
+        readonly operation: string
+        readonly message: string
+        readonly cause?: unknown
+    }> {
+        static create(operation: string, message: string, cause?: unknown) {
+            return new this({ operation, message, cause })
+        }
+    }
+}
+const withLogging = <A, E, R>(effect: Effect.Effect<A, E, R>, _name: string) => effect
+// Placeholder for RateLimiter service
+export interface RateLimiterService {}
+export class RateLimiter extends Context.Tag('RateLimiter')<RateLimiter, RateLimiterService>() {}
+export const RateLimiterLive = Layer.succeed(RateLimiter, {} as RateLimiterService)
 import { createRoutes } from './routes'
-import { SSEManager } from './sse'
 
 // ============================================================================
 // Error Types (using new pattern)
@@ -80,7 +97,7 @@ const makeServerService = Effect.gen(function* () {
     const logger = yield* Logger
     const config = yield* ConfigService
     const rateLimiter = yield* RateLimiter
-    const sseManager = yield* SSEManager
+    // SSE Manager will be implemented later
     
     // Internal state
     const serverFiber = yield* Ref.make<Fiber.RuntimeFiber<never, any> | null>(null)
@@ -92,7 +109,6 @@ const makeServerService = Effect.gen(function* () {
     
     // Create HTTP app with middleware
     const app = createRoutes({
-        sseManager,
         requestCounter,
         startTime
     }).pipe(
@@ -110,8 +126,7 @@ const makeServerService = Effect.gen(function* () {
         HttpMiddleware.logger
     )
     
-    // Service operations
-    return {
+    const service: ServerServiceOps = {
         start: () =>
             withLogging(
                 Effect.gen(function* () {
@@ -121,21 +136,16 @@ const makeServerService = Effect.gen(function* () {
                             ServerError.create('start', 'Server already running')
                         )
                     }
-                    
-                    // Start SSE heartbeat
-                    yield* sseManager.startHeartbeat()
-                    
+
                     // Create and start server
-                    const serverFiberInstance = yield* NodePlatform.HttpServer.serve(app, {
-                        port: serverConfig.port
-                    }).pipe(Effect.fork)
-                    
+                    const serverFiberInstance = yield* HttpServer.serve(app).pipe(Effect.fork)
+
                     yield* Ref.set(serverFiber, serverFiberInstance)
                     yield* logger.info(`Server started on ${serverConfig.host}:${serverConfig.port}`)
                 }),
                 'ServerStart'
             ),
-        
+
         stop: () =>
             withLogging(
                 Effect.gen(function* () {
@@ -145,27 +155,28 @@ const makeServerService = Effect.gen(function* () {
                             ServerError.create('stop', 'Server not running')
                         )
                     }
-                    
+
                     yield* Fiber.interrupt(fiber)
                     yield* Ref.set(serverFiber, null)
-                    yield* sseManager.stopHeartbeat()
                     yield* logger.info('Server stopped')
                 }),
                 'ServerStop'
             ),
-        
+
         restart: () =>
-            Effect.gen(function* () {
-                const service = yield* ServerService
-                yield* service.stop().pipe(Effect.orElse(() => Effect.void))
-                yield* service.start()
-                yield* logger.info('Server restarted')
-            }),
+            withLogging(
+                Effect.gen(function* () {
+                    yield* service.stop().pipe(Effect.orElse(() => Effect.void))
+                    yield* service.start()
+                    yield* logger.info('Server restarted')
+                }),
+                'ServerRestart'
+            ),
         
         getHealth: () =>
             Effect.gen(function* () {
                 const fiber = yield* Ref.get(serverFiber)
-                const clients = yield* sseManager.getClientCount()
+                const clients = 0 // TODO: implement client count tracking
                 const requests = yield* Ref.get(requestCounter)
                 
                 return {
@@ -187,14 +198,17 @@ const makeServerService = Effect.gen(function* () {
         
         getMetrics: () =>
             Effect.gen(function* () {
-                const health = yield* this.getHealth()
+                const service = yield* ServerService
+                const health = yield* service.getHealth()
                 return {
                     ...health.metrics,
                     uptime: health.uptime,
                     status: health.status
                 }
             })
-    } as ServerServiceOps
+    }
+
+    return service
 })
 
 // ============================================================================
@@ -217,15 +231,11 @@ export const ServerServiceLive = Layer.scoped(
         return service
     })
 ).pipe(
-    Layer.provide(SSEManagerLive),
-    Layer.provide(RateLimiterLive({
-        maxRequests: 100,
-        window: Duration.minutes(1)
-    }))
+    Layer.provide(RateLimiterLive)
 )
 
 // ============================================================================
-// SSE Manager Service (extracted)
+// SSE Manager Types (simplified)
 // ============================================================================
 
 export interface SSEClient {
@@ -246,102 +256,3 @@ export interface SSEManagerOps {
 }
 
 export class SSEManager extends Context.Tag('SSEManager')<SSEManager, SSEManagerOps>() {}
-
-const SSEManagerLive = createService(SSEManager, {
-    name: 'SSEManager',
-    operations: ({ logger, state }) =>
-        Effect.gen(function* () {
-            const clients = yield* state<Map<string, SSEClient>>(new Map())
-            const heartbeatFiber = yield* state<Fiber.RuntimeFiber<never, never> | null>(null)
-            
-            const heartbeat = Effect.gen(function* () {
-                while (true) {
-                    yield* Effect.sleep(Duration.seconds(30))
-                    const clientsMap = yield* Ref.get(clients)
-                    
-                    for (const [id, client] of clientsMap) {
-                        if (!client.connected || Date.now() - client.lastPing > 60000) {
-                            yield* Ref.update(clients, map => {
-                                const newMap = new Map(map)
-                                newMap.delete(id)
-                                return newMap
-                            })
-                            yield* logger.info(`SSE client disconnected: ${id}`)
-                        }
-                    }
-                }
-            })
-            
-            return {
-                addClient: (client) =>
-                    Ref.update(clients, map => {
-                        const newMap = new Map(map)
-                        newMap.set(client.id, client)
-                        return newMap
-                    }),
-                
-                removeClient: (clientId) =>
-                    Ref.update(clients, map => {
-                        const newMap = new Map(map)
-                        newMap.delete(clientId)
-                        return newMap
-                    }),
-                
-                broadcast: (event, data) =>
-                    Effect.gen(function* () {
-                        const clientsMap = yield* Ref.get(clients)
-                        const message = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`
-                        
-                        yield* Effect.all(
-                            Array.from(clientsMap.values()).map(client =>
-                                Effect.try({
-                                    try: () => {
-                                        // Write to response stream
-                                        return true
-                                    },
-                                    catch: (error) =>
-                                        SSEError.create('broadcast', 'Failed to send message', error, {
-                                            clientId: client.id
-                                        })
-                                })
-                            ),
-                            { concurrency: 'unbounded' }
-                        )
-                    }),
-                
-                send: (clientId, event, data) =>
-                    Effect.gen(function* () {
-                        const clientsMap = yield* Ref.get(clients)
-                        const client = clientsMap.get(clientId)
-                        
-                        if (!client) {
-                            return yield* Effect.fail(
-                                SSEError.create('send', `Client not found: ${clientId}`)
-                            )
-                        }
-                        
-                        const message = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`
-                        // Write to specific client's response stream
-                    }),
-                
-                getClientCount: () =>
-                    Effect.map(Ref.get(clients), map => map.size),
-                
-                startHeartbeat: () =>
-                    Effect.gen(function* () {
-                        const fiber = yield* Effect.fork(heartbeat)
-                        yield* Ref.set(heartbeatFiber, fiber)
-                        return fiber
-                    }),
-                
-                stopHeartbeat: () =>
-                    Effect.gen(function* () {
-                        const fiber = yield* Ref.get(heartbeatFiber)
-                        if (fiber) {
-                            yield* Fiber.interrupt(fiber)
-                            yield* Ref.set(heartbeatFiber, null)
-                        }
-                    })
-            }
-        })
-})

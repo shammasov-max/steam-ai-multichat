@@ -15,7 +15,7 @@ export const AccountId = S.String.pipe(
         description: 'Unique identifier for an account entity',
     })
 )
-export type AccountId = S.Schema.Type<typeof AccountId>
+export type AccountIdType = S.Schema.Type<typeof AccountId>
 
 /**
  * Dialog ID - Unique identifier for a dialog entity
@@ -30,7 +30,7 @@ export const DialogId = S.String.pipe(
         description: 'Unique identifier for a dialog entity',
     })
 )
-export type DialogId = S.Schema.Type<typeof DialogId>
+export type DialogIdType = S.Schema.Type<typeof DialogId>
 
 /**
  * System ID - Singleton identifier for system entity
@@ -44,46 +44,47 @@ export const SystemId = S.Literal('system').pipe(
         description: 'Singleton identifier for system entity',
     })
 )
-export type SystemId = S.Schema.Type<typeof SystemId>
+export type SystemIdType = S.Schema.Type<typeof SystemId>
 
 /**
  * Steam ID 64 - 64-bit Steam ID
  * Re-exported from events/core.ts for convenience
  */
-import { SteamID64 as SteamID64Schema } from '../events/core'
-export { SteamID64Schema as SteamID64 }
+import { SteamID64 as SteamID64Schema, type SteamID64Type } from '../events/core'
+export { SteamID64Schema as SteamID64, type SteamID64Type }
 
 // ============= ID Creation Helpers =============
 
 /**
  * Create a properly formatted Account ID
  */
-export const createAccountId = (steamId64: string): AccountId => `account_${steamId64}` as AccountId
+export const createAccountId = (steamId64: string): AccountIdType =>
+    `account_${steamId64}` as AccountIdType
 
 /**
  * Create a properly formatted Dialog ID
  */
-export const createDialogId = (accountId: string, playerSteamId64: string): DialogId =>
-    `dialog_${accountId}_${playerSteamId64}` as DialogId
+export const createDialogId = (accountId: string, playerSteamId64: string): DialogIdType =>
+    `dialog_${accountId}_${playerSteamId64}` as DialogIdType
 
 /**
  * Get the singleton System ID
  */
-export const getSystemId = (): SystemId => 'system' as SystemId
+export const getSystemId = (): SystemIdType => 'system' as SystemIdType
 
 // ============= ID Validation Helpers =============
 
 /**
  * Check if a string is a valid Account ID
  */
-export const isAccountId = (value: string): value is AccountId => /^account_[\w-]+$/.test(value)
+export const isAccountId = (value: string): value is AccountIdType => /^account_[\w-]+$/.test(value)
 
 /**
  * Check if a string is a valid Dialog ID
  */
-export const isDialogId = (value: string): value is DialogId => /^dialog_[\w-]+$/.test(value)
+export const isDialogId = (value: string): value is DialogIdType => /^dialog_[\w-]+$/.test(value)
 
 /**
  * Check if a string is a valid System ID
  */
-export const isSystemId = (value: string): value is SystemId => value === 'system'
+export const isSystemId = (value: string): value is SystemIdType => value === 'system'

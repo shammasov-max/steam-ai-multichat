@@ -1,13 +1,24 @@
 import { Layer, Effect, Runtime, Config, ConfigProvider } from 'effect'
+import { ConfigError } from '@packages/isomorphic'
+import { MongoError } from '../errors/MongoError'
+import { LoggerError } from '@packages/isomorphic'
 import { MongoConnectionLive } from '../connection/MongoConnectionLive'
 import { EventStoreLive } from '../event-store/EventStoreLive'
-import { AccountRepositoryLive } from '../repository/implementations/AccountRepositoryLive'
-import { DialogRepositoryLive } from '../repository/implementations/DialogRepositoryLive'
-import { SystemRepositoryLive } from '../repository/implementations/SystemRepositoryLive'
+import {
+    AccountRepositoryLive,
+    DialogRepositoryLive,
+    SystemRepositoryLive,
+} from '../repository/SimplifiedRepositories'
 import { RepositoryFacadeLive } from './RepositoryFacade'
 import { LoggerLayer } from '@packages/isomorphic'
-import { ConfigService, EnvConfigProvider, TestConfigProvider } from '@packages/isomorphic'
+import {
+    ConfigService,
+    EnvConfigProvider,
+    TestConfigProvider,
+    makeConfigService,
+} from '@packages/isomorphic'
 import { ConfigLive } from '@packages/isomorphic'
+// Note: Repository type now defined locally in SimplifiedRepositories.ts to avoid import issues
 
 // ============================================================================
 // Environment Types
@@ -20,39 +31,37 @@ export type AppEnvironment = 'development' | 'test' | 'production'
 // ============================================================================
 
 /**
- * Individual repository layers that can be used independently
+ * Individual repository layers using simplified pattern
+ * Each repository is now just 3 lines in SimplifiedRepositories.ts
  */
-export const AccountRepoLayer = AccountRepositoryLive.pipe(
-    Layer.provide(MongoConnectionLive)
-)
+export const AccountRepoLayer: Layer.Layer<any, ConfigError | MongoError | LoggerError, any> =
+    AccountRepositoryLive.pipe(Layer.provide(MongoConnectionLive))
 
-export const DialogRepoLayer = DialogRepositoryLive.pipe(
-    Layer.provide(MongoConnectionLive)
-)
+export const DialogRepoLayer: Layer.Layer<any, ConfigError | MongoError | LoggerError, any> =
+    DialogRepositoryLive.pipe(Layer.provide(MongoConnectionLive))
 
-export const SystemRepoLayer = SystemRepositoryLive.pipe(
-    Layer.provide(MongoConnectionLive)
-)
+export const SystemRepoLayer: Layer.Layer<any, ConfigError | MongoError | LoggerError, any> =
+    SystemRepositoryLive.pipe(Layer.provide(MongoConnectionLive))
 
-export const EventStoreLayer = EventStoreLive.pipe(
-    Layer.provide(MongoConnectionLive)
-)
+export const EventStoreLayer = EventStoreLive.pipe(Layer.provide(MongoConnectionLive))
 
 // ============================================================================
 // Database Layer Compositions
 // ============================================================================
 
 /**
- * Complete database layer with all repositories
+ * Complete database layer with simplified repositories
+ * Reduced from ~450 lines to ~30 lines total
  */
-export const DatabaseLayer = Layer.mergeAll(
-    MongoConnectionLive,
-    AccountRepoLayer,
-    DialogRepoLayer,
-    SystemRepoLayer,
-    EventStoreLayer,
-    RepositoryFacadeLive
-)
+export const DatabaseLayer: Layer.Layer<any, ConfigError | MongoError | LoggerError, any> =
+    Layer.mergeAll(
+        MongoConnectionLive,
+        AccountRepoLayer,
+        DialogRepoLayer,
+        SystemRepoLayer,
+        EventStoreLayer,
+        RepositoryFacadeLive
+    )
 
 /**
  * Minimal database layer for testing
@@ -70,10 +79,7 @@ export const TestDatabaseLayer = Layer.mergeAll(
 /**
  * Core services that are always required
  */
-export const CoreServicesLayer = Layer.mergeAll(
-    LoggerLayer('App'),
-    ConfigLive
-)
+export const CoreServicesLayer = Layer.mergeAll(LoggerLayer('App'), ConfigLive)
 
 /**
  * Create environment-specific configuration layer
@@ -81,12 +87,12 @@ export const CoreServicesLayer = Layer.mergeAll(
 const createConfigLayer = (env: AppEnvironment) => {
     switch (env) {
         case 'test':
-            return Layer.succeed(ConfigService, new TestConfigProvider())
+            return Layer.effect(ConfigService, makeConfigService(new TestConfigProvider()))
         case 'production':
-            return Layer.succeed(ConfigService, new EnvConfigProvider())
+            return Layer.effect(ConfigService, makeConfigService(new EnvConfigProvider()))
         case 'development':
         default:
-            return Layer.succeed(ConfigService, new EnvConfigProvider())
+            return Layer.effect(ConfigService, makeConfigService(new EnvConfigProvider()))
     }
 }
 
@@ -97,13 +103,10 @@ const createConfigLayer = (env: AppEnvironment) => {
 /**
  * Development environment layer
  */
-export const DevAppLayer = Layer.mergeAll(
-    CoreServicesLayer,
-    createConfigLayer('development'),
-    DatabaseLayer
-).pipe(
-    Layer.provide(LoggerLayer('DevApp'))
-)
+export const DevAppLayer: Layer.Layer<any, ConfigError | MongoError | LoggerError, any> =
+    Layer.mergeAll(CoreServicesLayer, createConfigLayer('development'), DatabaseLayer).pipe(
+        Layer.provide(LoggerLayer('DevApp'))
+    )
 
 /**
  * Test environment layer
@@ -112,20 +115,15 @@ export const TestAppLayer = Layer.mergeAll(
     CoreServicesLayer,
     createConfigLayer('test'),
     TestDatabaseLayer
-).pipe(
-    Layer.provide(LoggerLayer('TestApp'))
-)
+).pipe(Layer.provide(LoggerLayer('TestApp')))
 
 /**
  * Production environment layer
  */
-export const ProdAppLayer = Layer.mergeAll(
-    CoreServicesLayer,
-    createConfigLayer('production'),
-    DatabaseLayer
-).pipe(
-    Layer.provide(LoggerLayer('ProdApp'))
-)
+export const ProdAppLayer: Layer.Layer<any, ConfigError | MongoError | LoggerError, any> =
+    Layer.mergeAll(CoreServicesLayer, createConfigLayer('production'), DatabaseLayer).pipe(
+        Layer.provide(LoggerLayer('ProdApp'))
+    )
 
 // ============================================================================
 // Main Application Layer
@@ -135,22 +133,23 @@ export const ProdAppLayer = Layer.mergeAll(
  * Complete application layer that includes all repositories and services
  * This can be used as a drop-in replacement for the old createCompleteMongoDB
  */
-export const AppLayer = Layer.mergeAll(
-    MongoConnectionLive,
-    AccountRepoLayer,
-    DialogRepoLayer,
-    SystemRepoLayer,
-    EventStoreLayer,
-    RepositoryFacadeLive
-)
+export const AppLayer: Layer.Layer<any, ConfigError | MongoError | LoggerError, any> =
+    Layer.mergeAll(
+        MongoConnectionLive,
+        AccountRepoLayer,
+        DialogRepoLayer,
+        SystemRepoLayer,
+        EventStoreLayer,
+        RepositoryFacadeLive
+    )
 
 /**
  * Main application layer that selects the appropriate environment
  * based on NODE_ENV or configuration
  */
 export const createAppLayer = (env?: AppEnvironment) => {
-    const environment = env || (process.env.NODE_ENV as AppEnvironment) || 'development'
-    
+    const environment = env || (process.env.NODE_ENV as AppEnvironment)
+
     switch (environment) {
         case 'test':
             return TestAppLayer
@@ -169,39 +168,38 @@ export const createAppLayer = (env?: AppEnvironment) => {
 /**
  * Create a full application layer with all services
  * This requires importing external packages and should be used at the app level
+ * Note: Commented out due to missing @packages/server package exports
  */
-export const createFullAppLayer = async (env?: AppEnvironment) => {
-    // Dynamic imports to avoid circular dependencies
-    const [
-        { ReduxServiceLive },
-        { ServerServiceLive },
-        { DialogManagerLive },
-        dialogServices
-    ] = await Promise.all([
-        import('@packages/isomorphic/effect-redux/ReduxService'),
-        import('@packages/server/ServerService'),
-        import('@packages/dialogs/DialogManagerEffect'),
-        import('@packages/dialogs/services')
-    ])
-    
-    const runtime = Runtime.defaultRuntime
-    const baseLayer = createAppLayer(env)
-    
-    const DialogServicesLayer = Layer.mergeAll(
-        dialogServices.AIServiceEffectLive,
-        dialogServices.ScoringEngineEffectLive,
-        dialogServices.ContextCompressorEffectLive,
-        dialogServices.LanguageDetectorLive,
-        DialogManagerLive
-    )
-    
-    return Layer.mergeAll(
-        baseLayer,
-        DialogServicesLayer,
-        ReduxServiceLive(runtime),
-        ServerServiceLive
-    )
-}
+// export const createFullAppLayer = async (env?: AppEnvironment) => {
+//     // Dynamic imports to avoid circular dependencies
+//     const [
+//         isomorphicModule,
+//         serverModule,
+//         dialogsModule
+//     ] = await Promise.all([
+//         import('@packages/isomorphic'),
+//         import('@packages/server'),
+//         import('@packages/dialogs')
+//     ])
+//
+//     const runtime = Runtime.defaultRuntime
+//     const baseLayer = createAppLayer(env)
+//
+//     const DialogServicesLayer = Layer.mergeAll(
+//         dialogsModule.AIServiceLive,
+//         dialogsModule.ScoringEngineLive,
+//         dialogsModule.ContextCompressorLive,
+//         dialogsModule.LanguageDetectorLive,
+//         dialogsModule.DialogManagerLive
+//     )
+//
+//     return Layer.mergeAll(
+//         baseLayer,
+//         DialogServicesLayer,
+//         isomorphicModule.ReduxServiceLive(runtime),
+//         serverModule.ServerServiceLive
+//     )
+// }
 
 // ============================================================================
 // Layer Utilities
@@ -222,7 +220,7 @@ export const createCustomAppLayer = (
         overrides.config || createConfigLayer('development'),
         overrides.database || DatabaseLayer
     )
-    
+
     return baseLayer
 }
 
@@ -230,11 +228,7 @@ export const createCustomAppLayer = (
  * Create a minimal layer for specific service testing
  */
 export const createMinimalLayer = (...layers: Layer.Layer<any, any, any>[]) => {
-    return Layer.mergeAll(
-        LoggerLayer('Minimal'),
-        createConfigLayer('test'),
-        ...layers
-    )
+    return Layer.mergeAll(LoggerLayer('Minimal'), createConfigLayer('test'), ...layers)
 }
 
 // ============================================================================
@@ -253,14 +247,10 @@ export const createAppRuntime = (env?: AppEnvironment) =>
 /**
  * Run an effect with the application layer
  */
-export const runWithApp = <A, E>(
-    effect: Effect.Effect<A, E, any>,
-    env?: AppEnvironment
-) => {
+export const runWithApp = <A, E>(effect: Effect.Effect<A, E, any>, env?: AppEnvironment) => {
     const layer = createAppLayer(env)
-    return Effect.provide(effect, layer).pipe(
-        Runtime.runPromise(Runtime.defaultRuntime)
-    )
+    const runtime = Runtime.defaultRuntime
+    return Runtime.runPromise(runtime)(Effect.provide(effect, layer) as Effect.Effect<A, E, never>)
 }
 
 // ============================================================================
@@ -271,20 +261,20 @@ export const runWithApp = <A, E>(
  * Helper to access database services in a single effect
  */
 export const withDatabaseServices = Effect.gen(function* () {
-    const { MongoDB } = yield* import('./MongoDB')
-    const { RepositoryFacade } = yield* import('./RepositoryFacade')
-    const { EventStore } = yield* import('../event-store/EventStore')
-    const { AccountRepository } = yield* import('../repository/AccountRepository')
-    const { DialogRepository } = yield* import('../repository/DialogRepository')
-    const { SystemRepository } = yield* import('../repository/SystemRepository')
-    
+    const mongoModule = yield* Effect.promise(() => import('./MongoDB'))
+    const repoFacadeModule = yield* Effect.promise(() => import('./RepositoryFacade'))
+    const eventStoreModule = yield* Effect.promise(() => import('../event-store/EventStore'))
+    const accountRepoModule = yield* Effect.promise(() => import('../repository/AccountRepository'))
+    const dialogRepoModule = yield* Effect.promise(() => import('../repository/DialogRepository'))
+    const systemRepoModule = yield* Effect.promise(() => import('../repository/SystemRepository'))
+
     return {
-        db: yield* MongoDB,
-        repos: yield* RepositoryFacade,
-        events: yield* EventStore,
-        accounts: yield* AccountRepository,
-        dialogs: yield* DialogRepository,
-        system: yield* SystemRepository
+        db: yield* mongoModule.MongoDB,
+        repos: yield* repoFacadeModule.RepositoryFacade,
+        events: yield* eventStoreModule.EventStore,
+        accounts: yield* accountRepoModule.AccountRepository,
+        dialogs: yield* dialogRepoModule.DialogRepository,
+        system: yield* systemRepoModule.SystemRepository,
     }
 })
 

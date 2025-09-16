@@ -174,6 +174,45 @@ export interface EntitySelectors<TEntity> {
 }
 
 /**
+ * Unified EntitySlice type that combines Redux slice with entity metadata
+ */
+export interface EntitySlice<
+    TName extends string,
+    TEntity,
+    TReducers extends EntityReducersMap<TName, TEntity>,
+> {
+    // Redux slice properties
+    name: string
+    reducer: Slice<
+        EntityState<TEntity>,
+        SliceReducersFromEntityReducers<TName, TEntity, TReducers>,
+        string
+    >['reducer']
+    actions: EntityActionCreators<TName, TReducers>
+
+    // Selectors
+    selectors: EntitySelectors<TEntity>
+
+    // Entity metadata
+    entityName: TName
+    idField: `${TName}Id`
+    schema: S.Schema<TEntity, unknown, never> | undefined
+
+    // Convenience methods
+    mock: (overrides?: Partial<TEntity>) => EntityWithId<TName, TEntity>
+
+    // Events (same as actions, just aliased for consistency)
+    events: EntityActionCreators<TName, TReducers>
+
+    // Additional slice properties for compatibility
+    slice: Slice<
+        EntityState<TEntity>,
+        SliceReducersFromEntityReducers<TName, TEntity, TReducers>,
+        string
+    >
+}
+
+/**
  * Creates a Redux Toolkit slice for managing normalized entity state
  *
  * @example
@@ -200,19 +239,13 @@ export interface EntitySelectors<TEntity> {
  * dispatch(userSlice.actions.updateName({ userId: '123', name: 'John' }));
  * ```
  */
-export function createEntitySlice<
+export const createEntitySlice = function createEntitySlice<
     TName extends string,
     TEntity,
     TReducers extends EntityReducersMap<TName, TEntity>,
 >(
     config: CreateEntitySliceConfig<TName, TEntity, TReducers>
-): Slice<EntityState<TEntity>, SliceReducersFromEntityReducers<TName, TEntity, TReducers>, string> &
-    EntitySelectors<TEntity> & {
-        actions: EntityActionCreators<TName, TReducers>
-        schema: S.Schema<TEntity, unknown, never> | undefined
-        name: string
-        pluralizeFn?: (singular: string) => string
-    } {
+): EntitySlice<TName, TEntity, TReducers> {
     const {
         name: entityName,
         initialEntities = [],
@@ -226,7 +259,9 @@ export function createEntitySlice<
     const idKey = `${entityName}Id` as keyof EntityWithId<TName, TEntity>
 
     // Create single logger instance for this slice
-    const logger = createLoggerService(`EntitySlice:${entityName}`)
+    const logger = (function createLogger() {
+        return createLoggerService(`EntitySlice:${entityName}`)
+    })()
 
     // Build initial state
     const initialState: EntityState<TEntity> = {
@@ -305,25 +340,54 @@ export function createEntitySlice<
     // Create memoized selectors
     const selectors = createEntitySelectors<TEntity>()
 
-    // Add selector functions and expose schema
-    const enhancedSlice = Object.assign(slice, {
-        ...selectors,
-        schema: entitySchema,
-        name: sliceName,
-        pluralizeFn,
-    })
+    // Create mock factory function
+    const createMock = (overrides?: Partial<TEntity>): EntityWithId<TName, TEntity> => {
+        const timestamp = Date.now()
+        const randomSuffix = Math.random().toString(36).substring(7)
+        const baseEntity = {
+            [idKey]: `${entityName}_${timestamp}_${randomSuffix}`,
+            ...overrides,
+        } as EntityWithId<TName, TEntity>
 
-    return enhancedSlice as Slice<
-        EntityState<TEntity>,
-        SliceReducersFromEntityReducers<TName, TEntity, TReducers>,
-        string
-    > &
-        EntitySelectors<TEntity> & {
-            actions: EntityActionCreators<TName, TReducers>
-            schema: S.Schema<TEntity, unknown, never> | undefined
-            name: string
-            pluralizeFn?: (singular: string) => string
+        // If schema provided, try to decode with defaults
+        if (entitySchema) {
+            try {
+                const decoded = S.decodeUnknownSync(
+                    entitySchema as S.Schema<TEntity, unknown, never>
+                )(baseEntity)
+                return { ...decoded, ...overrides } as EntityWithId<TName, TEntity>
+            } catch {
+                // Fallback if decode fails
+                return baseEntity
+            }
         }
+        return baseEntity
+    }
+
+    // Return unified EntitySlice
+    return {
+        // Redux slice properties
+        name: sliceName,
+        reducer: slice.reducer,
+        actions: slice.actions as any as EntityActionCreators<TName, TReducers>,
+
+        // Selectors
+        selectors,
+
+        // Entity metadata
+        entityName,
+        idField: idKey as `${TName}Id`,
+        schema: entitySchema,
+
+        // Convenience methods
+        mock: createMock,
+
+        // Events (aliased to actions)
+        events: slice.actions as any as EntityActionCreators<TName, TReducers>,
+
+        // Additional slice properties for compatibility
+        slice,
+    }
 }
 
 // ============= Additional Utilities =============
