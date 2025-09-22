@@ -2,7 +2,7 @@ import { defineEntity } from './define-entity'
 import { getSystemId } from './types/branded'
 import { AccountSchema } from './slices/accounts'
 import { DialogSchema } from './slices/dialogs'
-import { SystemSchema } from './slices/system'
+import { SystemStateSchema } from './slices/systemSlice'
 
 // ============================================================================
 // Entity Definitions - Single source of truth
@@ -38,7 +38,7 @@ export const Dialog = defineEntity(
  */
 export const System = defineEntity(
     'system',
-    SystemSchema,
+    SystemStateSchema,
     {}, // No custom entity reducers
     undefined, // No extra reducers
     [
@@ -101,7 +101,7 @@ export const AllRepositoriesLayer = Layer.mergeAll(
 // Type exports use the actual schema types
 import type { Account as AccountType } from './slices/accounts'
 import type { Dialog as DialogType } from './slices/dialogs'
-import type { System as SystemType } from './slices/system'
+import type { SystemState as SystemType } from './slices/systemSlice'
 
 export type AccountEntity = AccountType
 export type DialogEntity = DialogType

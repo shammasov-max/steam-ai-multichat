@@ -9,4 +9,4 @@ export const EventMeta = S.Struct({
     correlationId: S.optional(S.String),
     causationId: S.optional(S.String),
 })
-export type EventMetaType = S.Schema.Type<typeof EventMeta>
+type EventMetaType = S.Schema.Type<typeof EventMeta>

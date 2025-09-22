@@ -10,19 +10,22 @@ export const AccountConnectedPayloadSchema = S.Struct({
     accountId: AccountId,
     ts: S.optional(S.Number),
 })
-export type AccountConnectedPayload = S.Schema.Type<typeof AccountConnectedPayloadSchema>
+// Internal type - use inference
+type AccountConnectedPayload = S.Schema.Type<typeof AccountConnectedPayloadSchema>
 
 export const AccountDisconnectedPayloadSchema = S.Struct({
     accountId: AccountId,
     ts: S.optional(S.Number),
 })
-export type AccountDisconnectedPayload = S.Schema.Type<typeof AccountDisconnectedPayloadSchema>
+// Internal type - use inference
+type AccountDisconnectedPayload = S.Schema.Type<typeof AccountDisconnectedPayloadSchema>
 
 export const AccountAuthenticationFailedPayloadSchema = S.Struct({
     accountId: AccountId,
     reason: S.String,
 })
-export type AccountAuthenticationFailedPayload = S.Schema.Type<
+// Internal type - use inference
+type AccountAuthenticationFailedPayload = S.Schema.Type<
     typeof AccountAuthenticationFailedPayloadSchema
 >
 

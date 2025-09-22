@@ -4,7 +4,6 @@ import { Layer, pipe, Effect } from 'effect'
 import {
     AIServiceEffect as AIService,
     AIServiceLive,
-    makeAIServiceLayer as AIServiceWithConfig,
     AIServiceConfig as AIConfig,
     AIConfigEffect as AIConfigTag,
     AIServiceError as AIError,
@@ -41,7 +40,6 @@ export {
     // AI Service
     AIService,
     AIServiceLive,
-    AIServiceWithConfig,
     AIConfig,
     AIConfigTag,
     AIError,
@@ -99,7 +97,8 @@ export const DialogServicesLive = pipe(
 export const makeDialogServicesLayer = (aiConfig: AIConfig) =>
     pipe(
         DialogServicesLive,
-        Layer.provideMerge(AIServiceWithConfig(aiConfig)),
+        Layer.provideMerge(Layer.succeed(AIConfigTag, aiConfig)),
+        Layer.provideMerge(AIServiceLive),
         Layer.provideMerge(DialogManagerLive)
     )
 

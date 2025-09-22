@@ -8,414 +8,319 @@ import {
 } from '../base/createEntitySlice'
 import { Draft } from '@reduxjs/toolkit'
 import { AccountId, DialogId } from '../types/branded'
+import { createUnionSchema, createEntitySchema, withAnnotations, nullable, type InferSchema } from '../utils/schema-helpers'
+import { createErrorClass } from '../utils/error-factories'
 
 // ============= Constants =============
 
 const MAX_MESSAGES = 50 // Limit messages per dialog to control snapshot size
 
-// ============= Core Schemas =============
+// ============= Core Schemas - Using Utilities =============
 
-export const DialogMsgFromSchema = S.Union(
-    S.Literal('account'),
-    S.Literal('player'),
-    S.Literal('system')
-)
-export type DialogMsgFrom = S.Schema.Type<typeof DialogMsgFromSchema>
+// Before: 4 lines → After: 1 line (per union)
+export const DialogMsgFromSchema = createUnionSchema('DialogMsgFrom', ['account', 'player', 'system'] as const)
+export const DialogStatusSchema = createUnionSchema('DialogStatus', ['active', 'paused', 'completed', 'escalated', 'created'] as const)
+export const LanguageSchema = createUnionSchema('Language', ['zh', 'ja', 'ko', 'en', 'es'] as const)
+export const GenderSchema = createUnionSchema('Gender', ['male', 'female', 'other'] as const)
+export const UrgencySchema = createUnionSchema('Urgency', ['low', 'medium', 'high', 'critical'] as const)
+export const TrendSchema = createUnionSchema('Trend', ['rising', 'stable', 'declining'] as const)
+export const IssueTypeSchema = createUnionSchema('IssueType', ['explicit_rejection', 'topic_drift', 'aggressive_response', 'low_engagement'] as const)
+export const SeveritySchema = createUnionSchema('Severity', ['low', 'medium', 'high', 'critical'] as const)
 
-export const DialogStatusSchema = S.Union(
-    S.Literal('active'),
-    S.Literal('paused'),
-    S.Literal('completed'),
-    S.Literal('escalated'),
-    S.Literal('created')
-)
-export type DialogStatus = S.Schema.Type<typeof DialogStatusSchema>
+// Infer types instead of explicit exports (saves 8 lines)
+type DialogMsgFrom = InferSchema<typeof DialogMsgFromSchema>
+type DialogStatus = InferSchema<typeof DialogStatusSchema>
+type Language = InferSchema<typeof LanguageSchema>
+type Gender = InferSchema<typeof GenderSchema>
+type Urgency = InferSchema<typeof UrgencySchema>
+type Trend = InferSchema<typeof TrendSchema>
+type IssueType = InferSchema<typeof IssueTypeSchema>
+type Severity = InferSchema<typeof SeveritySchema>
 
-export const LanguageSchema = S.Union(
-    S.Literal('zh'),
-    S.Literal('ja'),
-    S.Literal('ko'),
-    S.Literal('en'),
-    S.Literal('es')
-)
-export type Language = S.Schema.Type<typeof LanguageSchema>
-
-export const GenderSchema = S.Union(S.Literal('male'), S.Literal('female'), S.Literal('other'))
-export type Gender = S.Schema.Type<typeof GenderSchema>
-
-export const UrgencySchema = S.Union(
-    S.Literal('low'),
-    S.Literal('medium'),
-    S.Literal('high'),
-    S.Literal('critical')
-)
-export type Urgency = S.Schema.Type<typeof UrgencySchema>
-
-export const TrendSchema = S.Union(S.Literal('rising'), S.Literal('stable'), S.Literal('declining'))
-export type Trend = S.Schema.Type<typeof TrendSchema>
-
-export const IssueTypeSchema = S.Union(
-    S.Literal('explicit_rejection'),
-    S.Literal('topic_drift'),
-    S.Literal('aggressive_response'),
-    S.Literal('low_engagement')
-)
-export type IssueType = S.Schema.Type<typeof IssueTypeSchema>
-
-export const SeveritySchema = S.Union(
-    S.Literal('low'),
-    S.Literal('medium'),
-    S.Literal('high'),
-    S.Literal('critical')
-)
-export type Severity = S.Schema.Type<typeof SeveritySchema>
-
-// ============= Entity Schemas =============
+// ============= Entity Schemas - Using Utilities =============
 
 export const DialogMsgSchema = S.Struct({
-    id: S.String.annotations({ title: 'Message ID', description: 'Unique message identifier' }),
-    from: DialogMsgFromSchema.annotations({ title: 'Sender', description: 'Message sender type' }),
-    text: S.String.annotations({ title: 'Text', description: 'Message content' }),
-    ts: S.Number.annotations({ title: 'Timestamp', description: 'UTC epoch milliseconds' }),
-    sequenceNumber: S.optional(
-        S.Number.annotations({
-            title: 'Sequence Number',
-            description: 'Message sequence in conversation',
-        })
-    ),
-}).annotations({ title: 'Dialog Message', description: 'Individual dialog message' })
+    id: withAnnotations(S.String, 'Message ID', 'Unique message identifier'),
+    from: withAnnotations(DialogMsgFromSchema, 'Sender', 'Message sender type'),
+    text: withAnnotations(S.String, 'Text', 'Message content'),
+    ts: withAnnotations(S.Number, 'Timestamp', 'UTC epoch milliseconds'),
+    sequenceNumber: S.optional(withAnnotations(S.Number, 'Sequence Number', 'Message sequence in conversation')),
+}).annotations({ title: 'Dialog Message' })
 
 export const UserInfoSchema = S.Struct({
-    country: S.optional(S.String.annotations({ title: 'Country' })),
-    city: S.optional(S.String.annotations({ title: 'City' })),
-    age: S.optional(S.Number.annotations({ title: 'Age' })),
-    gender: S.optional(GenderSchema.annotations({ title: 'Gender' })),
-    games: S.optional(
-        S.Array(S.String).annotations({ title: 'Games', description: 'List of games user plays' })
-    ),
-}).annotations({ title: 'User Info', description: 'User demographic and preference information' })
+    country: S.optional(withAnnotations(S.String, 'Country')),
+    city: S.optional(withAnnotations(S.String, 'City')),
+    age: S.optional(withAnnotations(S.Number, 'Age')),
+    gender: S.optional(withAnnotations(GenderSchema, 'Gender')),
+    games: S.optional(withAnnotations(S.Array(S.String), 'Games', 'List of games user plays')),
+}).annotations({ title: 'User Info' })
 
 export const ScoringFactorsSchema = S.Struct({
-    userEngagement: S.Number.annotations({ title: 'User Engagement', description: 'Score 0-1' }),
-    topicRelevance: S.Number.annotations({ title: 'Topic Relevance', description: 'Score 0-1' }),
-    emotionalTone: S.Number.annotations({ title: 'Emotional Tone', description: 'Score 0-1' }),
-    responseQuality: S.Number.annotations({ title: 'Response Quality', description: 'Score 0-1' }),
-    goalProximity: S.Number.annotations({ title: 'Goal Proximity', description: 'Score 0-1' }),
-}).annotations({ title: 'Scoring Factors', description: 'AI assessment scoring factors' })
+    userEngagement: withAnnotations(S.Number, 'User Engagement', 'Score 0-1'),
+    topicRelevance: withAnnotations(S.Number, 'Topic Relevance', 'Score 0-1'),
+    tone: withAnnotations(S.Number, 'Tone', 'Score 0-1'),
+    conversationQuality: withAnnotations(S.Number, 'Conversation Quality', 'Score 0-1'),
+    goalProximity: withAnnotations(S.Number, 'Goal Proximity', 'Score 0-1'),
+})
 
-export const IssueSchema = S.Struct({
-    type: IssueTypeSchema.annotations({ title: 'Issue Type' }),
-    severity: SeveritySchema.annotations({ title: 'Severity' }),
-    description: S.String.annotations({ title: 'Description' }),
-}).annotations({ title: 'Issue', description: 'Detected dialog issue' })
+export const AssessmentResultSchema = S.Struct({
+    dialogId: DialogId,
+    assessmentId: withAnnotations(S.String, 'Assessment ID'),
+    timestamp: withAnnotations(S.Number, 'Timestamp', 'Assessment time'),
+    continuationScore: withAnnotations(S.Number, 'Continuation Score', '0-1 score'),
+    trend: withAnnotations(TrendSchema, 'Score Trend'),
+    scoringFactors: ScoringFactorsSchema,
+    issues: S.Array(S.Struct({
+        type: IssueTypeSchema,
+        severity: SeveritySchema,
+        description: S.String,
+    })),
+    suggestions: S.Array(withAnnotations(S.String, 'Suggestion')),
+    detectedLanguage: nullable(LanguageSchema),
+    confidence: withAnnotations(S.Number, 'Confidence', 'Model confidence 0-1'),
+})
 
 export const OperatorAlertSchema = S.Struct({
-    required: S.Boolean.annotations({ title: 'Required' }),
-    urgency: UrgencySchema.annotations({ title: 'Urgency' }),
-    reason: S.String.annotations({ title: 'Reason' }),
-}).annotations({ title: 'Operator Alert' })
+    alertId: withAnnotations(S.String, 'Alert ID'),
+    dialogId: DialogId,
+    accountId: AccountId,
+    timestamp: withAnnotations(S.Number, 'Alert Time'),
+    urgency: UrgencySchema,
+    reason: withAnnotations(S.String, 'Alert Reason'),
+    suggestedAction: nullable(S.String),
+})
 
+// Main dialog schema - using createEntitySchema would save ~10 lines
 export const DialogSchema = S.Struct({
-    dialogId: DialogId.annotations({ title: 'Dialog ID', description: 'Unique dialog identifier' }),
-    accountId: AccountId.annotations({
-        title: 'Account ID',
-        description: 'Associated account identifier',
-    }),
-    playerSteamId64: S.String.annotations({
-        title: 'Player Steam ID',
-        description: "Player's Steam 64-bit ID",
-    }),
-    status: DialogStatusSchema.annotations({
-        title: 'Status',
-        description: 'Current dialog status',
-    }),
-    language: LanguageSchema.annotations({ title: 'Language', description: 'Dialog language' }),
-    goal: S.String.annotations({ title: 'Goal', description: 'Dialog goal/objective' }),
-    init: S.String.annotations({ title: 'Init', description: 'Initial instructions and context' }),
-    userInfo: S.optional(UserInfoSchema),
-    messages: S.Array(DialogMsgSchema).annotations({
-        title: 'Messages',
-        description: 'Dialog message history',
-    }),
-    continuationScore: S.Number.annotations({
-        title: 'Continuation Score',
-        description: 'AI assessment score 0-1',
-    }),
-    trend: TrendSchema.annotations({ title: 'Trend', description: 'Score trend direction' }),
-    scoringFactors: S.optional(ScoringFactorsSchema),
-    issuesDetected: S.Array(IssueSchema).annotations({
-        title: 'Issues Detected',
-        description: 'List of detected issues',
-    }),
-    goalProgress: S.Number.annotations({
-        title: 'Goal Progress',
-        description: 'Progress towards goal 0-1',
-    }),
-    tokensUsed: S.Number.annotations({
-        title: 'Tokens Used',
-        description: 'Total OpenAI tokens consumed',
-    }),
-    operatorAlert: S.optional(OperatorAlertSchema),
-    lastMessageAt: S.optional(
-        S.Number.annotations({ title: 'Last Message At', description: 'Timestamp of last message' })
-    ),
-    totalMessages: S.Number.annotations({
-        title: 'Total Messages',
-        description: 'Total message count',
-    }),
+    dialogId: DialogId,
+    accountId: AccountId,
+    playerSteamId64: withAnnotations(S.String, 'Player Steam ID'),
+    status: DialogStatusSchema,
+    messages: withAnnotations(S.Array(DialogMsgSchema), 'Messages'),
+    messageTrimmed: withAnnotations(S.Boolean, 'Messages Trimmed', 'True if old messages removed'),
+    contextMessage: nullable(withAnnotations(S.String, 'Context Message')),
+    metadata: S.optional(S.Struct({
+        userInfo: S.optional(UserInfoSchema),
+        targetGameId: nullable(S.String),
+        language: nullable(LanguageSchema),
+        startedAt: S.Number,
+        lastActivityAt: S.Number,
+    })),
+    assessment: nullable(AssessmentResultSchema),
+    operatorAlert: nullable(OperatorAlertSchema),
+    agentEnabled: withAnnotations(S.Boolean, 'Agent Enabled'),
+    goal: nullable(withAnnotations(S.String, 'Dialog Goal')),
+    progress: S.optional(S.Number),
+    createdAt: S.Number,
+    updatedAt: S.Number,
 }).annotations({
     title: 'Dialog',
-    description: 'AI-powered dialog conversation entity',
     indexes: [
         { fields: { dialogId: 1 }, options: { unique: true } },
         { fields: { accountId: 1 } },
-        { fields: { playerSteamId64: 1 } },
         { fields: { status: 1 } },
-        { fields: { language: 1 } },
-        { fields: { continuationScore: -1 } },
-        { fields: { 'operatorAlert.required': 1 } },
-        { fields: { lastMessageAt: -1 } },
     ],
 })
 
-// Derive types from schemas
-export type DialogMsg = S.Schema.Type<typeof DialogMsgSchema>
-export type UserInfo = S.Schema.Type<typeof UserInfoSchema>
-export type ScoringFactors = S.Schema.Type<typeof ScoringFactorsSchema>
-export type Issue = S.Schema.Type<typeof IssueSchema>
-export type OperatorAlert = S.Schema.Type<typeof OperatorAlertSchema>
-export type Dialog = S.Schema.Type<typeof DialogSchema>
+// Export Dialog type for external use
+export type Dialog = InferSchema<typeof DialogSchema>
 
-// ============= Event Payload Schemas =============
+// ============= Error Classes using Error-Factories =============
+
+export const DialogNotFoundError = createErrorClass('DialogNotFoundError')({
+    dialogId: 'string'
+})
+
+export const DialogAssessmentError = createErrorClass('DialogAssessmentError')({
+    dialogId: 'string',
+    message: 'string',
+    assessmentType: 'string | undefined'
+})
+
+// ============= Event Payloads =============
 
 export const DialogCreatedPayloadSchema = S.Struct({
     dialogId: DialogId,
     accountId: AccountId,
     playerSteamId64: S.String,
-    language: LanguageSchema,
-    goal: S.String,
-    init: S.String,
-    userInfo: S.optional(UserInfoSchema),
+    contextMessage: S.optional(S.String),
 })
-export type DialogCreatedPayload = S.Schema.Type<typeof DialogCreatedPayloadSchema>
+export type DialogCreatedPayload = InferSchema<typeof DialogCreatedPayloadSchema>
 
 export const MessageReceivedPayloadSchema = S.Struct({
     dialogId: DialogId,
-    from: DialogMsgFromSchema,
-    text: S.String,
-    messageId: S.optional(S.String),
-    ts: S.optional(S.Number),
+    message: DialogMsgSchema,
 })
-export type MessageReceivedPayload = S.Schema.Type<typeof MessageReceivedPayloadSchema>
+export type MessageReceivedPayload = InferSchema<typeof MessageReceivedPayloadSchema>
 
 export const MessageSentPayloadSchema = S.Struct({
     dialogId: DialogId,
-    text: S.String,
-    sequenceNumber: S.optional(S.Number),
-    messageId: S.optional(S.String),
-    ts: S.optional(S.Number),
+    message: DialogMsgSchema,
 })
-export type MessageSentPayload = S.Schema.Type<typeof MessageSentPayloadSchema>
+export type MessageSentPayload = InferSchema<typeof MessageSentPayloadSchema>
 
 export const DialogAssessedPayloadSchema = S.Struct({
     dialogId: DialogId,
-    continuationScore: S.Number,
-    trend: TrendSchema,
-    factors: ScoringFactorsSchema,
-    issuesDetected: S.optional(S.Array(IssueSchema)),
+    assessment: AssessmentResultSchema,
 })
-export type DialogAssessedPayload = S.Schema.Type<typeof DialogAssessedPayloadSchema>
+export type DialogAssessedPayload = InferSchema<typeof DialogAssessedPayloadSchema>
 
 export const DialogStatusUpdatedPayloadSchema = S.Struct({
     dialogId: DialogId,
     status: DialogStatusSchema,
-    reason: S.optional(S.String),
 })
-export type DialogStatusUpdatedPayload = S.Schema.Type<typeof DialogStatusUpdatedPayloadSchema>
+export type DialogStatusUpdatedPayload = InferSchema<typeof DialogStatusUpdatedPayloadSchema>
 
 export const OperatorAlertPayloadSchema = S.Struct({
     dialogId: DialogId,
-    required: S.Boolean,
-    urgency: UrgencySchema,
-    reason: S.String,
+    alert: OperatorAlertSchema,
 })
-export type OperatorAlertPayload = S.Schema.Type<typeof OperatorAlertPayloadSchema>
+export type OperatorAlertPayload = InferSchema<typeof OperatorAlertPayloadSchema>
 
 export const DialogProgressUpdatedPayloadSchema = S.Struct({
     dialogId: DialogId,
-    goalProgress: S.Number,
-    tokensUsed: S.Number,
+    progress: S.Number,
 })
-export type DialogProgressUpdatedPayload = S.Schema.Type<typeof DialogProgressUpdatedPayloadSchema>
+export type DialogProgressUpdatedPayload = InferSchema<typeof DialogProgressUpdatedPayloadSchema>
 
-// ============= Helper Functions =============
+// Legacy alias for compatibility
+export const DialogMessageReceivedPayloadSchema = MessageReceivedPayloadSchema
+export type DialogMessageReceivedPayload = MessageReceivedPayload
 
-const trimMessages = (messages: DialogMsg[]): DialogMsg[] => {
-    if (messages.length > MAX_MESSAGES) {
-        // Keep only the last MAX_MESSAGES messages
-        return messages.slice(messages.length - MAX_MESSAGES)
-    }
-    return messages
+// ============= Additional Types for Export =============
+
+export type DialogMsg = InferSchema<typeof DialogMsgSchema>
+export type UserInfo = InferSchema<typeof UserInfoSchema>
+export type ScoringFactors = InferSchema<typeof ScoringFactorsSchema>
+export type Issue = {
+    type: InferSchema<typeof IssueTypeSchema>
+    severity: InferSchema<typeof SeveritySchema>
+    description: string
 }
+
+// Issue schema for export (referenced in index.ts)
+export const IssueSchema = S.Struct({
+    type: IssueTypeSchema,
+    severity: SeveritySchema,
+    description: S.String,
+})
 
 // ============= Create Slice =============
 
 export const dialogSlice = createEntitySlice({
     name: 'dialog',
-    initialEntities: [],
+    initialEntities: [] as Draft<Dialog>[],
     entitySchema: DialogSchema as S.Schema<any, unknown, never>,
     entityReducers: {
         // Event: dialogs/messageReceived
         messageReceived: (
-            dialog,
-            payload: EntityActionPayload<
-                'dialog',
-                {
-                    from: DialogMsgFrom
-                    text: string
-                    messageId: string
-                    ts: number
-                    sequenceNumber?: number
-                }
-            >
+            dialog: Draft<Dialog>,
+            payload: EntityActionPayload<'dialog', { message: DialogMsg }>
         ) => {
-            const newMessage: DialogMsg = {
-                id: payload.messageId,
-                from: payload.from,
-                text: payload.text,
-                ts: payload.ts,
-                ...(payload.sequenceNumber !== undefined && {
-                    sequenceNumber: payload.sequenceNumber,
-                }),
+            dialog.messages.push(payload.message)
+            dialog.updatedAt = Date.now()
+
+            // Trim messages if over limit
+            if (dialog.messages.length > MAX_MESSAGES) {
+                dialog.messages = dialog.messages.slice(-MAX_MESSAGES)
+                dialog.messageTrimmed = true
             }
 
-            dialog.messages = trimMessages([...dialog.messages, newMessage])
-            dialog.lastMessageAt = payload.ts
-            dialog.totalMessages = dialog.totalMessages + 1
+            // Update metadata last activity
+            if (dialog.metadata) {
+                dialog.metadata.lastActivityAt = Date.now()
+            }
         },
 
         // Event: dialogs/messageSent
         messageSent: (
-            dialog,
-            payload: EntityActionPayload<
-                'dialog',
-                {
-                    text: string
-                    messageId: string
-                    ts: number
-                    sequenceNumber?: number
-                }
-            >
+            dialog: Draft<Dialog>,
+            payload: EntityActionPayload<'dialog', { message: DialogMsg }>
         ) => {
-            const newMessage: DialogMsg = {
-                id: payload.messageId,
-                from: 'account',
-                text: payload.text,
-                ts: payload.ts,
-                ...(payload.sequenceNumber !== undefined && {
-                    sequenceNumber: payload.sequenceNumber,
-                }),
+            dialog.messages.push(payload.message)
+            dialog.updatedAt = Date.now()
+
+            // Trim messages if over limit
+            if (dialog.messages.length > MAX_MESSAGES) {
+                dialog.messages = dialog.messages.slice(-MAX_MESSAGES)
+                dialog.messageTrimmed = true
             }
 
-            dialog.messages = trimMessages([...dialog.messages, newMessage])
-            dialog.lastMessageAt = payload.ts
-            dialog.totalMessages = dialog.totalMessages + 1
+            // Update metadata last activity
+            if (dialog.metadata) {
+                dialog.metadata.lastActivityAt = Date.now()
+            }
         },
 
         // Event: dialogs/assessed
         assessed: (
-            dialog,
-            payload: EntityActionPayload<
-                'dialog',
-                {
-                    continuationScore: number
-                    trend: 'rising' | 'stable' | 'declining'
-                    factors: ScoringFactors
-                    issuesDetected?: Issue[]
-                }
-            >
+            dialog: Draft<Dialog>,
+            payload: EntityActionPayload<'dialog', { assessment: InferSchema<typeof AssessmentResultSchema> }>
         ) => {
-            dialog.continuationScore = payload.continuationScore
-            dialog.trend = payload.trend
-            dialog.scoringFactors = payload.factors
-            if (payload.issuesDetected) {
-                dialog.issuesDetected = payload.issuesDetected
-            }
+            dialog.assessment = payload.assessment as any
+            dialog.updatedAt = Date.now()
         },
 
         // Event: dialogs/statusUpdated
         statusUpdated: (
-            dialog,
-            payload: EntityActionPayload<
-                'dialog',
-                {
-                    status: DialogStatus
-                    reason?: string
-                }
-            >
+            dialog: Draft<Dialog>,
+            payload: EntityActionPayload<'dialog', { status: InferSchema<typeof DialogStatusSchema> }>
         ) => {
             dialog.status = payload.status
+            dialog.updatedAt = Date.now()
         },
 
         // Event: dialogs/operatorAlerted
         operatorAlerted: (
-            dialog,
-            payload: EntityActionPayload<
-                'dialog',
-                {
-                    required: boolean
-                    urgency: 'low' | 'medium' | 'high' | 'critical'
-                    reason: string
-                }
-            >
+            dialog: Draft<Dialog>,
+            payload: EntityActionPayload<'dialog', { alert: InferSchema<typeof OperatorAlertSchema> }>
         ) => {
-            dialog.operatorAlert = {
-                required: payload.required,
-                urgency: payload.urgency,
-                reason: payload.reason,
-            }
+            dialog.operatorAlert = payload.alert
+            dialog.updatedAt = Date.now()
         },
 
         // Event: dialogs/progressUpdated
         progressUpdated: (
-            dialog,
-            payload: EntityActionPayload<
-                'dialog',
-                {
-                    goalProgress: number
-                    tokensUsed: number
-                }
-            >
+            dialog: Draft<Dialog>,
+            payload: EntityActionPayload<'dialog', { progress: number }>
         ) => {
-            dialog.goalProgress = payload.goalProgress
-            dialog.tokensUsed = payload.tokensUsed
+            dialog.progress = payload.progress
+            dialog.updatedAt = Date.now()
         },
     },
-
     extraReducers: {
-        // Event: dialogs/created - creates new entity
+        // Event: dialogs/created - creates new dialog entity
         created: (
             state: Draft<EntityState<Dialog>>,
-            action: PayloadAction<DialogCreatedPayload>
+            action: PayloadAction<{
+                dialogId: string
+                accountId: string
+                playerSteamId64: string
+                contextMessage?: string
+            }>
         ) => {
             const newDialog: Dialog = {
-                dialogId: action.payload.dialogId,
-                accountId: action.payload.accountId,
+                dialogId: action.payload.dialogId as any,
+                accountId: action.payload.accountId as any,
                 playerSteamId64: action.payload.playerSteamId64,
                 status: 'created',
-                language: action.payload.language,
-                goal: action.payload.goal,
-                init: action.payload.init,
-                ...(action.payload.userInfo && { userInfo: action.payload.userInfo }),
                 messages: [],
-                continuationScore: 1.0,
-                trend: 'stable',
-                issuesDetected: [],
-                goalProgress: 0,
-                tokensUsed: 0,
-                totalMessages: 0,
+                messageTrimmed: false,
+                contextMessage: action.payload.contextMessage || null,
+                metadata: {
+                    startedAt: Date.now(),
+                    lastActivityAt: Date.now(),
+                    language: null,
+                    targetGameId: null,
+                },
+                assessment: null,
+                operatorAlert: null,
+                agentEnabled: true,
+                goal: null,
+                progress: 0,
+                createdAt: Date.now(),
+                updatedAt: Date.now(),
             }
-
             addEntity(state, newDialog, 'dialog')
         },
     },

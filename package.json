@@ -25,6 +25,7 @@
   },
   "devDependencies": {
     "@modelcontextprotocol/sdk": "^1.18.0",
+    "@modelcontextprotocol/server-filesystem": "^2025.8.21",
     "@types/js-yaml": "^4.0.0",
     "@typescript-eslint/eslint-plugin": "^8.39.1",
     "@typescript-eslint/parser": "^8.39.1",
@@ -35,7 +36,8 @@
     "eslint-plugin-prettier": "^5.5.4",
     "prettier": "^3.6.2",
     "tsx": "^4.20.5",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "zod": "^4.1.11"
   },
   "dependencies": {
     "@niklaserik/effect-mcp": "^1.0.7",

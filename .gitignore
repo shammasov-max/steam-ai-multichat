@@ -150,3 +150,6 @@ vite.config.ts.timestamp-*
 *.pfx
 private_key*
 rsa_private*
+
+# Google Cloud Service Account files (blocked by GitHub)
+steam-ai-multichats-*.json

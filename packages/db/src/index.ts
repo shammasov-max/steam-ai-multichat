@@ -34,14 +34,15 @@ export { type Repository, type RepositoryConfig } from './repository/Repository'
 export { createRepository, createCachedRepository } from './repository/RepositoryImpl'
 
 // ============= Repository Tags =============
-export {
-    AccountRepository,
-    type AccountRepository as AccountRepositoryService,
-} from './repository/AccountRepository'
-export {
-    DialogRepository,
-    type DialogRepository as DialogRepositoryService,
-} from './repository/DialogRepository'
+// Note: Individual repository tags will be added when repository files are created
+// export {
+//     AccountRepository,
+//     type AccountRepository as AccountRepositoryService,
+// } from './repository/AccountRepository'
+// export {
+//     DialogRepository,
+//     type DialogRepository as DialogRepositoryService,
+// } from './repository/DialogRepository'
 export {
     SystemRepository,
     SystemRepositoryLive,
@@ -49,11 +50,7 @@ export {
 } from './repository/SystemRepository'
 
 // ============= Repository Implementations =============
-export {
-    AccountRepositoryLive,
-    DialogRepositoryLive,
-    SystemRepositoryLive,
-} from './repository/SimplifiedRepositories'
+// Note: Repository implementations are exported from their individual files above
 
 // ============= Repository Facade =============
 export {

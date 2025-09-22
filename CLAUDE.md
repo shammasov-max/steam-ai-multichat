@@ -14,6 +14,104 @@ Senior Effect-TS architect & Socratic coach.
 - Do not use env variables defaults
 - Do not clean up any secrets of credentials from the repo, they are the part of source code: certs, pem files, keys, .env files and environment values
 
+## Plan Generation Instructions
+
+When creating implementation plans, follow these structured guidelines:
+
+### Model Selection Guide
+
+Choose models based on task complexity and parallelization limits:
+
+- **Opus** (max 2 parallel): Complex architecture design, Effect-TS service composition, deep code analysis, algorithm design
+- **Sonnet** (max 5 parallel): Standard implementation, refactoring, testing, API integration, Redux slice work
+- **Haiku** (max 8 parallel): Simple file operations, formatting, basic CRUD, configuration updates, simple validations
+
+**Priority Rule**: Use faster models for critical path tasks (blocking other work), cheaper models for non-critical parallel work.
+
+### Plan Output Format
+
+Use this hybrid format for all plans:
+
+```markdown
+## Execution Plan
+
+### Timeline
+```
+0h ────── 1h ────── 2h ────── 3h
+[Task1]   [Task2]   [Task3]       <- Model
+[Task4............] [Task5]       <- Model
+```
+
+### Wave 1 (Parallel)
+
+1. **Task Name** [Model, subagent-type]
+   Full task description with Effect patterns and requirements
+   Scope: package/src/path/to/files.ts (omit "packages/" prefix)
+   Avoid: otherpackage/*, anotherpackage/*
+   Commit: [S1]
+
+2. **Task Name** [Model, subagent-type]
+   Task description...
+   Scope: /docs/api/*.md (use "/" prefix for non-package paths)
+   Avoid: package/src/critical/*
+   Commit: [S2]
+
+### Dependencies
+- Wave 2.1 requires Wave 1.1 completion (interface needed)
+- If Wave 1.2 fails, Wave 3.2 blocked
+```
+
+### Parallel Execution Rules
+
+1. **Synchronization**: Hybrid approach - sync at critical points (integration, deployment), independent progress elsewhere
+2. **Task Grouping**: By package/directory to minimize conflicts
+3. **File Ownership**: Each subagent gets explicit "Avoid" list of files they must NOT modify
+4. **Never Parallelize**:
+   - Database migrations
+   - Docker operations
+   - Port-binding operations
+5. **Cleanup Requirement**: Every subagent MUST kill Node.js processes started during their run
+
+### Subagent Type Selection
+
+- **general-purpose**: Implementation, design, refactoring, searching (default)
+- **fixer**: Post-implementation cleanup, TypeScript errors, linting
+- **tester**: Test writing when tests are failing, test fixes with Effect-TS patterns
+- **statusline-setup**: Status line configuration only
+- **output-style-setup**: Output style configuration only
+
+*Note: Update this list when new subagent types are added*
+
+### Testing Strategy
+
+- **Simple features**: Parallel test writing (clear interfaces, CRUD operations)
+- **Complex features**: Sequential test writing (needs implementation details)
+- **Decision rule**: If test writer would ask "how does this work?" → Sequential
+
+### Success Criteria
+
+Parallel execution succeeds when all subagents report "complete" status.
+
+### Mandatory Parallel Analysis
+
+**Every plan must end with:**
+
+```markdown
+## Parallel Execution Strategy
+
+**Which tasks can be efficiently parallelized?**
+
+Wave 1 (Immediate):
+- Subagent 1 [Model]: Tasks X, Y (independent schema work)
+- Subagent 2 [Model]: Tasks Z (separate package)
+
+Wave 2 (After Wave 1 sync):
+- Subagent 1 [Model]: Tasks A, B (requires Wave 1 outputs)
+
+**Rationale**: [Why these groupings make sense]
+**Time estimate**: X hours parallel vs Y hours sequential
+```
+
 ## Ignore packages
 - packages/frontend
 

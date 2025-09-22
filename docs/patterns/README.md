@@ -4,8 +4,9 @@ This directory contains detailed documentation of implementation patterns used t
 
 ## Patterns
 
+- **[parallel-execution.md](./parallel-execution.md)** - Parallel task execution strategy using multiple Claude subagents with model selection
 - **[http-api.md](./http-api.md)** - HTTP API definition and implementation patterns using Effect platform
-- **[layer-composition.md](./layer-composition.md)** - Layer-based dependency injection and service composition patterns  
+- **[layer-composition.md](./layer-composition.md)** - Layer-based dependency injection and service composition patterns
 - **[generic-testing.md](./generic-testing.md)** - General testing patterns with @effect/vitest and Effect ecosystem
 - **[http-specific-testing.md](./http-specific-testing.md)** - HTTP API testing patterns with real server integration
 - **[portfinder-testing.md](./portfinder-testing.md)** - Reliable HTTP server port assignment with portfinder and unified Context.Tag service

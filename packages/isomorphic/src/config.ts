@@ -24,7 +24,7 @@ export class Env extends Context.Tag('Env')<Env, EnvConfig>() {}
 export const EnvLive = Layer.effect(
     Env,
     Effect.gen(function* () {
-        const config = yield* Config.config(EnvConfig)
+        const config = yield* EnvConfig
         return config
     })
 )

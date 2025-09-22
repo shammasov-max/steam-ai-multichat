@@ -29,3 +29,18 @@ export {
     RateLimitError,
     TimeoutError,
 } from './ResiliencePatterns'
+
+// Export error factories
+export {
+    createServiceError,
+    createValidationError,
+    createNotFoundError,
+    AIServiceError,
+    SteamServiceError,
+    DatabaseServiceError,
+    LoggerServiceError,
+    toStructuredError,
+    isServiceError,
+    isValidationError,
+    isNotFoundError,
+} from './error-factories'

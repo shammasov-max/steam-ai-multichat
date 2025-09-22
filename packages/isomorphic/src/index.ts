@@ -63,10 +63,6 @@ export {
     isAccountId,
     isDialogId,
     isSystemId,
-    type AccountIdType,
-    type DialogIdType,
-    type SystemIdType,
-    type SteamID64Type,
 } from './types/branded'
 
 // ============= Configuration =============
@@ -106,6 +102,18 @@ export {
     QueueFullError,
     RateLimitError,
     TimeoutError,
+    // Error factories
+    createServiceError,
+    createValidationError,
+    createNotFoundError,
+    AIServiceError,
+    SteamServiceError,
+    DatabaseServiceError,
+    LoggerServiceError,
+    toStructuredError,
+    isServiceError,
+    isValidationError,
+    isNotFoundError,
 } from './utils'
 
 // ============= Effect-Redux Integration =============
@@ -115,31 +123,32 @@ export { ReduxService, createReduxLayer } from './effect-redux/ReduxService'
 // ============= Effect Patterns =============
 export {
     tag,
-    serviceTag,
-    schema,
-    timestamped,
     entityAction,
     brandedId,
     indexed,
     defineService,
     serviceLayer,
-    syncLayer,
-    factoryLayer,
-    repositoryTag,
-    inMemoryRepository,
     error,
     mockService,
-    mockLayer,
     stateService,
+    retry,
+    resilient,
+    quick,
+    logged,
+    withTimeout,
+    createCircuitBreaker,
+    createRateLimiter,
+    testLayer,
+    type ServiceDefinition,
+    type CircuitBreakerConfig,
     type Op,
-    type ServiceOps,
-    type OpsOf,
-    type Repository,
-    type DeepPartial,
-    type SuccessOf,
-    type ErrorOf,
-    type ContextOf,
-    type RequireKeys,
-} from './effect-patterns/type-utils'
+} from './patterns'
 
-export * from './effect-patterns/index'
+// Re-export Effect types directly from Effect (already exported by patterns.ts)
+export type {
+    Effect,
+    Context,
+    Layer,
+    Data,
+    Ref,
+} from 'effect'

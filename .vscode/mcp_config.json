@@ -16,9 +16,8 @@
             "command": "yarn",
             "args": [
               "dlx",
-              "@modelcontextprotocol/server-filesystem",
-              "X:/"
-            ]
+              "@modelcontextprotocol/server-filesystem"
+           ]
         }
     }
   }

@@ -15,7 +15,7 @@ export const AccountId = S.String.pipe(
         description: 'Unique identifier for an account entity',
     })
 )
-export type AccountIdType = S.Schema.Type<typeof AccountId>
+type AccountIdType = S.Schema.Type<typeof AccountId>
 
 /**
  * Dialog ID - Unique identifier for a dialog entity
@@ -30,7 +30,7 @@ export const DialogId = S.String.pipe(
         description: 'Unique identifier for a dialog entity',
     })
 )
-export type DialogIdType = S.Schema.Type<typeof DialogId>
+type DialogIdType = S.Schema.Type<typeof DialogId>
 
 /**
  * System ID - Singleton identifier for system entity
@@ -44,14 +44,14 @@ export const SystemId = S.Literal('system').pipe(
         description: 'Singleton identifier for system entity',
     })
 )
-export type SystemIdType = S.Schema.Type<typeof SystemId>
+type SystemIdType = S.Schema.Type<typeof SystemId>
 
 /**
  * Steam ID 64 - 64-bit Steam ID
  * Re-exported from events/core.ts for convenience
  */
-import { SteamID64 as SteamID64Schema, type SteamID64Type } from '../events/core'
-export { SteamID64Schema as SteamID64, type SteamID64Type }
+import { SteamID64 as SteamID64Schema } from '../events/core'
+export { SteamID64Schema as SteamID64 }
 
 // ============= ID Creation Helpers =============
 

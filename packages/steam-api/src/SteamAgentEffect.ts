@@ -28,7 +28,6 @@ export type SteamEvent =
 // Steam connection state
 export interface SteamConnection {
     readonly client: SteamUser
-
     readonly config: SteamAgentConfig
     readonly steamId: string
     readonly isLoggedIn: boolean
@@ -44,15 +43,60 @@ export class SteamConnectionService extends Context.Tag('SteamConnection')<
     SteamConnection
 >() {}
 
+// SteamConnectionPool implementation using ReturnType pattern
+const makeSteamConnectionPool = (logger: LoggerService) => {
+    const connections = new Map<string, SteamConnection>()
+    const connectionPools = new Map<string, Pool.Pool<SteamConnection, SteamEffectError>>()
+
+    return {
+        acquire: (config: SteamAgentConfig) =>
+            Effect.gen(function* () {
+                const key = `${config.accountName}`
+
+                // Check if we already have a pool for this config
+                let pool = connectionPools.get(key)
+
+                if (!pool) {
+                    // Create a new pool for this configuration
+                    pool = yield* Pool.make({
+                        acquire: createSteamClient(config),
+                        size: 1, // One connection per account
+                    })
+                    connectionPools.set(key, pool!)
+                }
+
+                const connection = yield* Pool.get(pool!)
+                connections.set(connection.steamId, connection)
+
+                Effect.runSync(
+                    logger.info('Connection acquired', {
+                        steamId: connection.steamId,
+                        accountName: config.accountName,
+                    })
+                )
+
+                return connection
+            }),
+
+        release: (steamId: string) =>
+            Effect.sync(() => {
+                const connection = connections.get(steamId)
+                if (connection) {
+                    connection.client.logOff()
+                    connections.delete(steamId)
+                    Effect.runSync(logger.info('Connection released', { steamId }))
+                }
+            }),
+
+        getAll: () => Effect.succeed(Array.from(connections.values())),
+    }
+}
+
+type SteamConnectionPoolType = ReturnType<typeof makeSteamConnectionPool>
+
 export class SteamConnectionPool extends Context.Tag('SteamConnectionPool')<
     SteamConnectionPool,
-    {
-        acquire: (
-            config: SteamAgentConfig
-        ) => Effect.Effect<SteamConnection, SteamEffectError, Scope.Scope | Logger>
-        release: (steamId: string) => Effect.Effect<void, never, never>
-        getAll: () => Effect.Effect<readonly SteamConnection[], never, never>
-    }
+    SteamConnectionPoolType
 >() {}
 
 // Helper functions
@@ -238,137 +282,89 @@ export const SteamConnectionPoolLive = Layer.effect(
     SteamConnectionPool,
     Effect.gen(function* () {
         const logger = yield* Logger
-        const connections = new Map<string, SteamConnection>()
-        const connectionPools = new Map<string, Pool.Pool<SteamConnection, SteamEffectError>>()
-
-        return {
-            acquire: (config: SteamAgentConfig) =>
-                Effect.gen(function* () {
-                    const key = `${config.accountName}`
-
-                    // Check if we already have a pool for this config
-                    let pool = connectionPools.get(key)
-
-                    if (!pool) {
-                        // Create a new pool for this configuration
-                        pool = yield* Pool.make({
-                            acquire: createSteamClient(config),
-                            size: 1, // One connection per account
-                        })
-                        connectionPools.set(key, pool!)
-                    }
-
-                    const connection = yield* Pool.get(pool!)
-                    connections.set(connection.steamId, connection)
-
-                    Effect.runSync(
-                        logger.info('Connection acquired', {
-                            steamId: connection.steamId,
-                            accountName: config.accountName,
-                        })
-                    )
-
-                    return connection
-                }),
-
-            release: (steamId: string) =>
-                Effect.sync(() => {
-                    const connection = connections.get(steamId)
-                    if (connection) {
-                        connection.client.logOff()
-                        connections.delete(steamId)
-                        Effect.runSync(logger.info('Connection released', { steamId }))
-                    }
-                }),
-
-            getAll: () => Effect.succeed(Array.from(connections.values())),
-        }
+        return makeSteamConnectionPool(logger)
     })
 )
 
-// High-level Steam operations
+// High-level Steam operations - using ReturnType pattern
+const makeSteamOperations = (connection: SteamConnection) => ({
+    sendMessage: (steamId: string, message: string) =>
+        Effect.gen(function* () {
+            // Store in chat history
+            if (!connection.chatHistory.has(steamId)) {
+                connection.chatHistory.set(steamId, [])
+            }
+            connection.chatHistory.get(steamId)!.push({
+                steamId,
+                message,
+                timestamp: new Date(),
+                incoming: false,
+            })
+
+            yield* trySteam('sendMessage', async () => {
+                connection.client.chat.sendFriendMessage(steamId, message)
+            })
+        }),
+
+    addFriend: (steamId: string) =>
+        Effect.async<void, SteamEffectError>(resume => {
+            connection.client.addFriend(steamId, (err: Error | null) => {
+                if (err) {
+                    resume(
+                        Effect.fail(
+                            new SteamEffectError({
+                                operation: 'addFriend',
+                                message: err.message,
+                            })
+                        )
+                    )
+                } else {
+                    resume(Effect.void)
+                }
+            })
+        }),
+
+    removeFriend: (steamId: string) =>
+        Effect.sync(() => {
+            connection.client.removeFriend(steamId)
+        }),
+
+    getFriends: () =>
+        Effect.sync(() => {
+            const friends: Friend[] = []
+            const myFriends = connection.client.myFriends || {}
+
+            for (const [steamId, relationship] of Object.entries(myFriends)) {
+                const user = connection.client.users[steamId]
+                friends.push({
+                    steamId: steamId,
+                    relationship: relationship as number,
+                    personaName: user?.player_name || 'Unknown',
+                    personaState: user?.persona_state || 0,
+                })
+            }
+
+            return friends
+        }),
+
+    getChatHistory: (steamId: string) =>
+        Effect.succeed(connection.chatHistory.get(steamId) || []),
+
+    getEventStream: () => Stream.fromQueue(connection.events),
+})
+
+type SteamOperationsType = ReturnType<typeof makeSteamOperations>
+
 export class SteamOperations extends Context.Tag('SteamOperations')<
     SteamOperations,
-    {
-        sendMessage: (steamId: string, message: string) => Effect.Effect<void, SteamEffectError>
-        addFriend: (steamId: string) => Effect.Effect<void, SteamEffectError>
-        removeFriend: (steamId: string) => Effect.Effect<void, SteamEffectError>
-        getFriends: () => Effect.Effect<readonly Friend[], SteamEffectError>
-        getChatHistory: (steamId: string) => Effect.Effect<readonly ChatMessage[], never>
-        getEventStream: () => Stream.Stream<SteamEvent, never>
-    }
+    SteamOperationsType
 >() {}
 
 export const SteamOperationsLive = Layer.effect(
     SteamOperations,
     Effect.gen(function* () {
         const connection = yield* SteamConnectionService
-
-        return {
-            sendMessage: (steamId: string, message: string) =>
-                Effect.gen(function* () {
-                    // Store in chat history
-                    if (!connection.chatHistory.has(steamId)) {
-                        connection.chatHistory.set(steamId, [])
-                    }
-                    connection.chatHistory.get(steamId)!.push({
-                        steamId,
-                        message,
-                        timestamp: new Date(),
-                        incoming: false,
-                    })
-
-                    yield* trySteam('sendMessage', async () => {
-                        connection.client.chat.sendFriendMessage(steamId, message)
-                    })
-                }),
-
-            addFriend: (steamId: string) =>
-                Effect.async<void, SteamEffectError>(resume => {
-                    connection.client.addFriend(steamId, (err: Error | null) => {
-                        if (err) {
-                            resume(
-                                Effect.fail(
-                                    new SteamEffectError({
-                                        operation: 'addFriend',
-                                        message: err.message,
-                                    })
-                                )
-                            )
-                        } else {
-                            resume(Effect.void)
-                        }
-                    })
-                }),
-
-            removeFriend: (steamId: string) =>
-                Effect.sync(() => {
-                    connection.client.removeFriend(steamId)
-                }),
-
-            getFriends: () =>
-                Effect.sync(() => {
-                    const friends: Friend[] = []
-                    const myFriends = connection.client.myFriends || {}
-
-                    for (const [steamId, relationship] of Object.entries(myFriends)) {
-                        const user = connection.client.users[steamId]
-                        friends.push({
-                            steamId: steamId,
-                            relationship: relationship as number,
-                            personaName: user?.player_name || 'Unknown',
-                            personaState: user?.persona_state || 0,
-                        })
-                    }
-
-                    return friends
-                }),
-
-            getChatHistory: (steamId: string) =>
-                Effect.succeed(connection.chatHistory.get(steamId) || []),
-
-            getEventStream: () => Stream.fromQueue(connection.events),
-        }
+        return makeSteamOperations(connection)
     })
 )
 

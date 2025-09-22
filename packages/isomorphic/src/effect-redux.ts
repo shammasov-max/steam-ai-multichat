@@ -7,7 +7,7 @@ import {
     Middleware,
     StoreEnhancer,
 } from '@reduxjs/toolkit'
-import { error } from './effect-patterns/type-utils'
+import { error } from './patterns'
 
 // ============================================================================
 // Errors
@@ -21,7 +21,7 @@ const SagaError = error('SagaError', 'Saga operation failed')
 // Types
 // ============================================================================
 
-type Op<A, E = never> = Effect.Effect<A, E, never>
+type Op<A, E = never, R = never> = Effect.Effect<A, E, R>
 
 export interface ReduxConfig<S = any> {
     reducer: Reducer<S>

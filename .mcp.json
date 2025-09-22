@@ -1,5 +1,61 @@
 {
   "mcpServers": {
+    "filesystem": {
 
+      "disabled": true,
+      "type": "stdio",
+      "command": "yarn",
+      "args": [
+        "dlx",
+        "mcp-server-wsl-filesystem",
+
+        "/mnt/x/a/dev"
+      ],
+      "env": {}
+    }, 
+    "fetch": {
+      "command": "uvx",
+      "args": ["mcp-server-fetch"]
+    },
+  "effect-docs": {
+    "command": "yarn",
+    "args": [
+      "dlx",
+      "effect-mcp@latest"
+    ],
+    "env": {}
+  },
+  "sequential-thinking": {
+    "command": "yarn",
+    "args": [
+      "dlx",
+      "@modelcontextprotocol/server-sequential-thinking"
+    ],
+    "env": {}
+  },
+  "memory": {
+    "command": "yarn",
+    "args": [
+      "dlx",
+      "@modelcontextprotocol/server-memory"
+    ],
+    "env": {}
+  },
+  "mermaid": {
+    "command": "yarn",
+    "args": [
+      "dlx",
+      "mcp-mermaid"
+    ],
+    "env": {}
+  },
+  "context7": {
+    "command": "yarn",
+    "args": [
+      "dlx",
+      "@upstash/context7-mcp"
+    ],
+    "env": {}
+  }
   }
 }
