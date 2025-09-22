@@ -128,6 +128,7 @@ This is a Steam multichat automation system built as a TypeScript monorepo using
 - `packages/steam-api/` - Steam API integration utilities
 - `packages/dialogs/` - Dialog management and AI assessment functionality
 - `packages/db/` - MongoDB persistence layer with event store and entity repositories
+- `packages/dummy-front/` - Headless frontend testing package for Redux/Effect-saga integration
 
 ### Core Design Principles
 - **Event-driven**: Redux actions ARE events - slice reducers handle domain events
@@ -196,6 +197,13 @@ yarn test:dialogs  # Dialogs package tests
 yarn test:iso      # Isomorphic package tests
 yarn test:steam    # Steam-api package tests
 yarn test:server   # Server package tests
+yarn test:dummy-front # Dummy-front package tests
+
+# Dummy-front specific commands
+cd packages/dummy-front
+yarn test          # Run all tests
+yarn test:browser  # Run Playwright browser tests
+yarn dev           # Start Vite dev server with UI
 ```
 
 ## Key Architecture Details
@@ -775,7 +783,88 @@ The project includes comprehensive pattern documentation for future reference an
 - **Documentation**: Update patterns when introducing new implementation approaches
 - **Examples**: All patterns include actual code examples from the implementation
 
+## Dummy-Front Package
+
+### Overview
+The `packages/dummy-front` package is a headless frontend testing environment designed specifically for testing Redux/Effect-saga integration without DOM overhead. It provides a comprehensive testing infrastructure for the isomorphic package's Effect-TS and Redux implementation.
+
+### Purpose
+- **Headless Testing**: Test Redux store and Effect-saga patterns without React or DOM dependencies
+- **Effect-Saga Validation**: Verify complex async event chains and saga orchestration
+- **CI/CD Integration**: Lightweight testing suitable for automated pipelines
+- **Development Debugging**: Browser UI with Redux DevTools for interactive debugging
+
+### Architecture
+- **Store Factory**: Effect-powered Redux store with saga middleware integration
+- **Scenario Builders**: Programmatic test data generation with realistic scenarios
+- **Saga Test Runners**: Utilities for testing "dispatch → wait → effect" patterns
+- **Browser Testing**: Playwright integration for browser-based testing
+- **Hybrid Mode**: Node.js runner for CI and browser mode for development
+
+### Key Features
+- **Effect-Redux Integration**: Uses `packages/isomorphic/src/effect-redux` for store creation
+- **Test Scenarios**: Pre-built scenarios (simple account, complex system, custom)
+- **Action Streaming**: Real-time action monitoring and verification
+- **Redux DevTools**: Remote DevTools connection for debugging
+- **Parallel Testing**: Concurrent test execution with configurable limits
+
+### Testing Patterns
+```typescript
+// Example saga test pattern
+const testSaga = runSagaTest('Account Connection', (ctx) =>
+  Effect.gen(function* () {
+    // Dispatch action
+    yield* ctx.dispatch(accountSlice.actions.connected({ accountId, ts }))
+
+    // Wait for specific event
+    const event = yield* ctx.waitFor(matchers.ofType('accounts/authenticated'))
+
+    // Verify state
+    const state = yield* ctx.getState()
+    return state.accounts.entities[accountId].status === 'connected'
+  })
+)
+```
+
+### Usage
+```bash
+# Development with UI
+cd packages/dummy-front
+yarn dev  # Opens browser UI at http://localhost:5173
+
+# Run tests
+yarn test           # Run all tests
+yarn test:watch     # Watch mode
+yarn test:browser   # Playwright browser tests
+
+# CI mode (headless Node.js)
+node src/node/runner.js
+```
+
+### Test Data Generation
+The package includes comprehensive scenario builders for creating test data:
+- `ScenarioBuilder`: Programmatic test data creation
+- `mockData`: Random data generators
+- Pre-built scenarios: simple, complex, stress-test
+- Custom scenario creation with builder pattern
+
+### Browser UI Features
+- Real-time Redux state visualization
+- Action log with filtering
+- Interactive test controls
+- Saga monitoring dashboard
+- DevTools integration
+
+### Import Corrections
+When using the dummy-front package, ensure correct slice imports:
+```typescript
+import { accountSlice } from '@packages/isomorphic/src/slices/accounts'
+import { dialogSlice } from '@packages/isomorphic/src/slices/dialogs'
+import { systemSlice } from '@packages/isomorphic/src/slices/systemSlice'
+```
+
 ## Notes
 - Vitest with @effect/vitest configured for Effect-aware testing
 - Effect TypeScript ecosystem integration for type-safe, composable architecture
 - Comprehensive implementation patterns documented for consistency and reusability
+- Dummy-front package provides headless testing for Redux/Effect-saga patterns

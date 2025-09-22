@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dummy Front - Effect-Saga Testing</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace;
+            background: linear-gradient(135deg, #1e1e2e 0%, #2a2a3a 100%);
+            color: #cdd6f4;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(30, 30, 46, 0.8);
+            border-radius: 12px;
+            border: 1px solid #313244;
+        }
+
+        .header h1 {
+            color: #f38ba8;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(243, 139, 168, 0.3);
+        }
+
+        .header p {
+            color: #a6adc8;
+            font-size: 1.1rem;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .status-card {
+            background: rgba(49, 50, 68, 0.6);
+            border: 1px solid #45475a;
+            border-radius: 8px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .status-card h3 {
+            color: #fab387;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-card .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #a6e3a1;
+            box-shadow: 0 0 10px rgba(166, 227, 161, 0.5);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .status-card .offline {
+            background: #f38ba8;
+            box-shadow: 0 0 10px rgba(243, 139, 168, 0.5);
+        }
+
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            padding: 8px 0;
+            border-bottom: 1px solid #45475a;
+        }
+
+        .metric:last-child {
+            border-bottom: none;
+        }
+
+        .metric-value {
+            color: #a6e3a1;
+            font-weight: bold;
+        }
+
+        .controls {
+            background: rgba(49, 50, 68, 0.6);
+            border: 1px solid #45475a;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .controls h3 {
+            color: #f9e2af;
+            margin-bottom: 15px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .btn {
+            background: #585b70;
+            color: #cdd6f4;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover {
+            background: #6c7086;
+            transform: translateY(-1px);
+        }
+
+        .btn.primary {
+            background: #89b4fa;
+            color: #1e1e2e;
+        }
+
+        .btn.primary:hover {
+            background: #74c7ec;
+        }
+
+        .btn.danger {
+            background: #f38ba8;
+            color: #1e1e2e;
+        }
+
+        .btn.danger:hover {
+            background: #eba0ac;
+        }
+
+        .logs {
+            background: #181825;
+            border: 1px solid #45475a;
+            border-radius: 8px;
+            padding: 20px;
+            height: 400px;
+            overflow-y: auto;
+            font-family: 'SF Mono', monospace;
+            font-size: 0.85rem;
+        }
+
+        .logs h3 {
+            color: #94e2d5;
+            margin-bottom: 15px;
+            position: sticky;
+            top: 0;
+            background: #181825;
+            padding-bottom: 10px;
+        }
+
+        .log-entry {
+            margin-bottom: 8px;
+            padding: 6px 0;
+        }
+
+        .log-timestamp {
+            color: #6c7086;
+            margin-right: 10px;
+        }
+
+        .log-level {
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin-right: 10px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .log-level.info {
+            background: #89b4fa;
+            color: #1e1e2e;
+        }
+
+        .log-level.warn {
+            background: #f9e2af;
+            color: #1e1e2e;
+        }
+
+        .log-level.error {
+            background: #f38ba8;
+            color: #1e1e2e;
+        }
+
+        .log-level.debug {
+            background: #a6adc8;
+            color: #1e1e2e;
+        }
+
+        .log-message {
+            color: #cdd6f4;
+        }
+
+        .code-block {
+            background: #11111b;
+            border: 1px solid #45475a;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: 'SF Mono', monospace;
+            font-size: 0.85rem;
+            color: #a6e3a1;
+            overflow-x: auto;
+        }
+
+        .help-section {
+            background: rgba(49, 50, 68, 0.6);
+            border: 1px solid #45475a;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .help-section h3 {
+            color: #cba6f7;
+            margin-bottom: 15px;
+        }
+
+        .help-section ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .help-section li {
+            margin: 8px 0;
+            padding: 8px 12px;
+            background: rgba(30, 30, 46, 0.5);
+            border-radius: 4px;
+            border-left: 3px solid #89b4fa;
+        }
+
+        .help-section code {
+            background: #11111b;
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: #a6e3a1;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: #6c7086;
+            border-top: 1px solid #45475a;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #45475a;
+            border-radius: 50%;
+            border-top-color: #89b4fa;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎭 Dummy Front</h1>
+            <p>Effect-Saga Testing & Redux Store Visualization</p>
+            <div id="initialization-status">
+                <span class="spinner"></span> Initializing application...
+            </div>
+        </div>
+
+        <div class="status-grid">
+            <div class="status-card">
+                <h3>
+                    <span id="store-indicator" class="status-indicator offline"></span>
+                    Redux Store
+                </h3>
+                <div class="metric">
+                    <span>Status:</span>
+                    <span id="store-status" class="metric-value">Initializing...</span>
+                </div>
+                <div class="metric">
+                    <span>Accounts:</span>
+                    <span id="account-count" class="metric-value">0</span>
+                </div>
+                <div class="metric">
+                    <span>Dialogs:</span>
+                    <span id="dialog-count" class="metric-value">0</span>
+                </div>
+                <div class="metric">
+                    <span>Active Dialogs:</span>
+                    <span id="active-dialog-count" class="metric-value">0</span>
+                </div>
+            </div>
+
+            <div class="status-card">
+                <h3>
+                    <span id="saga-indicator" class="status-indicator offline"></span>
+                    Effect Sagas
+                </h3>
+                <div class="metric">
+                    <span>Running Sagas:</span>
+                    <span id="saga-count" class="metric-value">0</span>
+                </div>
+                <div class="metric">
+                    <span>Total Actions:</span>
+                    <span id="action-count" class="metric-value">0</span>
+                </div>
+                <div class="metric">
+                    <span>Actions/sec:</span>
+                    <span id="action-rate" class="metric-value">0.0</span>
+                </div>
+            </div>
+
+            <div class="status-card">
+                <h3>
+                    <span id="test-indicator" class="status-indicator offline"></span>
+                    Test Environment
+                </h3>
+                <div class="metric">
+                    <span>Test Data:</span>
+                    <span id="test-data-status" class="metric-value">Not loaded</span>
+                </div>
+                <div class="metric">
+                    <span>Global Utils:</span>
+                    <span id="global-utils-status" class="metric-value">Unavailable</span>
+                </div>
+                <div class="metric">
+                    <span>Dev Tools:</span>
+                    <span id="devtools-status" class="metric-value">Unknown</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <h3>🎮 Controls</h3>
+
+            <div class="button-group">
+                <button id="reload-data-btn" class="btn primary">📊 Reload Test Data</button>
+                <button id="clear-store-btn" class="btn danger">🗑️ Clear Store</button>
+                <button id="run-tests-btn" class="btn">🧪 Run Example Tests</button>
+                <button id="toggle-logging-btn" class="btn">📝 Toggle Logging</button>
+            </div>
+
+            <div class="button-group">
+                <button id="create-account-btn" class="btn">👤 Create Account</button>
+                <button id="create-dialog-btn" class="btn">💬 Create Dialog</button>
+                <button id="trigger-assessment-btn" class="btn">🤖 Trigger AI Assessment</button>
+                <button id="simulate-activity-btn" class="btn">⚡ Simulate Activity</button>
+            </div>
+
+            <div class="code-block">
+                <div>// Console commands available:</div>
+                <div>dummyFront.debug.logState()    // View current state</div>
+                <div>dummyFront.scenarios.simple()  // Create simple scenario</div>
+                <div>dummyFront.runTest(name, fn)  // Run saga test</div>
+                <div>dummyFront.dispatch(action)   // Dispatch action</div>
+            </div>
+        </div>
+
+        <div class="logs">
+            <h3>📋 Activity Logs</h3>
+            <div id="log-container">
+                <div class="log-entry">
+                    <span class="log-timestamp">00:00:00</span>
+                    <span class="log-level info">INFO</span>
+                    <span class="log-message">Application starting...</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="help-section">
+            <h3>💡 Usage Guide</h3>
+            <ul>
+                <li><code>window.dummyFront</code> - Access all utilities and store</li>
+                <li><code>dummyFront.store.getState()</code> - Get current Redux state</li>
+                <li><code>dummyFront.dispatch(action)</code> - Dispatch Redux actions</li>
+                <li><code>dummyFront.scenarios.complex()</code> - Generate test scenarios</li>
+                <li><code>dummyFront.runTest('name', testFn)</code> - Execute saga tests</li>
+                <li><code>dummyFront.debug.logAccounts()</code> - Log all accounts</li>
+                <li><code>dummyFront.debug.logDialogs()</code> - Log all dialogs</li>
+                <li>Open browser DevTools for detailed debugging</li>
+            </ul>
+        </div>
+
+        <div class="footer">
+            <p>🚀 Built with Effect-TS, Redux Toolkit, and Vite</p>
+            <p>For headless testing, check console output</p>
+        </div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+    <script>
+        // UI State Management
+        let actionCount = 0;
+        let actionTimes = [];
+        let loggingEnabled = true;
+
+        // Utility functions
+        function updateTimestamp() {
+            const now = new Date();
+            return now.toTimeString().slice(0, 8);
+        }
+
+        function addLogEntry(level, message) {
+            if (!loggingEnabled) return;
+
+            const container = document.getElementById('log-container');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerHTML = `
+                <span class="log-timestamp">${updateTimestamp()}</span>
+                <span class="log-level ${level}">${level.toUpperCase()}</span>
+                <span class="log-message">${message}</span>
+            `;
+
+            container.appendChild(entry);
+
+            // Keep only last 100 entries
+            while (container.children.length > 100) {
+                container.removeChild(container.firstChild);
+            }
+
+            // Auto-scroll to bottom
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function updateMetric(id, value) {
+            const element = document.getElementById(id);
+            if (element) {
+                element.textContent = value;
+            }
+        }
+
+        function setIndicatorStatus(id, online) {
+            const element = document.getElementById(id);
+            if (element) {
+                element.className = `status-indicator ${online ? '' : 'offline'}`;
+            }
+        }
+
+        function calculateActionRate() {
+            const now = Date.now();
+            actionTimes = actionTimes.filter(time => now - time < 1000);
+            return actionTimes.length.toFixed(1);
+        }
+
+        // UI Event Handlers
+        function setupEventHandlers() {
+            // Reload test data
+            document.getElementById('reload-data-btn')?.addEventListener('click', () => {
+                addLogEntry('info', 'Reloading test data...');
+                if (window.dummyFront?.scenarios?.complex) {
+                    const scenario = window.dummyFront.scenarios.complex();
+                    scenario.actions.forEach(action => {
+                        window.dummyFront.dispatch(action);
+                    });
+                    addLogEntry('info', `Dispatched ${scenario.actions.length} actions`);
+                    updateUI();
+                }
+            });
+
+            // Clear store
+            document.getElementById('clear-store-btn')?.addEventListener('click', () => {
+                addLogEntry('warn', 'Clearing store (not implemented)');
+                // Would need to implement store reset functionality
+            });
+
+            // Run example tests
+            document.getElementById('run-tests-btn')?.addEventListener('click', () => {
+                addLogEntry('info', 'Running example tests...');
+                if (window.dummyFront?.runTest) {
+                    window.dummyFront.runTest('UI Test', () => {
+                        addLogEntry('info', 'Example test completed');
+                    });
+                }
+            });
+
+            // Toggle logging
+            document.getElementById('toggle-logging-btn')?.addEventListener('click', () => {
+                loggingEnabled = !loggingEnabled;
+                addLogEntry('info', `Logging ${loggingEnabled ? 'enabled' : 'disabled'}`);
+            });
+
+            // Create account
+            document.getElementById('create-account-btn')?.addEventListener('click', () => {
+                if (window.dummyFront?.scenarios?.simple) {
+                    const scenario = window.dummyFront.scenarios.simple();
+                    window.dummyFront.dispatch(scenario.actions[0]);
+                    addLogEntry('info', 'Created new account');
+                    updateUI();
+                }
+            });
+
+            // Create dialog
+            document.getElementById('create-dialog-btn')?.addEventListener('click', () => {
+                addLogEntry('info', 'Creating new dialog...');
+                // Would dispatch dialog creation action
+                updateUI();
+            });
+
+            // Trigger AI assessment
+            document.getElementById('trigger-assessment-btn')?.addEventListener('click', () => {
+                addLogEntry('info', 'Triggering AI assessment...');
+                // Would dispatch assessment action
+            });
+
+            // Simulate activity
+            document.getElementById('simulate-activity-btn')?.addEventListener('click', () => {
+                addLogEntry('info', 'Simulating user activity...');
+                // Would create multiple actions to simulate activity
+                for (let i = 0; i < 5; i++) {
+                    setTimeout(() => {
+                        actionCount++;
+                        actionTimes.push(Date.now());
+                        updateMetric('action-count', actionCount);
+                        updateMetric('action-rate', calculateActionRate());
+                    }, i * 200);
+                }
+            });
+        }
+
+        // UI Update Functions
+        function updateUI() {
+            if (window.dummyFront?.store) {
+                const state = window.dummyFront.store.getState();
+
+                // Update store metrics
+                const accountCount = Object.keys(state.accounts?.entities || {}).length;
+                const dialogCount = Object.keys(state.dialogs?.entities || {}).length;
+                const activeDialogs = Object.values(state.dialogs?.entities || {})
+                    .filter(dialog => dialog.status === 'active').length;
+
+                updateMetric('account-count', accountCount);
+                updateMetric('dialog-count', dialogCount);
+                updateMetric('active-dialog-count', activeDialogs);
+
+                // Update status indicators
+                setIndicatorStatus('store-indicator', true);
+                updateMetric('store-status', 'Connected');
+            }
+        }
+
+        // Monitor for application readiness
+        function checkApplicationReady() {
+            if (window.dummyFront) {
+                // Application is ready
+                document.getElementById('initialization-status').innerHTML =
+                    '✅ Application ready - Check console for utilities';
+
+                setIndicatorStatus('store-indicator', true);
+                setIndicatorStatus('test-indicator', true);
+
+                updateMetric('store-status', 'Connected');
+                updateMetric('test-data-status', 'Loaded');
+                updateMetric('global-utils-status', 'Available');
+                updateMetric('devtools-status', 'Enabled');
+
+                addLogEntry('info', 'Application initialization complete');
+                addLogEntry('info', 'Global utilities available at window.dummyFront');
+
+                updateUI();
+
+                // Set up periodic UI updates
+                setInterval(updateUI, 2000);
+                setInterval(() => {
+                    updateMetric('action-rate', calculateActionRate());
+                }, 1000);
+            } else {
+                // Still waiting
+                setTimeout(checkApplicationReady, 500);
+            }
+        }
+
+        // Initialize when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            addLogEntry('info', 'DOM loaded, setting up UI...');
+            setupEventHandlers();
+            checkApplicationReady();
+        });
+
+        // Initial log entries
+        addLogEntry('info', 'UI initialized');
+        addLogEntry('info', 'Waiting for application...');
+    </script>
+</body>
+</html>
